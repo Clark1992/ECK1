@@ -1,0 +1,15 @@
+replicaCount: 1
+
+image:
+  repository: myregistry.azurecr.io/commands-api
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 80
+  nodePort: 30080
+
+env:
+  ASPNETCORE_ENVIRONMENT: Development
+  ConnectionStrings__DefaultConnection: "Server=...;Database=CommandsDb;User=sa;Password=12345;"
