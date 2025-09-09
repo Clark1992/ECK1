@@ -11,9 +11,14 @@ var environment = builder.Environment;
 
 builder.Services.AddControllers();
 
-var conventionPack = new ConventionPack { new CamelCaseElementNameConvention(), //new IgnoreExtraElementsConvention(true)
-                                                                                };
+var conventionPack = new ConventionPack { 
+    new CamelCaseElementNameConvention(), 
+    //new IgnoreExtraElementsConvention(true)
+};
 ConventionRegistry.Register("CamelCase", conventionPack, t => true);
+
+BsonDefaults.GuidRepresentationMode = GuidRepresentationMode.V3;
+BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 
 builder.Services.AddSingleton(sp =>
 {

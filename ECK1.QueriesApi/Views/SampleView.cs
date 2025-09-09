@@ -6,9 +6,9 @@ namespace ECK1.QueriesAPI.Views;
 
 public class SampleView
 {
+    [JsonIgnore]
     public ObjectId Id { get; set; }
 
-    [BsonId]
     public Guid SampleId { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
