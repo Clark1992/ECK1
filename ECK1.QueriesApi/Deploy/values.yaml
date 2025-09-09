@@ -1,0 +1,23 @@
+replicaCount: 1
+
+image:
+  repository: myregistry.azurecr.io/queries-api
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 80
+  nodePort: 30180
+
+# If runMongo is true, helm will deploy a MongoDB statefulset/deployment inside the chart
+runMongo: false
+
+mongo:
+  image: mongo:6.0
+  port: 27017
+  persistence: false
+  # pvcSize: 1Gi
+
+env:
+  ASPNETCORE_ENVIRONMENT: Development

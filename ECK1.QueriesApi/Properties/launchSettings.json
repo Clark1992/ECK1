@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "ECK1.QueriesAPI": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "MongoDb__ConnectionString": "mongodb://localhost:32017",
+        "MongoDb__DatabaseName": "eck1-queries"
+      },
+      "applicationUrl": "https://localhost:57506;http://localhost:57507"
+    }
+  }
+}

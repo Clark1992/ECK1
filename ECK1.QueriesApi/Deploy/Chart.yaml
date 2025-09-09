@@ -1,0 +1,5 @@
+apiVersion: v2
+name: eck1-queriesapi
+description: A Helm chart for ECK1 Queries API
+version: 0.1.0
+appVersion: "1.0"

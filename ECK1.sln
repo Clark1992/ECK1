@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECK1.CommandsAPI", "ECK1.Co
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Commands", "Commands", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Queries", "Queries", "{B919021E-587F-4C41-96FB-8DB33F24E037}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECK1.QueriesAPI", "ECK1.QueriesApi\ECK1.QueriesAPI.csproj", "{0EEB243B-E23F-341C-60E6-7276D205B0D4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,12 +21,17 @@ Global
 		{B22711BB-757C-32CF-AC62-7CE275971501}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B22711BB-757C-32CF-AC62-7CE275971501}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B22711BB-757C-32CF-AC62-7CE275971501}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0EEB243B-E23F-341C-60E6-7276D205B0D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0EEB243B-E23F-341C-60E6-7276D205B0D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0EEB243B-E23F-341C-60E6-7276D205B0D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0EEB243B-E23F-341C-60E6-7276D205B0D4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{B22711BB-757C-32CF-AC62-7CE275971501} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{0EEB243B-E23F-341C-60E6-7276D205B0D4} = {B919021E-587F-4C41-96FB-8DB33F24E037}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {789FA419-D9F6-4410-9CDB-09B807B90A7D}

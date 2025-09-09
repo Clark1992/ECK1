@@ -1,0 +1,15 @@
+{{- if .Values.mongo.persistence }}
+  {{- if not .Values.mongo.hostPath }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.mongo.pvcSize }}
+  storageClassName: standard
+  {{- end }}
+{{- end }}

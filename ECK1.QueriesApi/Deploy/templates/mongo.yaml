@@ -1,0 +1,56 @@
+{{ if .Values.runMongo }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}-mongo
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}-mongo
+    spec:
+      containers:
+        - name: mongo
+          image: "{{ .Values.mongo.image }}"
+          ports:
+            - containerPort: {{ .Values.mongo.port }}
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+      volumes:
+{{- if .Values.mongo.persistence }}
+  {{- if .Values.mongo.hostPath }}
+        - name: mongo-data
+          hostPath:
+            path: "{{ .Values.mongo.hostPath }}"
+            type: DirectoryOrCreate
+  {{- else }}
+        - name: mongo-data
+          persistentVolumeClaim:
+            claimName: mongo-pvc
+  {{- end }}
+{{- else }}
+        - name: mongo-data
+          emptyDir: {}
+{{ end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-mongo
+spec:
+  type: NodePort
+  selector:
+    app: {{ .Chart.Name }}-mongo
+  ports:
+    - protocol: TCP
+      port: {{ .Values.mongo.port }}
+      {{- if .Values.mongo.nodePort }}
+      nodePort: {{ .Values.mongo.nodePort }}
+      {{- end }}
+      targetPort: {{ .Values.mongo.port }}
+{{- end }}
