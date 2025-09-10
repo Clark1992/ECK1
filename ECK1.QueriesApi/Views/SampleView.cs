@@ -19,6 +19,7 @@ public class SampleView
 [BsonNoId]
 public class SampleAddressView
 {
+    [JsonIgnore]
     public Guid Id { get; set; }
     public string Street { get; set; }
     public string City { get; set; }
