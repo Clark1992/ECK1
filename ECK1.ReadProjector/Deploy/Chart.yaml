@@ -1,0 +1,5 @@
+apiVersion: v2
+name: eck1-readprojector
+description: A Helm chart for ECK1 Read Projector
+version: 0.1.0
+appVersion: "1.0"

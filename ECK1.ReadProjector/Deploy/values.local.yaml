@@ -1,0 +1,12 @@
+replicaCount: 1
+
+image:
+  repository: localhost:5000/read-projector
+  tag: dev
+  pullPolicy: IfNotPresent
+
+mongo:
+  port: 27017
+
+env:
+  ASPNETCORE_ENVIRONMENT: Development

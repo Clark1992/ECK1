@@ -1,0 +1,12 @@
+replicaCount: 1
+
+image:
+  repository: myregistry.azurecr.io/read-projector
+  tag: latest
+  pullPolicy: IfNotPresent
+
+mongo:
+  port: 27017
+
+env:
+  ASPNETCORE_ENVIRONMENT: Development
