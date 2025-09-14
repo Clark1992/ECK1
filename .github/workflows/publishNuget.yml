@@ -24,7 +24,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y xmlstarlet jq libxml2-utils
 
       - name: Update version and repository url
-        run: bash .github/scripts/update-version.sh
+        run: bash .github/scripts/update-version.sh ECK1.Contracts/ECK1.Contracts.csproj
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}

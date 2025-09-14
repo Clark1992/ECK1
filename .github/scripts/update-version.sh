@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Find the first .csproj file in the repository
-CSproj=$(ls **/*.csproj | head -n1)
+# Exit if no argument provided
+if [ $# -lt 1 ]; then
+  echo "Usage: $0 path/to/Project.csproj" >&2
+  exit 1
+fi
+
+# Take the first argument as the csproj path
+CSproj="$1"
 
 # Extract PackageId and base version (Major.Minor) from csproj
 PACKAGE_ID=$(xmllint --xpath "string(//Project/PropertyGroup/PackageId)" "$CSproj")
