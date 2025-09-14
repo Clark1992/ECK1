@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'src/MyCoolLib/**'
+      - 'ECK1.Contracts/**'
       - '.github/workflows/publishNuget.yml'
 
 jobs:
@@ -32,15 +32,19 @@ jobs:
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
 
       - name: Restore
+        working-directory: ECK1.Contracts
         run: dotnet restore
 
       - name: Build
+        working-directory: ECK1.Contracts
         run: dotnet build --configuration Release --no-restore
 
       - name: Pack
+        working-directory: ECK1.Contracts
         run: dotnet pack --configuration Release --no-build -o ./artifacts
 
       - name: Push to GitHub Packages
+        working-directory: ECK1.Contracts
         run: dotnet nuget push ./artifacts/*.nupkg \
           --source "github" \
           --api-key ${{ secrets.GITHUB_TOKEN }}
