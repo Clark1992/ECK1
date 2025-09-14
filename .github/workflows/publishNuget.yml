@@ -1,0 +1,46 @@
+name: Publish NuGet
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'src/MyCoolLib/**'
+      - '.github/workflows/publishNuget.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y xmlstarlet jq libxml2-utils
+
+      - name: Update version and repository url
+        run: bash .github/scripts/update-version.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Pack
+        run: dotnet pack --configuration Release --no-build -o ./artifacts
+
+      - name: Push to GitHub Packages
+        run: dotnet nuget push ./artifacts/*.nupkg \
+          --source "github" \
+          --api-key ${{ secrets.GITHUB_TOKEN }}
