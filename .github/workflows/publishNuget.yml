@@ -7,6 +7,10 @@ on:
       - 'ECK1.Contracts/**'
       - '.github/workflows/publishNuget.yml'
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   nuget-publish:
     runs-on: ubuntu-latest
