@@ -8,7 +8,7 @@ on:
       - '.github/workflows/publishNuget.yml'
 
 jobs:
-  build:
+  nuget-publish:
     runs-on: ubuntu-latest
 
     steps:
