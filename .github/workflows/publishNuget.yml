@@ -45,6 +45,7 @@ jobs:
 
       - name: Push to GitHub Packages
         working-directory: ECK1.Contracts
-        run: dotnet nuget push ./artifacts/*.nupkg \
-          --source "github" \
-          --api-key ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          dotnet nuget push ./artifacts/*.nupkg \
+            --source github \
+            --api-key ${{ secrets.GITHUB_TOKEN }}
