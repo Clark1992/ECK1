@@ -1,7 +1,7 @@
 using ECK1.CommandsAPI.Domain.Samples;
 using System.Text.Json;
 
-namespace ECK1.CommandsAPI.Models;
+namespace ECK1.CommandsAPI.Data.Models;
 public class SampleEventEntity
 {
     public Guid EventId { get; set; }

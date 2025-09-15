@@ -1,5 +1,5 @@
+using ECK1.CommandsAPI.Data.Models;
 using ECK1.CommandsAPI.Domain;
-using ECK1.CommandsAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECK1.CommandsAPI.Data;

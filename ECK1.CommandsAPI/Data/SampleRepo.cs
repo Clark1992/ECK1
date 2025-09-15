@@ -1,5 +1,5 @@
-﻿using ECK1.CommandsAPI.Domain.Samples;
-using ECK1.CommandsAPI.Models;
+﻿using ECK1.CommandsAPI.Data.Models;
+using ECK1.CommandsAPI.Domain.Samples;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
@@ -20,7 +20,7 @@ public class SampleRepo : ISampleRepo
     public SampleRepo(CommandsDbContext db, IOptionsSnapshot<EventsStoreConfig> config)
     {
         _db = db;
-        _snapshotInterval = config.Value.SnapshotInterval; // e.g., 100
+        _snapshotInterval = config.Value.SnapshotInterval;
     }
 
     public async Task<List<Guid>> SaveAsync(Sample aggregate, CancellationToken ct)

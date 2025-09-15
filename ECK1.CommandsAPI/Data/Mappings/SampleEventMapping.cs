@@ -1,4 +1,4 @@
-﻿using ECK1.CommandsAPI.Models;
+﻿using ECK1.CommandsAPI.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

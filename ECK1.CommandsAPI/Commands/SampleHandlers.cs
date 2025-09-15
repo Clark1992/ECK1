@@ -1,4 +1,5 @@
-﻿using ECK1.CommandsAPI.Data;
+﻿using AutoMapper;
+using ECK1.CommandsAPI.Data;
 using ECK1.CommandsAPI.Domain.Samples;
 using MediatR;
 
@@ -13,77 +14,89 @@ public class SampleCommandHandlers :
     IRequestHandler<RemoveSampleAttachmentCommand, ICommandResult>,
     IRequestHandler<UpdateSampleAttachmentCommand, ICommandResult>
 {
-    private readonly SampleRepo _repo;
+    private readonly SampleRepo repo;
+    private readonly IMediator mediator;
 
-    public SampleCommandHandlers(SampleRepo repo)
+    public SampleCommandHandlers(SampleRepo repo, IMediator mediator)
     {
-        _repo = repo;
+        this.repo = repo;
+        this.mediator = mediator;
     }
 
     public async Task<ICommandResult> Handle(CreateSampleCommand command, CancellationToken ct)
     {
         var sample = Sample.Create(command.Name, command.Description, command.Address);
-        var eventIds = await _repo.SaveAsync(sample, ct);
-        return new Success(sample.Id, eventIds);
+
+        return await SaveAndNotify(sample, ct);
     }
 
     public async Task<ICommandResult> Handle(ChangeSampleNameCommand command, CancellationToken ct)
     {
-        var sample = await _repo.LoadAsync(command.Id, ct);
+        var sample = await repo.LoadAsync(command.Id, ct);
         if (sample == null) return new NotFound();
 
         sample.ChangeName(command.NewName);
-        var eventIds = await _repo.SaveAsync(sample, ct);
-        return new Success(sample.Id, eventIds);
+
+        return await SaveAndNotify(sample, ct);
     }
 
     public async Task<ICommandResult> Handle(ChangeSampleDescriptionCommand command, CancellationToken ct)
     {
-        var sample = await _repo.LoadAsync(command.Id, ct);
+        var sample = await repo.LoadAsync(command.Id, ct);
         if (sample == null) return new NotFound();
 
         sample.ChangeDescription(command.NewDescription);
-        var eventIds = await _repo.SaveAsync(sample, ct);
-        return new Success(sample.Id, eventIds);
+
+        return await SaveAndNotify(sample, ct);
     }
 
     public async Task<ICommandResult> Handle(ChangeSampleAddressCommand command, CancellationToken ct)
     {
-        var sample = await _repo.LoadAsync(command.Id, ct);
+        var sample = await repo.LoadAsync(command.Id, ct);
         if (sample == null) return new NotFound();
 
         sample.ChangeAddress(command.NewAddress);
-        var eventIds = await _repo.SaveAsync(sample, ct);
-        return new Success(sample.Id, eventIds);
+
+        return await SaveAndNotify(sample, ct);
     }
 
     public async Task<ICommandResult> Handle(AddSampleAttachmentCommand command, CancellationToken ct)
     {
-        var sample = await _repo.LoadAsync(command.Id, ct);
+        var sample = await repo.LoadAsync(command.Id, ct);
         if (sample == null) return new NotFound();
 
         sample.AddAttachment(command.Attachment);
-        var eventIds = await _repo.SaveAsync(sample, ct);
-        return new Success(sample.Id, eventIds);
+
+        return await SaveAndNotify(sample, ct);
     }
 
     public async Task<ICommandResult> Handle(RemoveSampleAttachmentCommand command, CancellationToken ct)
     {
-        var sample = await _repo.LoadAsync(command.Id, ct);
+        var sample = await repo.LoadAsync(command.Id, ct);
         if (sample == null) return new NotFound();
 
         sample.RemoveAttachment(command.AttachmentId);
-        var eventIds = await _repo.SaveAsync(sample, ct);
-        return new Success(sample.Id, eventIds);
+
+        return await SaveAndNotify(sample, ct);
     }
 
     public async Task<ICommandResult> Handle(UpdateSampleAttachmentCommand command, CancellationToken ct)
     {
-        var sample = await _repo.LoadAsync(command.Id, ct);
+        var sample = await repo.LoadAsync(command.Id, ct);
         if (sample == null) return new NotFound();
 
         sample.UpdateAttachment(command.AttachmentId, command.NewFileName, command.NewUrl);
-        var eventIds = await _repo.SaveAsync(sample, ct);
+
+        return await SaveAndNotify(sample, ct);
+    }
+
+    private async Task<ICommandResult> SaveAndNotify(Sample sample, CancellationToken ct)
+    {
+        List<ISampleEvent> events = [.. sample.UncommittedEvents];
+        var eventIds = await repo.SaveAsync(sample, ct);
+
+        events.ForEach(e => mediator.Publish(new EventNotification<ISampleEvent>(e), ct));
+
         return new Success(sample.Id, eventIds);
     }
 }

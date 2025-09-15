@@ -23,6 +23,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddLogging();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
+
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 builder.Services.Configure<EventsStoreConfig>(
     builder.Configuration.GetSection(nameof(EventsStoreConfig))
@@ -83,5 +85,6 @@ app.UseSwaggerUI(c =>
 app.MapControllers();
 
 AggregateHandlerBootstrapper.Initialize(typeof(Program).Assembly);
+IntegrationHandlerBootstrapper.Initialize(typeof(Program).Assembly);
 
 app.Run();

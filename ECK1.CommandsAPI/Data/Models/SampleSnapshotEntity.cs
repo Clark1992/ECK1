@@ -1,4 +1,4 @@
-﻿namespace ECK1.CommandsAPI.Models;
+﻿namespace ECK1.CommandsAPI.Data.Models;
 
 public class SampleSnapshotEntity
 {

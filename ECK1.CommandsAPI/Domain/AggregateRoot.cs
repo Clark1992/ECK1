@@ -1,7 +1,51 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
+using System.Text.Json.Serialization;
 
 namespace ECK1.CommandsAPI.Domain;
+
+public abstract class AggregateRoot<TEvent> : AggregateRootHandler<TEvent>
+{
+    private readonly List<TEvent> _uncommittedEvents = new();
+
+    public Guid Id { get; protected set; } = Guid.NewGuid();
+    public int Version { get; protected set; } = 0;
+
+    [JsonIgnore]
+    public IReadOnlyCollection<TEvent> UncommittedEvents => _uncommittedEvents.AsReadOnly();
+
+    protected void ApplyChange(TEvent @event)
+    {
+        Apply(@event);
+        _uncommittedEvents.Add(@event);
+    }
+
+    public TAggregate ReplayHistory<TAggregate>(IEnumerable<TEvent> history)
+        where TAggregate : AggregateRoot<TEvent>
+    {
+        foreach (var e in history)
+        {
+            this.Apply(e);
+            this.Version++;
+        }
+
+        return this as TAggregate;
+    }
+
+    public void MarkEventsAsCommitted() => _uncommittedEvents.Clear();
+
+    public static TAggregate FromHistory<TAggregate>(IEnumerable<TEvent> history)
+        where TAggregate : AggregateRoot<TEvent>
+    {
+        var aggregate = AggregateFactory<TAggregate, TEvent>.Create();
+        foreach (var e in history)
+        {
+            aggregate.Apply(e);
+            aggregate.Version++;
+        }
+        return aggregate;
+    }
+}
 
 public abstract class AggregateRootHandler<TEvent>
 {
@@ -19,7 +63,7 @@ public abstract class AggregateRootHandler<TEvent>
             var methods = type.GetMethods(
                 BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Public);
 
-            foreach (var method in methods.Where(m => m.Name == "Apply"))
+            foreach (var method in methods.Where(m => m.Name == nameof(Apply)))
             {
                 var parameters = method.GetParameters();
                 if (parameters.Length == 2 &&
@@ -57,49 +101,6 @@ public abstract class AggregateRootHandler<TEvent>
             throw new InvalidOperationException(
                 $"No Apply method found for {@event.GetType().Name}");
         }
-    }
-}
-
-
-public abstract class AggregateRoot<TEvent> : AggregateRootHandler<TEvent>
-{
-    private readonly List<TEvent> _uncommittedEvents = new();
-
-    public Guid Id { get; protected set; } = Guid.NewGuid();
-    public int Version { get; protected set; } = 0;
-
-    public IReadOnlyCollection<TEvent> UncommittedEvents => _uncommittedEvents.AsReadOnly();
-
-    protected void ApplyChange(TEvent @event)
-    {
-        Apply(@event);
-        _uncommittedEvents.Add(@event);
-    }
-
-    public TAggregate ReplayHistory<TAggregate>(IEnumerable<TEvent> history)
-        where TAggregate : AggregateRoot<TEvent>
-    {
-        foreach (var e in history)
-        {
-            this.Apply(e);
-            this.Version++;
-        }
-
-        return this as TAggregate;
-    }
-
-    public void MarkEventsAsCommitted() => _uncommittedEvents.Clear();
-
-    public static TAggregate FromHistory<TAggregate>(IEnumerable<TEvent> history)
-        where TAggregate : AggregateRoot<TEvent>
-    {
-        var aggregate = AggregateFactory<TAggregate, TEvent>.Create();
-        foreach (var e in history)
-        {
-            aggregate.Apply(e);
-            aggregate.Version++;
-        }
-        return aggregate;
     }
 }
 
