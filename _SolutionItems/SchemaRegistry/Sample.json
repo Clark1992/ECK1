@@ -1,0 +1,175 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ISampleEvent",
+  "type": "object",
+  "discriminator": {
+    "propertyName": "$type",
+    "mapping": {
+      "SampleCreatedEvent": "#/definitions/SampleCreatedEvent",
+      "SampleNameChangedEvent": "#/definitions/SampleNameChangedEvent",
+      "SampleDescriptionChangedEvent": "#/definitions/SampleDescriptionChangedEvent",
+      "SampleAddressChangedEvent": "#/definitions/SampleAddressChangedEvent",
+      "SampleAttachmentAddedEvent": "#/definitions/SampleAttachmentAddedEvent",
+      "SampleAttachmentRemovedEvent": "#/definitions/SampleAttachmentRemovedEvent",
+      "SampleAttachmentUpdatedEvent": "#/definitions/SampleAttachmentUpdatedEvent"
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/definitions/SampleCreatedEvent" },
+    { "$ref": "#/definitions/SampleNameChangedEvent" },
+    { "$ref": "#/definitions/SampleDescriptionChangedEvent" },
+    { "$ref": "#/definitions/SampleAddressChangedEvent" },
+    { "$ref": "#/definitions/SampleAttachmentAddedEvent" },
+    { "$ref": "#/definitions/SampleAttachmentRemovedEvent" },
+    { "$ref": "#/definitions/SampleAttachmentUpdatedEvent" }
+  ],
+  "definitions": {
+    "SampleCreatedEvent": {
+      "type": "object",
+      "properties": {
+        "$type": { "const": "SampleCreatedEvent" },
+        "SampleId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "OccurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "Name": { "type": "string" },
+        "Description": { "type": "string" },
+        "Address": { "$ref": "#/definitions/SampleAddress" }
+      },
+      "required": [ "$type", "SampleId", "OccurredAt", "Name", "Description", "Address" ]
+    },
+    "SampleNameChangedEvent": {
+      "type": "object",
+      "properties": {
+        "$type": { "const": "SampleNameChangedEvent" },
+        "SampleId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "OccurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "NewName": { "type": "string" }
+      },
+      "required": [ "$type", "SampleId", "OccurredAt", "NewName" ]
+    },
+    "SampleDescriptionChangedEvent": {
+      "type": "object",
+      "properties": {
+        "$type": { "const": "SampleDescriptionChangedEvent" },
+        "SampleId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "OccurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "NewDescription": { "type": "string" }
+      },
+      "required": [ "$type", "SampleId", "OccurredAt", "NewDescription" ]
+    },
+    "SampleAddressChangedEvent": {
+      "type": "object",
+      "properties": {
+        "$type": { "const": "SampleAddressChangedEvent" },
+        "SampleId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "OccurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "NewAddress": { "$ref": "#/definitions/SampleAddress" }
+      },
+      "required": [ "$type", "SampleId", "OccurredAt", "NewAddress" ]
+    },
+    "SampleAttachmentAddedEvent": {
+      "type": "object",
+      "properties": {
+        "$type": { "const": "SampleAttachmentAddedEvent" },
+        "SampleId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "OccurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "Attachment": { "$ref": "#/definitions/SampleAttachment" }
+      },
+      "required": [ "$type", "SampleId", "OccurredAt", "Attachment" ]
+    },
+    "SampleAttachmentRemovedEvent": {
+      "type": "object",
+      "properties": {
+        "$type": { "const": "SampleAttachmentRemovedEvent" },
+        "SampleId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "OccurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "AttachmentId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [ "$type", "SampleId", "OccurredAt", "AttachmentId" ]
+    },
+    "SampleAttachmentUpdatedEvent": {
+      "type": "object",
+      "properties": {
+        "$type": { "const": "SampleAttachmentUpdatedEvent" },
+        "SampleId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "OccurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "AttachmentId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "NewFileName": { "type": "string" },
+        "NewUrl": { "type": "string" }
+      },
+      "required": [ "$type", "SampleId", "OccurredAt", "AttachmentId", "NewFileName", "NewUrl" ]
+    },
+    "SampleAddress": {
+      "type": "object",
+      "properties": {
+        "Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "Street": { "type": "string" },
+        "City": { "type": "string" },
+        "Country": { "type": "string" }
+      },
+      "required": [ "Id", "Street", "City", "Country" ]
+    },
+    "SampleAttachment": {
+      "type": "object",
+      "properties": {
+        "Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "FileName": { "type": "string" },
+        "Url": { "type": "string" }
+      },
+      "required": [ "Id", "FileName", "Url" ]
+    }
+  }
+}

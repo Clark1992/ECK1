@@ -1,28 +1,44 @@
 ﻿using AutoMapper;
 using ECK1.CommandsAPI.Domain.Samples;
+using ECK1.Kafka;
 using MediatR;
-
-using EventContracts = ECK1.Contracts.BusinessEvents.Sample;
 using static ECK1.CommandsAPI.Utils.TypeUtils;
+using EventContracts = ECK1.Contracts.BusinessEvents.Sample;
 
 namespace ECK1.CommandsAPI.Commands;
 
 public record EventNotification<TEvent>(TEvent Event) : INotification;
 
-public class IntegrationKafkaSender(IMapper mapper) : IntegrationBase<ISampleEvent, EventContracts.ISampleEvent>(mapper)
-{ }
+public class SampleIntegrationKafkaSender(IMapper mapper) :
+    IntegrationBase<ISampleEvent, EventContracts.ISampleEvent>(mapper)
+{
+    protected override string Key(EventContracts.ISampleEvent @event) => @event.SampleId.ToString();
+}
 
-public abstract class IntegrationBase<TDomainEvent, TContractEvent>(IMapper mapper) : 
+public abstract class IntegrationBase<TDomainEvent, TContractEvent> :
     IntegrationBootstrapper<TDomainEvent, TContractEvent>, 
     INotificationHandler<EventNotification<TDomainEvent>>
+    where TContractEvent : class
 {
+    private readonly IKafkaTopicProducer<TContractEvent> producer;
+    private readonly IMapper mapper;
+
+    protected IntegrationBase(IMapper mapper)
+    {
+        this.mapper = mapper;
+    }
+
+    protected abstract string Key(TContractEvent @event);
+
     public async override Task Handle(EventNotification<TDomainEvent> notification, CancellationToken ct)
     {
         var domainEventType = notification.Event.GetType();
         if (eventMapping.TryGetValue(domainEventType, out var contractType))
         {
-            var eventKafkaMessage = mapper.Map(notification.Event, domainEventType, contractType);
-            // send to kafka
+            var eventKafkaMessage = mapper.Map(notification.Event, domainEventType, contractType) as TContractEvent
+                ?? throw new InvalidOperationException("Couldnt cast event to contract type");
+            
+            await SendAsync(eventKafkaMessage, ct);
         }
         else
         {
@@ -30,6 +46,8 @@ public abstract class IntegrationBase<TDomainEvent, TContractEvent>(IMapper mapp
                 $"No Event mapping found for {domainEventType.Name}");
         }
     }
+
+    public Task SendAsync(TContractEvent @event, CancellationToken ct) => producer.ProduceAsync(@event, Key(@event), ct);
 }
 
 public abstract class IntegrationBootstrapper<TDomainEvent, TContractEvent>

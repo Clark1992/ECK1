@@ -1,13 +1,27 @@
-﻿using DbUp;
+﻿using Confluent.Kafka;
+using Confluent.SchemaRegistry;
+using DbUp;
 using ECK1.CommandsAPI;
 using ECK1.CommandsAPI.Data;
 using ECK1.CommandsAPI.Startup;
+using ECK1.Kafka.Extensions;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
+#if DEBUG
+builder.Configuration.AddUserSecrets<Program>();
+#endif
+
+builder.Configuration.AddDopplerSecrets();
+
 var configuration = builder.Configuration;
 var environment = builder.Environment;
+
+var kafkaSettings = builder.Configuration
+    .GetSection(KafkaSettings.Section)
+    .Get<KafkaSettings>();
 
 builder.Services.AddControllers();
 
@@ -30,6 +44,16 @@ builder.Services.Configure<EventsStoreConfig>(
     builder.Configuration.GetSection(nameof(EventsStoreConfig))
 );
 builder.Services.AddScoped<SampleRepo>();
+
+builder.Services
+    .AddKafkaRoot(kafkaSettings.BootstrapServers,
+    c =>
+    {
+        c.Acks = Acks.Leader;
+        c.WithAuth(kafkaSettings.User, kafkaSettings.Secret);
+    })
+    .WithJSONSerializer(kafkaSettings.SchemaRegistryUrl,
+        c => c.WithAuth(kafkaSettings.User, kafkaSettings.Secret));
 
 var app = builder.Build();
 
