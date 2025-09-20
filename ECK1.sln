@@ -30,6 +30,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Kafka", "Kafka", "{BF2F7A2A-E4EE-4318-B360-8D88C306326D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_SolutionItems", "_SolutionItems", "{735BBD5B-1AAB-4FC7-96E7-42F8179B0EDE}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Packages.props = Directory.Packages.props
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SchemaRegistry", "SchemaRegistry", "{1A658CEF-6EA8-4FEA-B715-08DEE8C96E13}"
 EndProject
