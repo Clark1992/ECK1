@@ -3,6 +3,13 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
+
+    <PackageId>ECK1.Kafka</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Random</Authors>
+    <Company>Random</Company>
+    <Description>ECK1 Kafka</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
     <ItemGroup>

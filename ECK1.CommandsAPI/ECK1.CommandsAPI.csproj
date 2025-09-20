@@ -27,8 +27,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ECK1.CommonUtils\ECK1.CommonUtils.csproj" />
-    <ProjectReference Include="..\ECK1.Kafka\ECK1.Kafka.csproj" />
+    <ProjectReference Include="..\Nuget\ECK1.CommonUtils\ECK1.CommonUtils.csproj" />
+    <ProjectReference Include="..\Nuget\ECK1.Kafka\ECK1.Kafka.csproj" />
   </ItemGroup>
 
 </Project>

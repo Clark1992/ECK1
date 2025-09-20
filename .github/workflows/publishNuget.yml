@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'ECK1.Contracts/**'
+      - 'Nuget/**'
       - '.github/workflows/publishNuget.yml'
 
 permissions:
@@ -28,7 +28,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y xmlstarlet jq libxml2-utils
 
       - name: Update version and repository url
-        run: bash .github/scripts/update-version.sh ECK1.Contracts/ECK1.Contracts.csproj
+        run: bash .github/scripts/update-version.sh Nuget/ECK1.Contracts/ECK1.Contracts.csproj
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
@@ -36,19 +36,19 @@ jobs:
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
 
       - name: Restore
-        working-directory: ECK1.Contracts
+        working-directory: Nuget/ECK1.Contracts
         run: dotnet restore
 
       - name: Build
-        working-directory: ECK1.Contracts
+        working-directory: Nuget/ECK1.Contracts
         run: dotnet build --configuration Release --no-restore
 
       - name: Pack
-        working-directory: ECK1.Contracts
+        working-directory: Nuget/ECK1.Contracts
         run: dotnet pack --configuration Release --no-build -o ./artifacts
 
       - name: Push to GitHub Packages
-        working-directory: ECK1.Contracts
+        working-directory: Nuget/ECK1.Contracts
         run: |
           dotnet nuget push ./artifacts/*.nupkg \
             --source github \
