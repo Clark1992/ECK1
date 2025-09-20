@@ -32,7 +32,7 @@ SOURCE=$(curl -s -u "$GITHUB_ACTOR:$GITHUB_TOKEN" "$URL" \
   | jq -r '.resources[] | select(.["@type"]=="PackageBaseAddress/3.0.0") | .["@id"]')
 
 # Fetch versions of the package (if it already exists)
-STATUS=$(curl -s -o versions.json -w "%{http_code}" -u "$GITHUB_ACTOR:$GITHUB_TOKEN" "$SOURCE$PACKAGE_ID/index.json")
+STATUS=$(curl -s -o versions.json -w "%{http_code}" -u "$GITHUB_ACTOR:$GITHUB_TOKEN" "$SOURCE/$PACKAGE_ID/index.json")
 
 echo "$SOURCE$PACKAGE_ID/index.json"
 cat versions.json
