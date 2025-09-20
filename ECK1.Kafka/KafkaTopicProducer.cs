@@ -1,7 +1,6 @@
 ﻿using Confluent.Kafka;
 using Confluent.SchemaRegistry;
 using Confluent.SchemaRegistry.Serdes;
-using NJsonSchema.Generation;
 using System.Text.Json;
 
 namespace ECK1.Kafka;
