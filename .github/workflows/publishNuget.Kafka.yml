@@ -1,0 +1,16 @@
+name: Publish ECK1.Kafka
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'Nuget/ECK1.Kafka/**'
+      - '.github/workflows/publishNuget.Kafka.yml'
+      - '.github/workflows/publishNuget.yml'
+
+jobs:
+  publish:
+    uses: ./.github/workflows/publishNuget.yml
+    with:
+      project_path: 'Nuget/ECK1.Kafka'
+      csproj_file: 'ECK1.Kafka.csproj'

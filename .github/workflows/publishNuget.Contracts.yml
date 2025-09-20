@@ -1,0 +1,16 @@
+name: Publish ECK1.Contracts
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'Nuget/ECK1.Contracts/**'
+      - '.github/workflows/publishNuget.Contracts.yml'
+      - '.github/workflows/publishNuget.yml'
+
+jobs:
+  publish:
+    uses: ./.github/workflows/publishNuget.yml
+    with:
+      project_path: 'Nuget/ECK1.Contracts'
+      csproj_file: 'ECK1.Contracts.csproj'

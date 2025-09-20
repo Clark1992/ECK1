@@ -1,0 +1,16 @@
+name: Publish ECK1.CommonUtils
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'Nuget/ECK1.CommonUtils/**'
+      - '.github/workflows/publishNuget.CommonUtils.yml'
+      - '.github/workflows/publishNuget.yml'
+
+jobs:
+  publish:
+    uses: ./.github/workflows/publishNuget.yml
+    with:
+      project_path: 'Nuget/ECK1.CommonUtils'
+      csproj_file: 'ECK1.CommonUtils.csproj'
