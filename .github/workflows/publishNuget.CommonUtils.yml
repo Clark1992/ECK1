@@ -7,6 +7,7 @@ on:
       - 'Nuget/ECK1.CommonUtils/**'
       - '.github/workflows/publishNuget.CommonUtils.yml'
       - '.github/workflows/publishNuget.yml'
+      - '.github/scripts/update-version.sh'
 
 permissions:
   contents: read

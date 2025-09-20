@@ -34,9 +34,6 @@ SOURCE=$(curl -s -u "$GITHUB_ACTOR:$GITHUB_TOKEN" "$URL" \
 # Fetch versions of the package (if it already exists)
 STATUS=$(curl -s -o versions.json -w "%{http_code}" -u "$GITHUB_ACTOR:$GITHUB_TOKEN" "$SOURCE/$PACKAGE_ID/index.json")
 
-echo "$SOURCE/$PACKAGE_ID/index.json"
-cat "versions.json"
-
 if [[ "$STATUS" == "404" ]]; then
   # Package does not exist yet → create empty version list
   echo '{"versions":[]}' > versions.json
