@@ -34,6 +34,9 @@ SOURCE=$(curl -s -u "$GITHUB_ACTOR:$GITHUB_TOKEN" "$URL" \
 # Fetch versions of the package (if it already exists)
 STATUS=$(curl -s -o versions.json -w "%{http_code}" -u "$GITHUB_ACTOR:$GITHUB_TOKEN" "$SOURCE$PACKAGE_ID/index.json")
 
+echo "$SOURCE$PACKAGE_ID/index.json"
+cat versions.json
+
 if [[ "$STATUS" == "404" ]]; then
   # Package does not exist yet → create empty version list
   echo '{"versions":[]}' > versions.json
@@ -44,16 +47,17 @@ elif [[ "$STATUS" != "200" ]]; then
 fi
 
 # Determine the new patch version
+LAST=$(jq -r '.versions[]' versions.json | sort -V | tail -n 1)
+
 PATCH=0
-if jq -e ".versions | length > 0" versions.json >/dev/null; then
-  LAST=$(jq -r ".versions[-1]" versions.json)
+if [[ -n "$LAST" && "$LAST" != "null" ]]; then
   LAST_BASE=$(echo "$LAST" | cut -d'.' -f1,2)
   LAST_PATCH=$(echo "$LAST" | cut -d'.' -f3)
 
   if [[ "$LAST_BASE" == "$BASE_VERSION" ]]; then
     # Same base → bump patch
     PATCH=$((LAST_PATCH+1))
-  elif [[ "$LAST_BASE" < "$BASE_VERSION" ]]; then
+  elif [[ "$(printf '%s\n' "$LAST_BASE" "$BASE_VERSION" | sort -V | tail -n1)" == "$BASE_VERSION" ]]; then
     # Local base is greater → start with patch=0
     PATCH=0
   else
