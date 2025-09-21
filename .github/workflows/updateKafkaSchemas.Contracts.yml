@@ -9,7 +9,7 @@ on:
     branches: [ "main" ]
     paths:
       - '.github/workflows/updateKafkaSchemas.Contracts.yml'
-      - '.github/workflows/kafka-schema/runGenerator.yml'
+      - '.github/workflows/runGenerator.yml'
       - '.github/scripts/update-sln.ps1'
 
 jobs:
