@@ -61,7 +61,7 @@ jobs:
 
   generate-schemas:
     needs: prepare
-    uses: ./.github/workflows/kafka-schema/runGenerator.yml
+    uses: ./.github/workflows/runGenerator.yml
     with:
       assembly-path: ${{ needs.prepare.outputs.assembly-path }}
 
