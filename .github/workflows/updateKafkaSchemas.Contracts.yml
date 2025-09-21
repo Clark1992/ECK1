@@ -27,32 +27,35 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Install NuGet CLI
-        run: dotnet tool install --global NuGet.CommandLine
-
       - name: Download latest NuGet package
         id: get-assembly-path
         shell: bash
         run: |
-          nuget install ECK1.Contracts \
-            -Source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
-            -OutputDirectory packages -Verbosity detailed \
-            -ConfigFile <(echo '<configuration>
-              <packageSources>
-                <add key="github" value="https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" />
-              </packageSources>
-              <packageSourceCredentials>
-                <github>
-                  <add key="Username" value="${{ github.actor }}" />
-                  <add key="ClearTextPassword" value="${{ secrets.GITHUB_TOKEN }}" />
-                </github>
-              </packageSourceCredentials>
-              </configuration>')
+          mkdir -p packages
+          DOTNET_GH_NUGET_SOURCE="https://nuget.pkg.github.com/${GITHUB_REPOSITORY_OWNER}/index.json"
+
+          # tmp NuGet.config
+          cat > NuGet.config <<EOF
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <packageSources>
+              <add key="github" value="$DOTNET_GH_NUGET_SOURCE" />
+            </packageSources>
+            <packageSourceCredentials>
+              <github>
+                <add key="Username" value="${GITHUB_ACTOR}" />
+                <add key="ClearTextPassword" value="${GITHUB_TOKEN}" />
+              </github>
+            </packageSourceCredentials>
+          </configuration>
+          EOF
+
+          dotnet add package ECK1.Contracts --package-directory packages --version * || true
 
           DLL_PATH=$(find packages -name "ECK1.Contracts.dll" | head -n 1)
-          echo "::set-output name=assembly-path::$DLL_PATH"
+          echo "assembly-path=$DLL_PATH" >> $GITHUB_OUTPUT
 
-      - name: Backup current schemas
+      - name: Move current schemas
         run: |
           mkdir -p /tmp/schema-backup
           if [ -d "_SolutionItems/SchemaRegistry" ]; then
