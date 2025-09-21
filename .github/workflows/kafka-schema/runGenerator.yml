@@ -1,0 +1,29 @@
+name: Run Generator
+
+on:
+  workflow_call:
+    inputs:
+        assemblyPath:
+          required: true
+          type: string
+
+jobs:
+  generate-schemas:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        schema:
+          - typeName: "ECK1.Contracts.Kafka.BusinessEvents.Sample.ISampleEvent"
+            currentLatestSchemaPath: "/tmp/schema-backup1/BusinessEvents/Sample"
+            format: "json"
+            outputPath: "_SolutionItems/SchemaRegistry/BusinessEvents/Sample"
+    
+    steps:
+      - name: Run generator
+        uses: ${{ github.repository_owner }}/kafka-schema-generator/.github/actions/evolve-schema@stable
+        with:
+          assembly-path: ${{ inputs.assemblyPath }}
+          type-name: ${{ matrix.schema.typeName }}
+          current-latest-schema-path: ${{ matrix.schema.currentLatestSchemaPath }}
+          format: ${{ matrix.schema.format }}
+          output-path: ${{ matrix.schema.outputPath }}

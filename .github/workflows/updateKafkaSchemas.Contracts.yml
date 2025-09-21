@@ -1,0 +1,92 @@
+name: Upload Schemas
+
+on:
+  workflow_run:
+    workflows: ["Publish ECK1.Contracts"] 
+    types:
+      - completed
+    # if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+jobs:
+  prepare:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Install NuGet CLI
+        run: dotnet tool install --global NuGet.CommandLine
+
+      - name: Download latest NuGet package
+        shell: bash
+        run: |
+          nuget install ECK1.Contracts \
+            -Source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+            -OutputDirectory packages -Verbosity detailed \
+            -ConfigFile <(echo '<configuration>
+              <packageSources>
+                <add key="github" value="https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" />
+              </packageSources>
+              <packageSourceCredentials>
+                <github>
+                  <add key="Username" value="${{ github.actor }}" />
+                  <add key="ClearTextPassword" value="${{ secrets.GITHUB_TOKEN }}" />
+                </github>
+              </packageSourceCredentials>
+              </configuration>')
+
+          DLL_PATH=$(find packages -name "ECK1.Contracts.dll" | head -n 1)
+          echo "ASSEMBLY_PATH=$DLL_PATH" >> $GITHUB_ENV
+
+      - name: Backup current schemas
+        run: |
+          mkdir -p /tmp/schema-backup
+          if [ -d "_SolutionItems/SchemaRegistry" ]; then
+            mv _SolutionItems/SchemaRegistry/* /tmp/schema-backup/
+          fi
+
+  generate-schemas:
+    needs: prepare
+    uses: ./.github/workflows/kafka-schema/runGenerator.yml
+    with:
+      assembly-path: ${{ env.ASSEMBLY_PATH }}
+
+  commit:
+    needs: generate-schemas
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update solution with generated files
+        run: |
+          chmod +x .github/scripts/update-sln.sh
+          .github/scripts/update-sln.sh ECK1.sln _SolutionItems/SchemaRegistry
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git diff --staged --quiet || git commit -m "Update kafka schemas"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # - name: Upload schemas to Kafka Schema Registry
+      #   env:
+      #     SCHEMA_REGISTRY_URL: ${{ secrets.SCHEMA_REGISTRY_URL }}
+      #     SCHEMA_REGISTRY_USER: ${{ secrets.SCHEMA_REGISTRY_USER }}
+      #     SCHEMA_REGISTRY_PASS: ${{ secrets.SCHEMA_REGISTRY_PASS }}
+      #   run: |
+      #     for f in _SolutionItems/SchemaRegistry/*; do
+      #       echo "Uploading $f"
+      #       curl -s -X POST \
+      #         -H "Content-Type: application/vnd.schemaregistry.v1+json" \
+      #         --data @"$f" \
+      #         "$SCHEMA_REGISTRY_URL/subjects/$(basename $f .json)/versions" \
+      #         -u "$SCHEMA_REGISTRY_USER:$SCHEMA_REGISTRY_PASS"
+      #     done
