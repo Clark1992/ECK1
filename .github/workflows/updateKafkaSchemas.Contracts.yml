@@ -1,5 +1,8 @@
 name: Upload Schemas
 
+permissions:
+  contents: write
+
 on:
   workflow_run:
     workflows: ["Publish ECK1.Contracts"] 
@@ -11,10 +14,6 @@ on:
       - '.github/workflows/updateKafkaSchemas.Contracts.yml'
       - '.github/workflows/runGenerator.yml'
       - '.github/scripts/update-sln.ps1'
-
-permissions:
-  contents: read
-  packages: read
 
 jobs:
   prepare:
@@ -35,14 +34,15 @@ jobs:
         id: get-assembly-path
         shell: bash
         run: |
-          mkdir -p packages
+          mkdir -p /tmp/temp-project packages
+          cd /tmp/temp-project
+          dotnet new classlib -n TempProject -f net8.0
 
-          PACKAGE_URL="https://nuget.pkg.github.com/${GITHUB_REPOSITORY_OWNER}/v3/package/ECK1.Contracts/latest"
-          curl -L -u "${GITHUB_ACTOR}:${GITHUB_TOKEN}" -o packages/ECK1.Contracts.nupkg "$PACKAGE_URL"
-
-          unzip -o packages/ECK1.Contracts.nupkg -d packages
-
-          DLL_PATH=$(find packages -name "ECK1.Contracts.dll" | head -n 1)
+          dotnet add package ECK1.Contracts --version * --source "https://nuget.pkg.github.com/${GITHUB_REPOSITORY_OWNER}/index.json" --interactive
+          cd ..
+          cd ..
+          
+          DLL_PATH=$(find temp-project/bin -name "ECK1.Contracts.dll" | head -n 1)
           echo "assembly-path=$DLL_PATH" >> $GITHUB_OUTPUT
 
       - name: Move current schemas
