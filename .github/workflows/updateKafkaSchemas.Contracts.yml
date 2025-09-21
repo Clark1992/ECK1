@@ -60,9 +60,12 @@ jobs:
           dotnet add package ECK1.Contracts --source "https://nuget.pkg.github.com/${GITHUB_REPOSITORY_OWNER}/index.json"
 
           dotnet restore
-          dotnet build -c Release
 
-          DLL_PATH=$(find bin/Release -name "ECK1.Contracts.dll" | head -n 1)
+          cd..
+          cd..
+          cd..
+
+          DLL_PATH=$(find ~/.nuget/packages/eck1.contracts -type f -name "ECK1.Contracts.dll" | sort -r | head -n 1)
           echo "Found DLL at $DLL_PATH"
 
           echo "assembly-path=$DLL_PATH" >> $GITHUB_OUTPUT
