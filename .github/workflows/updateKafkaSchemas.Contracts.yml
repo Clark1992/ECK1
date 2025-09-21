@@ -100,7 +100,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      #
       # - name: Upload schemas to Kafka Schema Registry
       #   env:
       #     SCHEMA_REGISTRY_URL: ${{ secrets.SCHEMA_REGISTRY_URL }}
