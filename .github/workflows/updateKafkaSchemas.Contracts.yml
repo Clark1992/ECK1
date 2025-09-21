@@ -31,26 +31,13 @@ jobs:
         id: get-assembly-path
         shell: bash
         run: |
-          mkdir -p packages
-          curl -L -o nuget.exe https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
-
-          mono nuget.exe install ECK1.Contracts \
-            -Source "https://nuget.pkg.github.com/${GITHUB_REPOSITORY_OWNER}/index.json" \
-            -OutputDirectory packages \
-            -Verbosity detailed \
-            -ConfigFile <(echo "<configuration>
-              <packageSources>
-                <add key='github' value='https://nuget.pkg.github.com/${GITHUB_REPOSITORY_OWNER}/index.json' />
-              </packageSources>
-              <packageSourceCredentials>
-                <github>
-                  <add key='Username' value='${GITHUB_ACTOR}' />
-                  <add key='ClearTextPassword' value='${GITHUB_TOKEN}' />
-                </github>
-              </packageSourceCredentials>
-            </configuration>")
-
-          DLL_PATH=$(find packages -name "ECK1.Contracts.dll" | head -n 1)
+          mkdir -p temp-project packages
+          cd temp-project
+          dotnet new classlib -n TempProject -f net8.0
+          dotnet add package ECK1.Contracts --version * --source "https://nuget.pkg.github.com/${GITHUB_REPOSITORY_OWNER}/index.json" --interactive
+          cd ..
+          # Находим DLL
+          DLL_PATH=$(find temp-project/bin -name "ECK1.Contracts.dll" | head -n 1)
           echo "assembly-path=$DLL_PATH" >> $GITHUB_OUTPUT
 
       - name: Move current schemas
