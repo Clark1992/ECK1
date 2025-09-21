@@ -3,7 +3,7 @@ name: Run Generator
 on:
   workflow_call:
     inputs:
-        assemblyPath:
+        assembly-path:
           required: true
           type: string
 
@@ -13,17 +13,17 @@ jobs:
     strategy:
       matrix:
         schema:
-          - typeName: "ECK1.Contracts.Kafka.BusinessEvents.Sample.ISampleEvent"
-            currentLatestSchemaPath: "/tmp/schema-backup1/BusinessEvents/Sample"
+          - type-name: "ECK1.Contracts.Kafka.BusinessEvents.Sample.ISampleEvent"
+            current-latest-schema-path: "/tmp/schema-backup1/BusinessEvents/Sample"
             format: "json"
-            outputPath: "_SolutionItems/SchemaRegistry/BusinessEvents/Sample"
+            output-path: "_SolutionItems/SchemaRegistry/BusinessEvents/Sample"
     
     steps:
       - name: Run generator
         uses: Clark1992/kafka-schema-generator/.github/actions/evolve-schema@stable
         with:
-          assembly-path: ${{ inputs.assemblyPath }}
-          type-name: ${{ matrix.schema.typeName }}
-          current-latest-schema-path: ${{ matrix.schema.currentLatestSchemaPath }}
+          assembly-path: ${{ inputs.assembly-path }}
+          type-name: ${{ matrix.schema.type-name }}
+          current-latest-schema-path: ${{ matrix.schema.current-latest-schema-path }}
           format: ${{ matrix.schema.format }}
-          output-path: ${{ matrix.schema.outputPath }}
+          output-path: ${{ matrix.schema.output-path }}
