@@ -9,8 +9,8 @@ namespace ECK1.CommandsAPI.Commands;
 
 public record EventNotification<TEvent>(TEvent Event) : INotification;
 
-public class SampleIntegrationKafkaSender(IMapper mapper) :
-    IntegrationBase<ISampleEvent, EventContracts.ISampleEvent>(mapper)
+public class SampleIntegrationKafkaSender(IMapper mapper, IKafkaTopicProducer<EventContracts.ISampleEvent> producer) :
+    IntegrationBase<ISampleEvent, EventContracts.ISampleEvent>(mapper, producer)
 {
     protected override string Key(EventContracts.ISampleEvent @event) => @event.SampleId.ToString();
 }
@@ -23,9 +23,10 @@ public abstract class IntegrationBase<TDomainEvent, TContractEvent> :
     private readonly IKafkaTopicProducer<TContractEvent> producer;
     private readonly IMapper mapper;
 
-    protected IntegrationBase(IMapper mapper)
+    protected IntegrationBase(IMapper mapper, IKafkaTopicProducer<TContractEvent> producer)
     {
         this.mapper = mapper;
+        this.producer = producer;
     }
 
     protected abstract string Key(TContractEvent @event);

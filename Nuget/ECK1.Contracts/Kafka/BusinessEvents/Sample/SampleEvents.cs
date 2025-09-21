@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace ECK1.Contracts.BusinessEvents.Sample;
+namespace ECK1.Contracts.Kafka.BusinessEvents.Sample;
 
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
