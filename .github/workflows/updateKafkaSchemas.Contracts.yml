@@ -37,12 +37,14 @@ jobs:
           mkdir -p /tmp/temp-project packages
           cd /tmp/temp-project
           dotnet new classlib -n TempProject -f net8.0
+          cd TempProject
 
           dotnet add package ECK1.Contracts --version * --source "https://nuget.pkg.github.com/${GITHUB_REPOSITORY_OWNER}/index.json" --interactive
           cd ..
           cd ..
+          cd ..
           
-          DLL_PATH=$(find temp-project/bin -name "ECK1.Contracts.dll" | head -n 1)
+          DLL_PATH=$(find /tmp/temp-project/bin -name "ECK1.Contracts.dll" | head -n 1)
           echo "assembly-path=$DLL_PATH" >> $GITHUB_OUTPUT
 
       - name: Move current schemas
