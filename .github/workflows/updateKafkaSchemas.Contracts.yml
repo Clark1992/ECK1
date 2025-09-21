@@ -63,6 +63,8 @@ jobs:
           dotnet build -c Release
 
           DLL_PATH=$(find bin/Release -name "ECK1.Contracts.dll" | head -n 1)
+          echo "Found DLL at $DLL_PATH"
+
           echo "assembly-path=$DLL_PATH" >> $GITHUB_OUTPUT
 
       - name: Move current schemas
