@@ -2,6 +2,7 @@ name: Upload Schemas
 
 permissions:
   contents: write
+  packages: read
 
 on:
   workflow_run:
