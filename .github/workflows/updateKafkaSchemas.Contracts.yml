@@ -60,12 +60,14 @@ jobs:
           fi
 
   generate-schemas:
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     needs: prepare
     uses: ./.github/workflows/runGenerator.yml
     with:
       assembly-path: ${{ needs.prepare.outputs.assembly-path }}
 
   commit:
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     needs: generate-schemas
     runs-on: ubuntu-latest
     steps:
