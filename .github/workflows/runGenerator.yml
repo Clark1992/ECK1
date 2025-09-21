@@ -20,7 +20,7 @@ jobs:
     
     steps:
       - name: Run generator
-        uses: ${{ github.repository_owner }}/kafka-schema-generator/.github/actions/evolve-schema@stable
+        uses: Clark1992/kafka-schema-generator/.github/actions/evolve-schema@stable
         with:
           assembly-path: ${{ inputs.assemblyPath }}
           type-name: ${{ matrix.schema.typeName }}
