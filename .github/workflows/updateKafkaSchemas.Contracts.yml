@@ -37,7 +37,7 @@ jobs:
           mkdir -p /tmp/temp-project packages
           cd /tmp/temp-project
           dotnet new classlib -n TempProject -f net8.0
-          cd TempProject
+          cd ./TempProject
 
           dotnet add package ECK1.Contracts --version * --source "https://nuget.pkg.github.com/${GITHUB_REPOSITORY_OWNER}/index.json" --interactive
           cd ..
