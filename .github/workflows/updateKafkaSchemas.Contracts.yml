@@ -12,6 +12,10 @@ on:
       - '.github/workflows/runGenerator.yml'
       - '.github/scripts/update-sln.ps1'
 
+permissions:
+  contents: read
+  packages: read
+
 jobs:
   prepare:
     if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
