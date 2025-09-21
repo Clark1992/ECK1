@@ -32,25 +32,23 @@ jobs:
         shell: bash
         run: |
           mkdir -p packages
-          DOTNET_GH_NUGET_SOURCE="https://nuget.pkg.github.com/${GITHUB_REPOSITORY_OWNER}/index.json"
+          curl -L -o nuget.exe https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
 
-          # tmp NuGet.config
-          cat > NuGet.config <<EOF
-          <?xml version="1.0" encoding="utf-8"?>
-          <configuration>
-            <packageSources>
-              <add key="github" value="$DOTNET_GH_NUGET_SOURCE" />
-            </packageSources>
-            <packageSourceCredentials>
-              <github>
-                <add key="Username" value="${GITHUB_ACTOR}" />
-                <add key="ClearTextPassword" value="${GITHUB_TOKEN}" />
-              </github>
-            </packageSourceCredentials>
-          </configuration>
-          EOF
-
-          dotnet add package ECK1.Contracts --package-directory packages --version * || true
+          mono nuget.exe install ECK1.Contracts \
+            -Source "https://nuget.pkg.github.com/${GITHUB_REPOSITORY_OWNER}/index.json" \
+            -OutputDirectory packages \
+            -Verbosity detailed \
+            -ConfigFile <(echo "<configuration>
+              <packageSources>
+                <add key='github' value='https://nuget.pkg.github.com/${GITHUB_REPOSITORY_OWNER}/index.json' />
+              </packageSources>
+              <packageSourceCredentials>
+                <github>
+                  <add key='Username' value='${GITHUB_ACTOR}' />
+                  <add key='ClearTextPassword' value='${GITHUB_TOKEN}' />
+                </github>
+              </packageSourceCredentials>
+            </configuration>")
 
           DLL_PATH=$(find packages -name "ECK1.Contracts.dll" | head -n 1)
           echo "assembly-path=$DLL_PATH" >> $GITHUB_OUTPUT
