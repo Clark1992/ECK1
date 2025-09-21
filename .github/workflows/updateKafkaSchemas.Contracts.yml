@@ -61,10 +61,6 @@ jobs:
 
           dotnet restore
 
-          cd..
-          cd..
-          cd..
-
           DLL_PATH=$(find ~/.nuget/packages/eck1.contracts -type f -name "ECK1.Contracts.dll" | sort -r | head -n 1)
           echo "Found DLL at $DLL_PATH"
 
