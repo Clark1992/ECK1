@@ -17,5 +17,5 @@ jobs:
   publish:
     uses: ./.github/workflows/publish-nuget-shared.yml
     with:
-      project_path: 'Nuget/ECK1.CommonUtils'
+      project_path: 'src/Nuget/ECK1.CommonUtils'
       csproj_file: 'ECK1.CommonUtils.csproj'
