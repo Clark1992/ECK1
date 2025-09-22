@@ -31,6 +31,8 @@ runs:
     - name: Run generation script
       run: .github/scripts/run-schema-generator.ps1 -ParamsFile params.json -GhAction generate-schema.yml -Repo clark1992/kafka-schema-generator
       shell: pwsh
+      env:
+        GH_TOKEN: ${{ github.token }}
 
     - name: Update solution with generated files
       run: .github/scripts/update-sln.ps1 ${{ inputs.solution-path }} ${{ inputs.schema-root }}
