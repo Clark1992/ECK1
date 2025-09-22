@@ -22,10 +22,27 @@ foreach ($param in $params) {
         -f current-latest-schema-path="$currentLatestSchemaPath" `
         -f format="$format" `
         -f output-path="$outputPath" `
-        --wait
 
     if ($LASTEXITCODE -ne 0) {
-        Write-Error "Workflow failed for $typeName"
+        Write-Error "❌ Workflow failed for $typeName"
         exit $LASTEXITCODE
     }
+
+    $run = gh run list -R $Repo --workflow $GhAction --limit 1 --json databaseId | ConvertFrom-Json
+    $runId = $run[0].databaseId
+
+    if (-not $runId) {
+        Write-Error "❌ Can find run-id for workflow $GhAction"
+        exit 1
+    }
+
+    Write-Host "⌛ Waiting for workflow run-id=$runId to finish..."
+    gh run watch $runId -R $Repo
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "❌ Workflow failed for $typeName (run-id=$runId)"
+        exit $LASTEXITCODE
+    }
+
+    Write-Host "✅ Workflow succeeded for $typeName"
 }
