@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'Nuget/ECK1.Contracts/**'
+      - 'src/Nuget/ECK1.Contracts/**'
       - '.github/workflows/publishNuget.Contracts.yml'
       - '.github/workflows/publishNuget.yml'
       - '.github/scripts/update-version.sh'

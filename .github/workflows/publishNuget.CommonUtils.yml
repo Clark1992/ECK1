@@ -5,9 +5,9 @@ on:
     branches: [ "main" ]
     paths:
       - 'src/Nuget/ECK1.CommonUtils/**'
-      - 'src/.github/workflows/publishNuget.CommonUtils.yml'
-      - 'src/.github/workflows/publishNuget.yml'
-      - 'src/.github/scripts/update-version.sh'
+      - '.github/workflows/publishNuget.CommonUtils.yml'
+      - '.github/workflows/publishNuget.yml'
+      - '.github/scripts/update-version.sh'
 
 permissions:
   contents: read

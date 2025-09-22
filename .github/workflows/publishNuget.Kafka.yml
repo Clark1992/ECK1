@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'Nuget/ECK1.Kafka/**'
+      - 'src/Nuget/ECK1.Kafka/**'
       - '.github/workflows/publishNuget.Kafka.yml'
       - '.github/workflows/publishNuget.yml'
       - '.github/scripts/update-version.sh'

@@ -69,8 +69,8 @@ jobs:
       - name: Move current schemas
         run: |
           mkdir -p /tmp/schema-backup
-          if [ -d "_SolutionItems/SchemaRegistry" ]; then
-            mv _SolutionItems/SchemaRegistry/* /tmp/schema-backup/
+          if [ -d "src/_SolutionItems/SchemaRegistry" ]; then
+            mv src/_SolutionItems/SchemaRegistry/* /tmp/schema-backup/
           fi
 
       - name: Run generator
@@ -78,7 +78,7 @@ jobs:
         with:
           assembly-path: ${{ needs.prepare.outputs.assembly-path }}
           solution-path: ECK1.sln
-          schema-root: _SolutionItems/SchemaRegistry
+          schema-root: src/_SolutionItems/SchemaRegistry
 
       - name: Commit changes
         run: |
