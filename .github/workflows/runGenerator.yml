@@ -27,3 +27,9 @@ jobs:
           current-latest-schema-path: ${{ matrix.schema.current-latest-schema-path }}
           format: ${{ matrix.schema.format }}
           output-path: ${{ matrix.schema.output-path }}
+
+      - name: List generated files
+        run: |
+          echo "generated:"
+          tree /_SolutionItems/SchemaRegistry
+        shell: bash
