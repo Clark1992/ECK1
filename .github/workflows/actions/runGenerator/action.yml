@@ -1,0 +1,30 @@
+name: Run Generator
+description: Iteratively call generator script for a list of schemas
+inputs:
+  assembly-path:
+    type: string
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Prepare params.json
+      shell: pwsh
+      run: |
+        $params = @(
+          @{
+            assemblyPath = "${{ inputs.assembly-path }}"
+            typeName = "ECK1.Contracts.Kafka.BusinessEvents.Sample.ISampleEvent"
+            currentLatestSchemaPath = "/tmp/schema-backup/BusinessEvents/Sample"
+            format = "json"
+            outputPath = "_SolutionItems/SchemaRegistry/BusinessEvents/Sample"
+          }
+        )
+
+        $params | ConvertTo-Json -Depth 10 | Out-File params.json -Encoding utf8
+
+    - name: Run generation script
+      run: .github/scripts/runGenerator.ps1 -ParamsFile params.json -GhAction generate-schema.yml -Repo clark1992/kafka-schema-generator
+      shell: pwsh
+
+    - name: Update solution with generated files
+      run: .github/scripts/update-sln.sh ECK1.sln _SolutionItems/SchemaRegistry
