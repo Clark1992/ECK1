@@ -4,6 +4,12 @@ inputs:
   assembly-path:
     type: string
     required: true
+  solution-path:
+    type: string
+    required: true
+  schema-root:
+    type: string
+    required: true
 runs:
   using: "composite"
   steps:
@@ -16,7 +22,7 @@ runs:
             typeName = "ECK1.Contracts.Kafka.BusinessEvents.Sample.ISampleEvent"
             currentLatestSchemaPath = "/tmp/schema-backup/BusinessEvents/Sample"
             format = "json"
-            outputPath = "/src/_SolutionItems/SchemaRegistry/BusinessEvents/Sample"
+            outputPath = "${{ inputs.schema-root }}/BusinessEvents/Sample"
           }
         )
 
@@ -27,4 +33,4 @@ runs:
       shell: pwsh
 
     - name: Update solution with generated files
-      run: .github/scripts/update-sln.sh ECK1.sln _SolutionItems/SchemaRegistry
+      run: .github/scripts/update-sln.sh ${{ inputs.solution-path }} ${{ inputs.schema-root }}

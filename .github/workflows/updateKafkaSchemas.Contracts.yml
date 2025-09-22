@@ -77,7 +77,7 @@ jobs:
         uses: ./.github/actions/runGenerator
         with:
           assembly-path: ${{ needs.prepare.outputs.assembly-path }}
-          solution-path: ECK1.sln
+          solution-path: src/ECK1.sln
           schema-root: src/_SolutionItems/SchemaRegistry
 
       - name: Commit changes
