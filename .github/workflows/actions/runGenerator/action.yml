@@ -16,7 +16,7 @@ runs:
             typeName = "ECK1.Contracts.Kafka.BusinessEvents.Sample.ISampleEvent"
             currentLatestSchemaPath = "/tmp/schema-backup/BusinessEvents/Sample"
             format = "json"
-            outputPath = "_SolutionItems/SchemaRegistry/BusinessEvents/Sample"
+            outputPath = "/src/_SolutionItems/SchemaRegistry/BusinessEvents/Sample"
           }
         )
 

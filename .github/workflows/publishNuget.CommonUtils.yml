@@ -4,10 +4,10 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'Nuget/ECK1.CommonUtils/**'
-      - '.github/workflows/publishNuget.CommonUtils.yml'
-      - '.github/workflows/publishNuget.yml'
-      - '.github/scripts/update-version.sh'
+      - 'src/Nuget/ECK1.CommonUtils/**'
+      - 'src/.github/workflows/publishNuget.CommonUtils.yml'
+      - 'src/.github/workflows/publishNuget.yml'
+      - 'src/.github/scripts/update-version.sh'
 
 permissions:
   contents: read
