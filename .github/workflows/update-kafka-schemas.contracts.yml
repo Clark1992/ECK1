@@ -12,12 +12,12 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - '.github/workflows/updateKafkaSchemas.Contracts.yml'
-      - '.github/workflows/runGenerator.yml'
+      - '.github/workflows/update-kafka-schemas.contracts.yml'
+      - '.github/workflows/actions/run-generator/action.yml'
       - '.github/scripts/update-sln.ps1'
 
 jobs:
-  prepare:
+  generate-schemas:
     if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     outputs:
@@ -74,7 +74,7 @@ jobs:
           fi
 
       - name: Run generator
-        uses: ./.github/actions/runGenerator
+        uses: ./.github/actions/run-generator
         with:
           assembly-path: ${{ needs.prepare.outputs.assembly-path }}
           solution-path: src/ECK1.sln

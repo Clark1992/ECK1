@@ -29,7 +29,7 @@ runs:
         $params | ConvertTo-Json -Depth 10 | Out-File params.json -Encoding utf8
 
     - name: Run generation script
-      run: .github/scripts/runGenerator.ps1 -ParamsFile params.json -GhAction generate-schema.yml -Repo clark1992/kafka-schema-generator
+      run: .github/scripts/run-schema-generator.ps1 -ParamsFile params.json -GhAction generate-schema.yml -Repo clark1992/kafka-schema-generator
       shell: pwsh
 
     - name: Update solution with generated files

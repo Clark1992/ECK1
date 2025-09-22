@@ -5,8 +5,8 @@ on:
     branches: [ "main" ]
     paths:
       - 'src/Nuget/ECK1.Kafka/**'
-      - '.github/workflows/publishNuget.Kafka.yml'
-      - '.github/workflows/publishNuget.yml'
+      - '.github/workflows/publish-nuget.kafka.yml'
+      - '.github/workflows/publish-nuget-shared.yml'
       - '.github/scripts/update-version.sh'
 
 permissions:
@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   publish:
-    uses: ./.github/workflows/publishNuget.yml
+    uses: ./.github/workflows/publish-nuget-shared.yml
     with:
       project_path: 'Nuget/ECK1.Kafka'
       csproj_file: 'ECK1.Kafka.csproj'
