@@ -33,4 +33,5 @@ runs:
       shell: pwsh
 
     - name: Update solution with generated files
-      run: .github/scripts/update-sln.sh ${{ inputs.solution-path }} ${{ inputs.schema-root }}
+      run: .github/scripts/update-sln.ps1 ${{ inputs.solution-path }} ${{ inputs.schema-root }}
+      shell: pwsh
