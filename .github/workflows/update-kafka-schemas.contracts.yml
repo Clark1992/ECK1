@@ -74,7 +74,7 @@ jobs:
           fi
 
       - name: Run generator
-        uses: ./.github/actions/run-generator
+        uses: ./.github/workflows/actions/run-generator
         with:
           assembly-path: ${{ needs.prepare.outputs.assembly-path }}
           solution-path: src/ECK1.sln
