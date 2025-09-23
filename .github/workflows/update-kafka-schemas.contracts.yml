@@ -20,8 +20,6 @@ jobs:
   generate-schemas:
     if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    outputs:
-      assembly-path: ${{ steps.get-assembly-path.outputs.assembly-path }}
 
     env:
       SCHEMA_ROOT: src/_SolutionItems/SchemaRegistry
@@ -42,13 +40,22 @@ jobs:
           cat > ~/.nuget/NuGet/NuGet.Config <<EOF
           <configuration>
             <packageSources>
-              <add key="github" value="https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" />
+              <add key="GitHub" value="https://nuget.pkg.github.com/${{  }}/index.json" />
+              <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
             </packageSources>
+            <packageSourceMapping>
+              <packageSource key="GitHub">
+                <package pattern="ECK1.*" />
+              </packageSource>
+              <packageSource key="nuget.org">
+                <package pattern="*" />
+              </packageSource>
+            </packageSourceMapping>
             <packageSourceCredentials>
-              <github>
-                <add key="Username" value="${{ github.actor }}" />
+              <GitHub>
+                <add key="Username" value="${GITHUB_REPOSITORY_OWNER}" />
                 <add key="ClearTextPassword" value="${{ secrets.GITHUB_TOKEN }}" />
-              </github>
+              </GitHub>
             </packageSourceCredentials>
           </configuration>
           EOF
