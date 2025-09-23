@@ -7,7 +7,10 @@ inputs:
   schema-backup-path:
     type: string
     required: true
-  solution-path:
+  solution-file:
+    type: string
+    required: true
+  solution-dir:
     type: string
     required: true
   schema-root:
@@ -25,15 +28,11 @@ runs:
         $content = $content -replace "__SCHEMA_ROOT__", "${{ inputs.schema-root }}"
         $content | Out-File "/tmp/evolve-schema/params.json" -Encoding utf8
 
-        Write-Host "AFTER content:"
-        Write-Host $content
-
     - name: Call evolve_schema
       uses: clark1992/kafka-schema-generator/.github/actions/evolve-schema@stable-v1
       with:
         params-file: "/tmp/evolve-schema/params.json"
 
     - name: Update solution with generated files
-      run: .github/scripts/update-sln.ps1 ${{ inputs.solution-path }} ${{ inputs.schema-root }}
-      working-directory: src
+      run: .github/scripts/update-sln.ps1 ${{ inputs.solution-dir }} ${{ inputs.solution-file }} ${{ inputs.schema-root }}
       shell: pwsh

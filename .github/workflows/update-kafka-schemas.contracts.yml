@@ -22,7 +22,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      SCHEMA_ROOT: src/_SolutionItems/SchemaRegistry
+      SCHEMA_ROOT: _SolutionItems/SchemaRegistry
+      SOLUTION_DIR: src
       SCHEMA_BACKUP_PATH: /tmp/evolve-schema/schema-backup
 
     steps:
@@ -81,15 +82,16 @@ jobs:
       - name: Move current schemas
         run: |
           mkdir -p ${{ env.SCHEMA_BACKUP_PATH }}
-          if [ -d "${{ env.SCHEMA_ROOT }}" ]; then
-            mv ${{ env.SCHEMA_ROOT }}/* ${{ env.SCHEMA_BACKUP_PATH }}/
+          if [ -d "${{ env.SOLUTION_DIR }}/${{ env.SCHEMA_ROOT }}" ]; then
+            mv ${{ env.SOLUTION_DIR }}/${{ env.SCHEMA_ROOT }}/* ${{ env.SCHEMA_BACKUP_PATH }}/
           fi
 
       - name: Run generator
         uses: ./.github/workflows/actions/run-generator
         with:
           assembly-path: ${{ env.ASSEMBLY_PATH }}
-          solution-path: src/ECK1.sln
+          solution-dir: ${{ env.SOLUTION_DIR }}
+          solution-file: ECK1.sln
           schema-root: ${{ env.SCHEMA_ROOT }}
           schema-backup-path: ${{ env.SCHEMA_BACKUP_PATH }}
 
