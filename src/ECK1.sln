@@ -42,6 +42,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECK1.Contracts", "Nuget\ECK
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECK1.Kafka", "Nuget\ECK1.Kafka\ECK1.Kafka.csproj", "{388563EA-5A81-6B8C-7B5C-6587F1209DE2}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BusinessEvents", "BusinessEvents", "{5FDD1246-2024-4F71-8122-B8D04CEF2202}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{52D21061-5F78-44DA-AB16-83C66501442F}"
+	ProjectSection(SolutionItems) = preProject
+		_SolutionItems/SchemaRegistry/BusinessEvents/Sample/ISampleEvent.json = _SolutionItems/SchemaRegistry/BusinessEvents/Sample/ISampleEvent.json
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,6 +100,8 @@ Global
 		{A1194421-7706-B640-AE7B-6E4B242587C7} = {2ABC8365-920C-4560-8355-94584C159C1C}
 		{17BF4F36-19AF-E2E8-7E21-CFDE0B720218} = {711454AD-436A-4DDD-B6D8-A098F60D2ABE}
 		{388563EA-5A81-6B8C-7B5C-6587F1209DE2} = {BF2F7A2A-E4EE-4318-B360-8D88C306326D}
+		{5FDD1246-2024-4F71-8122-B8D04CEF2202} = {1A658CEF-6EA8-4FEA-B715-08DEE8C96E13}
+		{52D21061-5F78-44DA-AB16-83C66501442F} = {5FDD1246-2024-4F71-8122-B8D04CEF2202}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {789FA419-D9F6-4410-9CDB-09B807B90A7D}
