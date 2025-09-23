@@ -26,7 +26,7 @@ runs:
         $content | Out-File "${{ github.action_path }}/params.json" -Encoding utf8
 
     - name: Call evolve_schema
-      uses: clark1992/kafka-schema-generator@stable-v1::.github/actions/evolve_schema/action.yml
+      uses: clark1992/kafka-schema-generator/.github/actions/evolve-schema/action.yml@stable-v1
       with:
         params-file: "${{ github.action_path }}/params.json"
 
