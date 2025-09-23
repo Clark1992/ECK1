@@ -14,6 +14,7 @@ on:
     paths:
       - '.github/workflows/update-kafka-schemas.contracts.yml'
       - '.github/workflows/actions/run-generator/action.yml'
+      - '.github/workflows/actions/run-generator/schema-gen-job-params.json'
       - '.github/scripts/update-sln.ps1'
 
 jobs:

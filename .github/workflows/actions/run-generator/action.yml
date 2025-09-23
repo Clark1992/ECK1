@@ -26,6 +26,7 @@ runs:
         $content = $content -replace "__ASSEMBLY_PATH__", "${{ inputs.assembly-path }}"
         $content = $content -replace "__SCHEMA_TO_COMPARE_PATH__", "${{ inputs.schema-backup-path }}"
         $content = $content -replace "__SCHEMA_ROOT__", "${{ inputs.schema-root }}"
+        $content = $content -replace "__SOLUTION_DIR__", "${{ inputs.solution-dir }}"
         $content | Out-File "/tmp/evolve-schema/params.json" -Encoding utf8
 
     - name: Call evolve_schema
