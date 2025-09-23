@@ -25,7 +25,7 @@ jobs:
 
     env:
       SCHEMA_ROOT: src/_SolutionItems/SchemaRegistry
-      SCHEMA_BACKUP_PATH: /tmp/schema-backup
+      SCHEMA_BACKUP_PATH: /tmp/evolve-schema/schema-backup
 
     steps:
       - name: Checkout repo
