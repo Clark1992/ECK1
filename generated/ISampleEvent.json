@@ -1,0 +1,257 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "ISampleEvent",
+  "type": "object",
+  "discriminator": {
+    "propertyName": "$type"
+  },
+  "x-abstract": true,
+  "additionalProperties": false,
+  "required": [
+    "$type"
+  ],
+  "properties": {
+    "SampleId": {
+      "type": "string",
+      "format": "guid"
+    },
+    "OccurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "$type": {
+      "type": "string"
+    }
+  },
+  "definitions": {
+    "SampleCreatedEvent": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/SampleEvent"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "Name": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "Description": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "Address": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "$ref": "#/definitions/SampleAddress"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "SampleAddress": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Id": {
+          "type": "string",
+          "format": "guid"
+        },
+        "Street": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "City": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Country": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
+    },
+    "SampleEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "SampleId": {
+          "type": "string",
+          "format": "guid"
+        },
+        "OccurredAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "SampleNameChangedEvent": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/SampleEvent"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "NewName": {
+              "type": [
+                "null",
+                "string"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "SampleDescriptionChangedEvent": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/SampleEvent"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "NewDescription": {
+              "type": [
+                "null",
+                "string"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "SampleAddressChangedEvent": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/SampleEvent"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "NewAddress": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "$ref": "#/definitions/SampleAddress"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "SampleAttachmentAddedEvent": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/SampleEvent"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "Attachment": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "$ref": "#/definitions/SampleAttachment"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "SampleAttachment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Id": {
+          "type": "string",
+          "format": "guid"
+        },
+        "FileName": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Url": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
+    },
+    "SampleAttachmentRemovedEvent": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/SampleEvent"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "AttachmentId": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        }
+      ]
+    },
+    "SampleAttachmentUpdatedEvent": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/SampleEvent"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "AttachmentId": {
+              "type": "string",
+              "format": "guid"
+            },
+            "NewFileName": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "NewUrl": {
+              "type": [
+                "null",
+                "string"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}
