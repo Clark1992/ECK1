@@ -23,6 +23,11 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       assembly-path: ${{ steps.get-assembly-path.outputs.assembly-path }}
+
+    env:
+      SCHEMA_ROOT: src/_SolutionItems/SchemaRegistry
+      SCHEMA_BACKUP_PATH: /tmp/schema-backup
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -65,21 +70,22 @@ jobs:
           DLL_PATH=$(find ~/.nuget/packages/eck1.contracts -type f -name "ECK1.Contracts.dll" | sort -r | head -n 1)
           echo "Found DLL at $DLL_PATH"
 
-          echo "assembly-path=$DLL_PATH" >> $GITHUB_OUTPUT
+          echo "ASSEMBLY_PATH=$DLL_PATH" >> $GITHUB_ENV
 
       - name: Move current schemas
         run: |
-          mkdir -p /tmp/schema-backup
-          if [ -d "src/_SolutionItems/SchemaRegistry" ]; then
-            mv src/_SolutionItems/SchemaRegistry/* /tmp/schema-backup/
+          mkdir -p ${{ env.SCHEMA_BACKUP_PATH }}
+          if [ -d "${{ env.SCHEMA_ROOT }}" ]; then
+            mv ${{ env.SCHEMA_ROOT }}/* ${{ env.SCHEMA_BACKUP_PATH }}/
           fi
 
       - name: Run generator
         uses: ./.github/workflows/actions/run-generator
         with:
-          assembly-path: ${{ needs.prepare.outputs.assembly-path }}
+          assembly-path: ${{ env.ASSEMBLY_PATH }}
           solution-path: src/ECK1.sln
-          schema-root: src/_SolutionItems/SchemaRegistry
+          schema-root: ${{ env.SCHEMA_ROOT }}
+          schema-backup-path: ${{ env.SCHEMA_BACKUP_PATH }}
 
       - name: Commit changes
         run: |

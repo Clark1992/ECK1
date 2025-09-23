@@ -1,0 +1,9 @@
+[
+  {
+    "assemblyPath": "__ASSEMBLY_PATH__",
+    "typeName": "ECK1.Contracts.Kafka.BusinessEvents.Sample.ISampleEvent",
+    "currentLatestSchemaPath": "__SCHEMA_TO_COMPARE_PATH__/BusinessEvents/Sample",
+    "format": "json",
+    "outputPath": "__SCHEMA_ROOT__/BusinessEvents/Sample"
+  }
+]
