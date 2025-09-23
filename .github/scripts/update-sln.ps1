@@ -134,13 +134,16 @@ try
 
     foreach ($file in $files) {
         $root = (Get-Location).Path
-        $relPath = [System.IO.Path]::GetRelativePath($root, $folder.FullName).Replace("\", "/")
+        $relPath = [System.IO.Path]::GetRelativePath($root, $file.FullName).Replace("\", "/")
         $folderPath  = Split-Path $relPath -Parent
 
         $folderProjectKey  = Split-Path $folderPath -leaf
 
         # Write-Host "file relpath:"
         # Write-Host $relPath
+
+        # Write-Host "BEFORE: "
+        # Write-Host $solution
 
         if ($projects.ContainsKey($folderProjectKey)) {
             $folderGuid = $projects[$folderProjectKey].Guid
@@ -155,9 +158,6 @@ try
                 $insert = "`tProjectSection(SolutionItems) = preProject`r`n`t`t$relPath = $relPath`r`n`tEndProjectSection"                    
                 $replacement = "Project(`"{2150E333-8FDC-42A3-9474-1A3956D46DE8}`") = `"$folderProjectKey`", `"$folderProjectKey`", `"{$folderGuid}`"`$1$insert`r`nEndProject"
                 
-                # Write-Host "Pattern:"
-                # Write-Host $pattern
-
                 $match = [regex]::Matches($solution, $pattern)[0]
                 
                 $projectBody = $match.Groups[1].Value
@@ -165,17 +165,26 @@ try
                 # Write-Host "projectBody:"
                 # Write-Host $projectBody
 
+                # If ProjectSection already exists, append to it instead
                 if ($projectBody -match 'ProjectSection\(SolutionItems\)') {
                     $pattern = "(?s)Project\(`"\{2150E333-8FDC-42A3-9474-1A3956D46DE8\}`"\) = `"$folderProjectKey`", `"$folderProjectKey`", `"{$folderGuid}`"(.*?)EndProjectSection"
                     $insert = "`t`t$relPath = $relPath"
                     $replacement = "Project(`"{2150E333-8FDC-42A3-9474-1A3956D46DE8}`") = `"$folderProjectKey`", `"$folderProjectKey`", `"{$folderGuid}`"`$1$insert`r`n`tEndProjectSection`r`nEndProject"
                 }        
 
+                # Write-Host "Pattern:"
+                # Write-Host $pattern
+
+                # Write-Host "Replacement:"
+                # Write-Host $replacement
+
                 # Write-Host "Insert:"
                 # Write-Host $insert
 
                 $solution = [regex]::Replace($solution, $pattern, $replacement, "Singleline")
 
+                # Write-Host "AFTER: "
+                # Write-Host $solution
                 # Write-Host $solution
             }
         }
@@ -329,7 +338,10 @@ try
 
     [System.IO.File]::WriteAllText($fullPath, $solution, [System.Text.Encoding]::UTF8)
     Write-Host "Solution updated successfully."
-
+}
+catch {
+    Write-Error "An error occurred: $_"
+    exit 1
 }
 finally {
     Pop-Location
