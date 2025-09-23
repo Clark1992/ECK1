@@ -3,6 +3,8 @@ param (
     [string]$schemaRoot   = "_SolutionItems/SchemaRegistry"
 )
 
+Write-Host "Updating solution file: $solutionFile with schema root: $schemaRoot"
+
 $schemaFolder = Split-Path $schemaRoot -Leaf
 
 # Read solution file
