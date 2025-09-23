@@ -69,7 +69,8 @@ $folders = Get-ChildItem $schemaRoot -Recurse -Directory
 # Write-Host $folders
 
 foreach ($folder in $folders) {
-    $relPath = $folder.FullName.Replace((Get-Location).Path + "\", "").Replace("\", "/")
+    $root = (Get-Location).Path
+    $relPath = [System.IO.Path]::GetRelativePath($root, $folder.FullName).Replace("\", "/")
     $relFolder = Split-Path $relPath -Leaf
     # Write-Host "Relative path:"
     # Write-Host $relPath
@@ -126,7 +127,8 @@ $files = Get-ChildItem $schemaRoot -Recurse -File
 # Write-Host $files
 
 foreach ($file in $files) {
-    $relPath = $file.FullName.Replace((Get-Location).Path + "\", "").Replace("\", "/")
+    $root = (Get-Location).Path
+    $relPath = [System.IO.Path]::GetRelativePath($root, $folder.FullName).Replace("\", "/")
     $folderPath  = Split-Path $relPath -Parent
 
     $folderProjectKey  = Split-Path $folderPath -leaf
@@ -299,23 +301,26 @@ $schemaRoot = Get-FolderPath $schemaRegistryGuid $projects $nestedProjects
 foreach ($nestedKVP in $nestedProjects.GetEnumerator()) {
     
     $childGuid = $nestedKVP.Key
-    $fullPath = Get-FolderPath $childGuid $projects $nestedProjects
-    # Write-Host "$childGuid ($($projects[$childGuid].Name)) -> $fullPath"
+    $projectFolderPath = Get-FolderPath $childGuid $projects $nestedProjects
+    # Write-Host "$childGuid ($($projects[$childGuid].Name)) -> $projectFolderPath"
 
-    if ($fullPath -like "$schemaRoot*" -and $fullPath -ne $schemaRoot) {
-        # Write-Host "Checking path: $fullPath"
-        if(-not (Test-Path $fullPath)) {
+    if ($projectFolderPath -like "$schemaRoot*" -and $projectFolderPath -ne $schemaRoot) {
+        Write-Host "Checking path: $projectFolderPath"
+        if(-not (Test-Path $projectFolderPath)) {
+
+            # Write-Host "Removing project with GUID: $guid"
             $solution = Remove-ProjectByGuid -solution $solution -guid $childGuid
         }
     }
 }
 
-
-# Write updated solution
 if ($solutionOriginal -eq $solution) {
     Write-Host "No changes to solution."
     exit 0
 }
 
-[System.IO.File]::WriteAllText($solutionFile, $solution, [System.Text.Encoding]::UTF8)
+$cwd = Get-Location
+$fullPath = Join-Path $cwd "ECK1.sln"
+
+[System.IO.File]::WriteAllText($fullPath, $solution, [System.Text.Encoding]::UTF8)
 Write-Host "Solution updated successfully."

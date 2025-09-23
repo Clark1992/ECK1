@@ -35,4 +35,5 @@ runs:
 
     - name: Update solution with generated files
       run: .github/scripts/update-sln.ps1 ${{ inputs.solution-path }} ${{ inputs.schema-root }}
+      working-directory: src
       shell: pwsh
