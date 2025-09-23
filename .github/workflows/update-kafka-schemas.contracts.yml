@@ -15,7 +15,6 @@ on:
       - '.github/workflows/update-kafka-schemas.contracts.yml'
       - '.github/workflows/actions/run-generator/action.yml'
       - '.github/scripts/update-sln.ps1'
-      - '.github/scripts/run-schema-generator.ps1'
 
 jobs:
   generate-schemas:
