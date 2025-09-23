@@ -20,10 +20,16 @@ runs:
       shell: pwsh
       run: |
         $content = Get-Content "${{ github.action_path }}/schema-gen-job-params.json" -Raw
+        Write-Host "BEFORE content:"
+        Write-Host $content
         $content = $content -replace "__ASSEMBLY_PATH__", "${{ inputs.assembly-path }}"
         $content = $content -replace "__SCHEMA_TO_COMPARE_PATH__", "${{ inputs.schema-backup-path }}"
         $content = $content -replace "__SCHEMA_ROOT__", "${{ inputs.schema-root }}"
         $content | Out-File "${{ github.action_path }}/params.json" -Encoding utf8
+
+        Write-Host "AFTER content:"
+        Write-Host $content
+        Write-Host Test-Path "${{ github.action_path }}/params.json"
 
     - name: Call evolve_schema
       uses: clark1992/kafka-schema-generator/.github/actions/evolve-schema@stable-v1
