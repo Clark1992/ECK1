@@ -40,7 +40,7 @@ jobs:
           cat > ~/.nuget/NuGet/NuGet.Config <<EOF
           <configuration>
             <packageSources>
-              <add key="GitHub" value="https://nuget.pkg.github.com/${{  }}/index.json" />
+              <add key="GitHub" value="https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" />
               <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
             </packageSources>
             <packageSourceMapping>
@@ -53,7 +53,7 @@ jobs:
             </packageSourceMapping>
             <packageSourceCredentials>
               <GitHub>
-                <add key="Username" value="${GITHUB_REPOSITORY_OWNER}" />
+                <add key="Username" value="${{ github.actor }}" />
                 <add key="ClearTextPassword" value="${{ secrets.GITHUB_TOKEN }}" />
               </GitHub>
             </packageSourceCredentials>
