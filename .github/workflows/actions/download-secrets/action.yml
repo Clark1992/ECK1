@@ -13,10 +13,10 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Install Doppler CLI
-      run: |
-        curl -Ls https://cli.doppler.com/install.sh | sh
-      shell: bash
+    - name: Setup Doppler CLI
+      uses: dopplerhq/cli-action@v3
+      with:
+        token: ${{ inputs.doppler-token }}
 
     - name: Fetch secrets from Doppler
       run: |
@@ -25,8 +25,6 @@ runs:
           --config ${{ inputs.config }} \
           --no-file \
           --format env > doppler.env
-      env:
-        DOPPLER_TOKEN: ${{ inputs.doppler-token }}
       shell: bash
 
     - name: Show loaded secret keys
