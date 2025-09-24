@@ -15,8 +15,6 @@ runs:
   steps:
     - name: Setup Doppler CLI
       uses: dopplerhq/cli-action@v3
-      with:
-        token: ${{ inputs.doppler-token }}
 
     - name: Fetch secrets from Doppler
       run: |
@@ -31,6 +29,8 @@ runs:
       run: |
         echo "✅ Loaded Doppler secrets:"
         cut -d '=' -f 1 doppler.env | sort
+      env:
+        DOPPLER_TOKEN: ${{ inputs.doppler-token }}
       shell: bash
 
     - name: Export Doppler secrets
