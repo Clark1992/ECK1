@@ -1,0 +1,28 @@
+name: Download Secrets
+runs:
+  using: "composite"
+  steps:
+    - name: Install Doppler CLI
+      run: |
+        curl -Ls https://cli.doppler.com/install.sh | sh
+
+    - name: Fetch secrets from Doppler
+      run: |
+        doppler secrets download \
+          --project eck1-global \
+          --config dev \
+          --no-file \
+          --format env > doppler.env
+      env:
+        DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+
+    - name: Show loaded secret keys
+      run: |
+        echo "✅ Loaded Doppler secrets:"
+        cut -d '=' -f 1 doppler.env | sort
+
+    - name: Export Doppler secrets
+      run: |
+        set -o allexport
+        source doppler.env
+        set +o allexport

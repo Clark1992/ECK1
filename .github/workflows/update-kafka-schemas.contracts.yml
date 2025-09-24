@@ -14,8 +14,10 @@ on:
     paths:
       - '.github/workflows/update-kafka-schemas.contracts.yml'
       - '.github/workflows/actions/run-generator/action.yml'
+      - '.github/workflows/actions/download-secrets/action.yml'
       - '.github/workflows/actions/run-generator/schema-gen-job-params.json'
       - '.github/scripts/update-sln.ps1'
+      - '.github/scripts/update-kafka-schema.ps1'
 
 jobs:
   generate-schemas:
@@ -29,7 +31,10 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4v
+
+      - name: Run generator
+        uses: ./.github/workflows/actions/run-generator
 
       - name: Setup dotnet
         uses: actions/setup-dotnet@v4
@@ -106,18 +111,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      #
-      # - name: Upload schemas to Kafka Schema Registry
-      #   env:
-      #     SCHEMA_REGISTRY_URL: ${{ secrets.SCHEMA_REGISTRY_URL }}
-      #     SCHEMA_REGISTRY_USER: ${{ secrets.SCHEMA_REGISTRY_USER }}
-      #     SCHEMA_REGISTRY_PASS: ${{ secrets.SCHEMA_REGISTRY_PASS }}
-      #   run: |
-      #     for f in _SolutionItems/SchemaRegistry/*; do
-      #       echo "Uploading $f"
-      #       curl -s -X POST \
-      #         -H "Content-Type: application/vnd.schemaregistry.v1+json" \
-      #         --data @"$f" \
-      #         "$SCHEMA_REGISTRY_URL/subjects/$(basename $f .json)/versions" \
-      #         -u "$SCHEMA_REGISTRY_USER:$SCHEMA_REGISTRY_PASS"
-      #     done
+      - name: Run schema update
+        shell: pwsh
+        run: |
+          ./scripts/update-schema.ps1 -SchemaDir "${{ env.SOLUTION_DIR }}/${{ env.SCHEMA_ROOT }}"
