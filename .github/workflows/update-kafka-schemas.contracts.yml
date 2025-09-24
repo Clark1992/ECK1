@@ -35,6 +35,10 @@ jobs:
 
       - name: Download secrets
         uses: ./.github/workflows/actions/download-secrets
+        with:
+          doppler-token: ${{ secrets.DOPPLER_TOKEN }}
+          project: eck1-global
+          config: dev
 
       - name: Setup dotnet
         uses: actions/setup-dotnet@v4
@@ -114,4 +118,4 @@ jobs:
       - name: Run schema update
         shell: pwsh
         run: |
-          ./scripts/update-schema.ps1 -SchemaDir "${{ env.SOLUTION_DIR }}/${{ env.SCHEMA_ROOT }}"
+          ./scripts/update-kafka-schema.ps1 -SchemaDir "${{ env.SOLUTION_DIR }}/${{ env.SCHEMA_ROOT }}"

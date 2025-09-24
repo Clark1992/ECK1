@@ -1,28 +1,43 @@
 name: Download Secrets
+inputs:
+  doppler-token:
+    description: "Doppler service token"
+    required: true
+  project:
+    description: "Doppler project name"
+    required: true
+  config:
+    description: "Doppler config name"
+    required: true
+
 runs:
   using: "composite"
   steps:
     - name: Install Doppler CLI
       run: |
         curl -Ls https://cli.doppler.com/install.sh | sh
+      shell: bash
 
     - name: Fetch secrets from Doppler
       run: |
         doppler secrets download \
-          --project eck1-global \
-          --config dev \
+          --project ${{ inputs.project }} \
+          --config ${{ inputs.config }} \
           --no-file \
           --format env > doppler.env
       env:
-        DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+        DOPPLER_TOKEN: ${{ inputs.doppler-token }}
+      shell: bash
 
     - name: Show loaded secret keys
       run: |
         echo "✅ Loaded Doppler secrets:"
         cut -d '=' -f 1 doppler.env | sort
+      shell: bash
 
     - name: Export Doppler secrets
       run: |
-        set -o allexport
-        source doppler.env
-        set +o allexport
+        while IFS= read -r line; do
+          echo "$line" >> $GITHUB_ENV
+        done < doppler.env
+      shell: bash
