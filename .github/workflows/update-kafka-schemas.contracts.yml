@@ -118,4 +118,4 @@ jobs:
       - name: Run schema update
         shell: pwsh
         run: |
-          ./scripts/update-kafka-schema.ps1 -SchemaDir "${{ env.SOLUTION_DIR }}/${{ env.SCHEMA_ROOT }}"
+          ./.github/scripts/update-kafka-schema.ps1 -SchemaDir "${{ env.SOLUTION_DIR }}/${{ env.SCHEMA_ROOT }}"

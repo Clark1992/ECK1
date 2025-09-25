@@ -167,7 +167,7 @@ try
 
                 # If ProjectSection already exists, append to it instead
                 if ($projectBody -match 'ProjectSection\(SolutionItems\)') {
-                    $pattern = "(?s)Project\(`"\{2150E333-8FDC-42A3-9474-1A3956D46DE8\}`"\) = `"$folderProjectKey`", `"$folderProjectKey`", `"{$folderGuid}`"(.*?)EndProjectSection"
+                    $pattern = "(?s)Project\(`"\{2150E333-8FDC-42A3-9474-1A3956D46DE8\}`"\) = `"$folderProjectKey`", `"$folderProjectKey`", `"{$folderGuid}`"(.*?)EndProjectSection`r`nEndProject"
                     $insert = "`t`t$relPath = $relPath"
                     $replacement = "Project(`"{2150E333-8FDC-42A3-9474-1A3956D46DE8}`") = `"$folderProjectKey`", `"$folderProjectKey`", `"{$folderGuid}`"`$1$insert`r`n`tEndProjectSection`r`nEndProject"
                 }        
