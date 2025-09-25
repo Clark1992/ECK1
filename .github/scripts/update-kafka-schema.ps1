@@ -2,7 +2,7 @@ param(
     [string]$SchemaDir
 )
 
-$schemaRegistryUrl = $env:KAFKA__SCHEMAREGISTRYURL
+$schemaRegistryUrl = $env:KAFKA__SCHEMAREGISTRYURL.Trim('"')
 $srApiKey          = $env:KAFKA__USER
 $srApiSecret       = $env:KAFKA__SECRET
 
