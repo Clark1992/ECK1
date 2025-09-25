@@ -35,7 +35,11 @@ runs:
 
     - name: Export Doppler secrets
       run: |
-        while IFS= read -r line; do
-          echo "$line" >> $GITHUB_ENV
+        while IFS='=' read -r key value; do
+          clean_value=$(echo "$value" | sed 's/^"//; s/"$//')
+          
+          echo "::add-mask::$clean_value"
+          
+          echo "$key=$clean_value" >> $GITHUB_ENV
         done < doppler.env
       shell: bash
