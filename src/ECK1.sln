@@ -46,7 +46,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BusinessEvents", "BusinessE
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{52D21061-5F78-44DA-AB16-83C66501442F}"
 	ProjectSection(SolutionItems) = preProject
-		_SolutionItems/SchemaRegistry/BusinessEvents/Sample/ECK1.Contracts.Kafka.BusinessEvents.Sample.ISampleEvent-value.json = _SolutionItems/SchemaRegistry/BusinessEvents/Sample/ECK1.Contracts.Kafka.BusinessEvents.Sample.ISampleEvent-value.json
+		_SolutionItems/SchemaRegistry/BusinessEvents/Sample/sample-business-events-value.json = _SolutionItems/SchemaRegistry/BusinessEvents/Sample/sample-business-events-value.json
 	EndProjectSection
 EndProject
 Global
