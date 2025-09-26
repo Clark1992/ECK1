@@ -75,25 +75,10 @@ jobs:
         id: get-assembly-path
         shell: bash
         run: |
-          mkdir -p /tmp/temp-project
-          cd /tmp/temp-project
-          dotnet new classlib -n TempProject -f net8.0
-          cd TempProject
+          curl -L -o /tmp/ECK1.Contracts.nupkg "https://nuget.pkg.github.com/OWNER/api/v3/package/ECK1.Contracts/0.1.0"
+          unzip /tmp/ECK1.Contracts.nupkg -d /tmp/ECK1.Contracts
 
-          cat > Directory.Packages.props <<EOF
-          <Project>
-            <ItemGroup>
-              <PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
-              <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
-            </ItemGroup>
-          </Project>
-          EOF
-
-          dotnet add package ECK1.Contracts --source "https://nuget.pkg.github.com/${GITHUB_REPOSITORY_OWNER}/index.json"
-
-          dotnet restore
-
-          DLL_PATH=$(find ~/.nuget/packages/eck1.contracts -type f -name "ECK1.Contracts.dll" | sort -r | head -n 1)
+          DLL_PATH=$(find /tmp/ECK1.Contracts -type f -name "ECK1.Contracts.dll" | sort -r | head -n 1)
           echo "Found DLL at $DLL_PATH"
 
           echo "ASSEMBLY_PATH=$DLL_PATH" >> $GITHUB_ENV
