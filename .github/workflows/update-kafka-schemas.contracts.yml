@@ -75,23 +75,47 @@ jobs:
         id: get-assembly-path
         shell: bash
         run: |
-          VERSIONS_JSON=$(curl -s \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          PACKAGE_NAME="ECK1.Contracts"
+          OWNER="${GITHUB_REPOSITORY_OWNER}"
+
+          SERVICE_INDEX=$(curl -s \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Accept: application/json" \
-            "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json")
+            "https://nuget.pkg.github.com/${OWNER}/index.json")
 
-          PACKAGE_VERSION=$(echo "$VERSIONS_JSON" | jq -r ".packages.\"ECK1.Contracts\"[].version" | sort -V | tail -n1)
+          PACKAGE_BASE_URL=$(echo "$SERVICE_INDEX" | jq -r '.resources[] | select(.["@type"]=="PackageBaseAddress/3.0.0") | .["@id"]')
 
+          if [ -z "$PACKAGE_BASE_URL" ]; then
+            echo "Cannot find PackageBaseAddress in feed"
+            exit 1
+          fi
+
+          VERSIONS_JSON=$(curl -s \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/json" \
+            "$PACKAGE_BASE_URL$PACKAGE_NAME/index.json")
+
+          if [ -z "$VERSIONS_JSON" ]; then
+            echo "Cannot get versions for package $PACKAGE_NAME"
+            exit 1
+          fi
+
+          PACKAGE_VERSION=$(echo "$VERSIONS_JSON" | jq -r '.versions[]' | sort -V | tail -n1)
           echo "Latest version: $PACKAGE_VERSION"
 
+          NUPKG_PATH="/tmp/${PACKAGE_NAME}.nupkg"
           curl -L \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Accept: application/octet-stream" \
-            -o "/tmp/ECK1.Contracts.nupkg" \
-            "https://nuget.pkg.github.com/${OWNER}/nuget/v3/flat2/ECK1.Contracts/${PACKAGE_VERSION}/ECK1.Contracts.${PACKAGE_VERSION}.nupkg"
+            -o "$NUPKG_PATH" \
+            "$PACKAGE_BASE_URL$PACKAGE_NAME/$PACKAGE_VERSION/$PACKAGE_NAME.$PACKAGE_VERSION.nupkg"
 
-          unzip -o "/tmp/ECK1.Contracts.nupkg" "lib/net8.0/*.dll" -d /tmp/ECK1.Contracts_dll
+          DLL_DIR="/tmp/${PACKAGE_NAME}_dll"
+          mkdir -p "$DLL_DIR"
+          unzip -o "$NUPKG_PATH" "lib/net8.0/*.dll" -d "$DLL_DIR"
 
+
+          ##########################
           DLL_PATH=$(find /tmp/ECK1.Contracts -type f -name "ECK1.Contracts.dll" | sort -r | head -n 1)
           echo "Found DLL at $DLL_PATH"
 
