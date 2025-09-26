@@ -80,6 +80,15 @@ jobs:
           dotnet new classlib -n TempProject -f net8.0
           cd TempProject
 
+          cat > Directory.Packages.props <<EOF
+          <Project>
+            <ItemGroup>
+              <PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+              <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
+            </ItemGroup>
+          </Project>
+          EOF
+
           dotnet add package ECK1.Contracts --source "https://nuget.pkg.github.com/${GITHUB_REPOSITORY_OWNER}/index.json"
 
           dotnet restore

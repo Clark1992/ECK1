@@ -18,12 +18,12 @@ echo "PackageId: $PACKAGE_ID"
 echo "BaseVersion: $BASE_VERSION"
 
 # Make sure GitHub NuGet source is configured
-dotnet nuget remove source github || true
+dotnet nuget remove source Github || true
 dotnet nuget add source \
   --username "$GITHUB_ACTOR" \
   --password "$GITHUB_TOKEN" \
   --store-password-in-clear-text \
-  --name github \
+  --name Github \
   "https://nuget.pkg.github.com/${GITHUB_REPOSITORY_OWNER}/index.json"
 
 # Discover the PackageBaseAddress endpoint from the NuGet service index
