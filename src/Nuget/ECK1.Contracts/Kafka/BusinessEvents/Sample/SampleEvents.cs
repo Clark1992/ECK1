@@ -1,8 +1,10 @@
-﻿using System.Text.Json.Serialization;
+﻿using ECK1.CommonUtils.Json;
+using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace ECK1.Contracts.Kafka.BusinessEvents.Sample;
 
-
+[Newtonsoft.Json.JsonConverter(typeof(Polymorph<ISampleEvent>), "$type")]
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
 [JsonDerivedType(typeof(SampleCreatedEvent), nameof(SampleCreatedEvent))]
 [JsonDerivedType(typeof(SampleNameChangedEvent), nameof(SampleNameChangedEvent))]

@@ -12,4 +12,8 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ECK1.CommonUtils\ECK1.CommonUtils.csproj" />
+  </ItemGroup>
+
 </Project>

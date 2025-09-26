@@ -21,8 +21,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Contracts", "Contracts", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Unit", "Unit", "{A5AACA5B-AF10-47FD-AC67-A5DE79C71F79}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECK1.CommandsAPI.Tests", "ECK1.CommandsAPI.Tests\ECK1.CommandsAPI.Tests.csproj", "{366C9E29-5A47-4526-8F1C-89AA171F7365}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CommonUtils", "CommonUtils", "{2ABC8365-920C-4560-8355-94584C159C1C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Nuget", "Nuget", "{0C37B328-CA3F-40F2-92BE-0253EE059ABD}"
@@ -31,7 +29,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Kafka", "Kafka", "{BF2F7A2A
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_SolutionItems", "_SolutionItems", "{735BBD5B-1AAB-4FC7-96E7-42F8179B0EDE}"
 	ProjectSection(SolutionItems) = preProject
-		Directory.Packages.props = Directory.Packages.props
+		..\Directory.Packages.props = ..\Directory.Packages.props
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SchemaRegistry", "SchemaRegistry", "{1A658CEF-6EA8-4FEA-B715-08DEE8C96E13}"
@@ -46,8 +44,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BusinessEvents", "BusinessE
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{52D21061-5F78-44DA-AB16-83C66501442F}"
 	ProjectSection(SolutionItems) = preProject
-		_SolutionItems/SchemaRegistry/BusinessEvents/Sample/sample-business-events-value.json = _SolutionItems/SchemaRegistry/BusinessEvents/Sample/sample-business-events-value.json
+		_SolutionItems\SchemaRegistry\BusinessEvents\Sample\sample-business-events-value.json = _SolutionItems\SchemaRegistry\BusinessEvents\Sample\sample-business-events-value.json
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECK1.CommandsAPI.Tests", "..\tests\ECK1.CommandsAPI.Tests\ECK1.CommandsAPI.Tests.csproj", "{9D083A41-C889-6920-3349-38907BD471BF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECK1.Tests.Common", "..\tests\ECK1.Tests.Common\ECK1.Tests.Common.csproj", "{0E1174A9-6755-4D38-87DE-ACF20D24572A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECK1.CommonUtils.Tests", "..\tests\ECK1.CommonUtils.Tests\ECK1.CommonUtils.Tests.csproj", "{8FF7CF0D-A342-A0AB-C0DB-2704B65CA840}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,10 +71,6 @@ Global
 		{65BA1CA4-FB39-120A-7E4A-8796A1156E8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{65BA1CA4-FB39-120A-7E4A-8796A1156E8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{65BA1CA4-FB39-120A-7E4A-8796A1156E8B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{366C9E29-5A47-4526-8F1C-89AA171F7365}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{366C9E29-5A47-4526-8F1C-89AA171F7365}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{366C9E29-5A47-4526-8F1C-89AA171F7365}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{366C9E29-5A47-4526-8F1C-89AA171F7365}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A1194421-7706-B640-AE7B-6E4B242587C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A1194421-7706-B640-AE7B-6E4B242587C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1194421-7706-B640-AE7B-6E4B242587C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -83,6 +83,18 @@ Global
 		{388563EA-5A81-6B8C-7B5C-6587F1209DE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{388563EA-5A81-6B8C-7B5C-6587F1209DE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{388563EA-5A81-6B8C-7B5C-6587F1209DE2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D083A41-C889-6920-3349-38907BD471BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D083A41-C889-6920-3349-38907BD471BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D083A41-C889-6920-3349-38907BD471BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D083A41-C889-6920-3349-38907BD471BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E1174A9-6755-4D38-87DE-ACF20D24572A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E1174A9-6755-4D38-87DE-ACF20D24572A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E1174A9-6755-4D38-87DE-ACF20D24572A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E1174A9-6755-4D38-87DE-ACF20D24572A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8FF7CF0D-A342-A0AB-C0DB-2704B65CA840}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FF7CF0D-A342-A0AB-C0DB-2704B65CA840}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FF7CF0D-A342-A0AB-C0DB-2704B65CA840}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FF7CF0D-A342-A0AB-C0DB-2704B65CA840}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -93,7 +105,6 @@ Global
 		{65BA1CA4-FB39-120A-7E4A-8796A1156E8B} = {6D59B80E-8209-4078-BECF-75457C971DB2}
 		{711454AD-436A-4DDD-B6D8-A098F60D2ABE} = {0C37B328-CA3F-40F2-92BE-0253EE059ABD}
 		{A5AACA5B-AF10-47FD-AC67-A5DE79C71F79} = {7338D4CA-DC13-4069-AD78-E8A6BC0EC2FD}
-		{366C9E29-5A47-4526-8F1C-89AA171F7365} = {A5AACA5B-AF10-47FD-AC67-A5DE79C71F79}
 		{2ABC8365-920C-4560-8355-94584C159C1C} = {0C37B328-CA3F-40F2-92BE-0253EE059ABD}
 		{BF2F7A2A-E4EE-4318-B360-8D88C306326D} = {0C37B328-CA3F-40F2-92BE-0253EE059ABD}
 		{1A658CEF-6EA8-4FEA-B715-08DEE8C96E13} = {735BBD5B-1AAB-4FC7-96E7-42F8179B0EDE}
@@ -102,6 +113,9 @@ Global
 		{388563EA-5A81-6B8C-7B5C-6587F1209DE2} = {BF2F7A2A-E4EE-4318-B360-8D88C306326D}
 		{5FDD1246-2024-4F71-8122-B8D04CEF2202} = {1A658CEF-6EA8-4FEA-B715-08DEE8C96E13}
 		{52D21061-5F78-44DA-AB16-83C66501442F} = {5FDD1246-2024-4F71-8122-B8D04CEF2202}
+		{9D083A41-C889-6920-3349-38907BD471BF} = {A5AACA5B-AF10-47FD-AC67-A5DE79C71F79}
+		{0E1174A9-6755-4D38-87DE-ACF20D24572A} = {7338D4CA-DC13-4069-AD78-E8A6BC0EC2FD}
+		{8FF7CF0D-A342-A0AB-C0DB-2704B65CA840} = {A5AACA5B-AF10-47FD-AC67-A5DE79C71F79}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {789FA419-D9F6-4410-9CDB-09B807B90A7D}
