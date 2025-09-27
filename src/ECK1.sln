@@ -45,6 +45,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{52D21061-5F78-44DA-AB16-83C66501442F}"
 	ProjectSection(SolutionItems) = preProject
 		_SolutionItems\SchemaRegistry\BusinessEvents\Sample\sample-business-events-value.json = _SolutionItems\SchemaRegistry\BusinessEvents\Sample\sample-business-events-value.json
+		_SolutionItems/SchemaRegistry/BusinessEvents/Sample/sample-business-events-value.json = _SolutionItems/SchemaRegistry/BusinessEvents/Sample/sample-business-events-value.json
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECK1.CommandsAPI.Tests", "..\tests\ECK1.CommandsAPI.Tests\ECK1.CommandsAPI.Tests.csproj", "{9D083A41-C889-6920-3349-38907BD471BF}"
