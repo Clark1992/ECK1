@@ -120,7 +120,7 @@ jobs:
           unzip -o "$NUPKG_PATH" "lib/net8.0/*.dll" -d "$DLL_DIR"
 
           ##########################
-          DLL_PATH=$(find /tmp/ECK1.Contracts -type f -name "ECK1.Contracts.dll" | sort -r | head -n 1)
+          DLL_PATH=$(find /tmp/${PACKAGE_NAME}_dll -type f -name "${PACKAGE_NAME}.dll" | sort -r | head -n 1)
           echo "Found DLL at $DLL_PATH"
 
           echo "ASSEMBLY_PATH=$DLL_PATH" >> $GITHUB_ENV
