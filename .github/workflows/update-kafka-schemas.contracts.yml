@@ -45,91 +45,85 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Install latest package with nuget.exe
-        run: |
-          dotnet nuget install ECK1.Contracts -o packages
-        shell: pwsh
-
-      - name: Verify downloaded package
-        run: |
-          # This command lists the contents of the newly created packages directory
-          ls -R packages
-      
       # - name: Configure NuGet
-      #   run: |
-      #     mkdir -p ~/.nuget/NuGet
-      #     cat > ~/.nuget/NuGet/NuGet.Config <<EOF
-      #     <configuration>
-      #       <packageSources>
-      #         <add key="GitHub" value="https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" />
-      #         <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-      #       </packageSources>
-      #       <packageSourceMapping>
-      #         <packageSource key="GitHub">
-      #           <package pattern="ECK1.*" />
-      #         </packageSource>
-      #         <packageSource key="nuget.org">
-      #           <package pattern="*" />
-      #         </packageSource>
-      #       </packageSourceMapping>
-      #       <packageSourceCredentials>
-      #         <GitHub>
-      #           <add key="Username" value="${{ github.actor }}" />
-      #           <add key="ClearTextPassword" value="${{ secrets.GITHUB_TOKEN }}" />
-      #         </GitHub>
-      #       </packageSourceCredentials>
-      #     </configuration>
-      #     EOF
+        run: |
+          mkdir -p ~/.nuget/NuGet
+          cat > ~/.nuget/NuGet/NuGet.Config <<EOF
+          <configuration>
+            <packageSources>
+              <add key="GitHub" value="https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" />
+              <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+            </packageSources>
+            <packageSourceMapping>
+              <packageSource key="GitHub">
+                <package pattern="ECK1.*" />
+              </packageSource>
+              <packageSource key="nuget.org">
+                <package pattern="*" />
+              </packageSource>
+            </packageSourceMapping>
+            <packageSourceCredentials>
+              <GitHub>
+                <add key="Username" value="${{ github.actor }}" />
+                <add key="ClearTextPassword" value="${{ secrets.GITHUB_TOKEN }}" />
+              </GitHub>
+            </packageSourceCredentials>
+          </configuration>
+          EOF
 
-      # - name: Download latest NuGet package
-      #   id: get-assembly-path
-      #   shell: bash
-      #   run: |
-      #     PACKAGE_NAME="ECK1.Contracts"
-      #     OWNER="${GITHUB_REPOSITORY_OWNER}"
+      - name: Download latest NuGet package
+        shell: bash
+        run: |
+          PACKAGE_NAME="ECK1.Contracts"
+          OWNER="${GITHUB_REPOSITORY_OWNER}"
 
-      #     SERVICE_INDEX=$(curl -s \
-      #       -H "Authorization: Bearer $GITHUB_TOKEN" \
-      #       -H "Accept: application/json" \
-      #       "https://nuget.pkg.github.com/${OWNER}/index.json")
+          SERVICE_INDEX=$(curl -s \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/json" \
+            "https://nuget.pkg.github.com/${OWNER}/index.json")
 
-      #     PACKAGE_BASE_URL=$(echo "$SERVICE_INDEX" | jq -r '.resources[] | select(.["@type"]=="PackageBaseAddress/3.0.0") | .["@id"]')
+          PACKAGE_BASE_URL=$(echo "$SERVICE_INDEX" | jq -r '.resources[] | select(.["@type"]=="PackageBaseAddress/3.0.0") | .["@id"]')
 
-      #     if [ -z "$PACKAGE_BASE_URL" ]; then
-      #       echo "Cannot find PackageBaseAddress in feed"
-      #       exit 1
-      #     fi
+          if [ -z "$PACKAGE_BASE_URL" ]; then
+            echo "Cannot find PackageBaseAddress in feed"
+            exit 1
+          fi
 
-      #     VERSIONS_JSON=$(curl -s \
-      #       -H "Authorization: Bearer $GITHUB_TOKEN" \
-      #       -H "Accept: application/json" \
-      #       "$PACKAGE_BASE_URL$PACKAGE_NAME/index.json")
+          VERSIONS_JSON=$(curl -s \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/json" \
+            "$PACKAGE_BASE_URL/$PACKAGE_NAME/index.json")
 
-      #     if [ -z "$VERSIONS_JSON" ]; then
-      #       echo "Cannot get versions for package $PACKAGE_NAME"
-      #       exit 1
-      #     fi
+          if [ -z "$VERSIONS_JSON" ]; then
+            echo "Cannot get versions for package $PACKAGE_NAME"
+            exit 1
+          fi
 
-      #     PACKAGE_VERSION=$(echo "$VERSIONS_JSON" | jq -r '.versions[]' | sort -V | tail -n1)
-      #     echo "Latest version: $PACKAGE_VERSION"
+          echo "Versions JSON: $VERSIONS_JSON"
 
-      #     NUPKG_PATH="/tmp/${PACKAGE_NAME}.nupkg"
-      #     curl -L \
-      #       -H "Authorization: Bearer $GITHUB_TOKEN" \
-      #       -H "Accept: application/octet-stream" \
-      #       -o "$NUPKG_PATH" \
-      #       "$PACKAGE_BASE_URL$PACKAGE_NAME/$PACKAGE_VERSION/$PACKAGE_NAME.$PACKAGE_VERSION.nupkg"
+          PACKAGE_VERSION=$(echo "$VERSIONS_JSON" | jq -r '.versions[]' | sort -V | tail -n1)
+          echo "Latest version: $PACKAGE_VERSION"
 
-      #     DLL_DIR="/tmp/${PACKAGE_NAME}_dll"
-      #     mkdir -p "$DLL_DIR"
-      #     unzip -o "$NUPKG_PATH" "lib/net8.0/*.dll" -d "$DLL_DIR"
+          NUPKG_PATH="/tmp/${PACKAGE_NAME}.nupkg"
+          curl -L \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/octet-stream" \
+            -o "$NUPKG_PATH" \
+            "$PACKAGE_BASE_URL/$PACKAGE_NAME/$PACKAGE_VERSION/$PACKAGE_NAME.$PACKAGE_VERSION.nupkg"
 
+          echo "$PACKAGE_BASE_URL/$PACKAGE_NAME/$PACKAGE_VERSION/$PACKAGE_NAME.$PACKAGE_VERSION.nupkg"
 
-      #     ##########################
-      #     DLL_PATH=$(find /tmp/ECK1.Contracts -type f -name "ECK1.Contracts.dll" | sort -r | head -n 1)
-      #     echo "Found DLL at $DLL_PATH"
+          echo "Downloaded package to $NUPKG_PATH"
 
-      #     echo "ASSEMBLY_PATH=$DLL_PATH" >> $GITHUB_ENV
+          DLL_DIR="/tmp/${PACKAGE_NAME}_dll"
+          mkdir -p "$DLL_DIR"
+          unzip -o "$NUPKG_PATH" "lib/net8.0/*.dll" -d "$DLL_DIR"
+
+          ##########################
+          DLL_PATH=$(find /tmp/ECK1.Contracts -type f -name "ECK1.Contracts.dll" | sort -r | head -n 1)
+          echo "Found DLL at $DLL_PATH"
+
+          echo "ASSEMBLY_PATH=$DLL_PATH" >> $GITHUB_ENV
 
       - name: Move current schemas
         run: |
