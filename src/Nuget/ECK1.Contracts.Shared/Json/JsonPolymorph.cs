@@ -1,11 +1,13 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 
-namespace ECK1.CommonUtils.Json;
+namespace ECK1.Contracts.Shared;
 
 /// <summary>
 /// Adapter to mimic System.Text JsonPolymorphic shape with Newtonsoft.Json

@@ -1,6 +1,6 @@
-﻿using ECK1.CommonUtils.Json;
-using Newtonsoft.Json;
+﻿using System;
 using System.Text.Json.Serialization;
+using ECK1.Contracts.Shared;
 
 namespace ECK1.Contracts.Kafka.BusinessEvents.Sample;
 
@@ -31,7 +31,6 @@ public record SampleAddressChangedEvent(Guid SampleId, SampleAddress NewAddress)
 public record SampleAttachmentAddedEvent(Guid SampleId, SampleAttachment Attachment) : SampleEvent(SampleId);
 public record SampleAttachmentRemovedEvent(Guid SampleId, Guid AttachmentId) : SampleEvent(SampleId);
 public record SampleAttachmentUpdatedEvent(Guid SampleId, Guid AttachmentId, string NewFileName, string NewUrl) : SampleEvent(SampleId);
-
 
 public class SampleAddress
 {
