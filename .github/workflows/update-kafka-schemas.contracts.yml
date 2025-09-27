@@ -46,30 +46,30 @@ jobs:
           dotnet-version: "8.0.x"
 
       # - name: Configure NuGet
-        run: |
-          mkdir -p ~/.nuget/NuGet
-          cat > ~/.nuget/NuGet/NuGet.Config <<EOF
-          <configuration>
-            <packageSources>
-              <add key="GitHub" value="https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" />
-              <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-            </packageSources>
-            <packageSourceMapping>
-              <packageSource key="GitHub">
-                <package pattern="ECK1.*" />
-              </packageSource>
-              <packageSource key="nuget.org">
-                <package pattern="*" />
-              </packageSource>
-            </packageSourceMapping>
-            <packageSourceCredentials>
-              <GitHub>
-                <add key="Username" value="${{ github.actor }}" />
-                <add key="ClearTextPassword" value="${{ secrets.GITHUB_TOKEN }}" />
-              </GitHub>
-            </packageSourceCredentials>
-          </configuration>
-          EOF
+        # run: |
+        #   mkdir -p ~/.nuget/NuGet
+        #   cat > ~/.nuget/NuGet/NuGet.Config <<EOF
+        #   <configuration>
+        #     <packageSources>
+        #       <add key="GitHub" value="https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" />
+        #       <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+        #     </packageSources>
+        #     <packageSourceMapping>
+        #       <packageSource key="GitHub">
+        #         <package pattern="ECK1.*" />
+        #       </packageSource>
+        #       <packageSource key="nuget.org">
+        #         <package pattern="*" />
+        #       </packageSource>
+        #     </packageSourceMapping>
+        #     <packageSourceCredentials>
+        #       <GitHub>
+        #         <add key="Username" value="${{ github.actor }}" />
+        #         <add key="ClearTextPassword" value="${{ secrets.GITHUB_TOKEN }}" />
+        #       </GitHub>
+        #     </packageSourceCredentials>
+        #   </configuration>
+        #   EOF
 
       - name: Download latest NuGet package
         shell: bash
