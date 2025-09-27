@@ -5,6 +5,7 @@ on:
     branches: [ "main" ]
     paths:
       - 'src/Nuget/ECK1.Contracts/**'
+      - 'src/Nuget/ECK1.Contracts.Shared/**'
       - '.github/workflows/publish-nuget.contracts.yml'
       - '.github/workflows/publish-nuget-shared.yml'
       - '.github/scripts/update-version.sh'

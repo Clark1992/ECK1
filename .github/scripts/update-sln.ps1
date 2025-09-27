@@ -75,7 +75,7 @@ try
 
     foreach ($folder in $folders) {
         $root = (Get-Location).Path
-        $relPath = [System.IO.Path]::GetRelativePath($root, $folder.FullName).Replace("\", "/")
+        $relPath = [System.IO.Path]::GetRelativePath($root, $folder.FullName).Replace("/", "\")
         $relFolder = Split-Path $relPath -Leaf
         
         # Write-Host "Relative path:"
@@ -134,7 +134,7 @@ try
 
     foreach ($file in $files) {
         $root = (Get-Location).Path
-        $relPath = [System.IO.Path]::GetRelativePath($root, $file.FullName).Replace("\", "/")
+        $relPath = [System.IO.Path]::GetRelativePath($root, $file.FullName).Replace("/", "\")
         $folderPath  = Split-Path $relPath -Parent
 
         $folderProjectKey  = Split-Path $folderPath -leaf
