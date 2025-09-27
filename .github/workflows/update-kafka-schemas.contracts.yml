@@ -45,12 +45,9 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Download the latest NuGet.exe
-        uses: nuget/setup-nuget@v2
-
       - name: Install latest package with nuget.exe
         run: |
-          nuget install ECK1.Contracts -OutputDirectory ECK1.Contracts_dll
+          dotnet nuget install ECK1.Contracts -o packages
         shell: pwsh
 
       - name: Verify downloaded package
