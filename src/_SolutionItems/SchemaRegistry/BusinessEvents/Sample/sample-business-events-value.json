@@ -253,5 +253,31 @@
         }
       ]
     }
-  }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/definitions/SampleCreatedEvent"
+    },
+    {
+      "$ref": "#/definitions/SampleEvent"
+    },
+    {
+      "$ref": "#/definitions/SampleNameChangedEvent"
+    },
+    {
+      "$ref": "#/definitions/SampleDescriptionChangedEvent"
+    },
+    {
+      "$ref": "#/definitions/SampleAddressChangedEvent"
+    },
+    {
+      "$ref": "#/definitions/SampleAttachmentAddedEvent"
+    },
+    {
+      "$ref": "#/definitions/SampleAttachmentRemovedEvent"
+    },
+    {
+      "$ref": "#/definitions/SampleAttachmentUpdatedEvent"
+    }
+  ]
 }
