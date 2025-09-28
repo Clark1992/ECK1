@@ -7,7 +7,7 @@ public class SampleAddress
     public string City { get; private set; }
     public string Country { get; private set; }
 
-    private SampleAddress() { } // EF
+    private SampleAddress() { }
 
     public SampleAddress(string street, string city, string country)
     {

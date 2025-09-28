@@ -1,6 +1,7 @@
+$baseDir = "src/ECK1.CommandsAPI"
+$dockerfilePath = "$baseDir/Dockerfile"
 $registryName = "local-registry"
 $registryPort = 5000
-$dockerfilePath = ".."
 $imageName = "commands-api"
 $imageTag = "dev"
 $fullImageName = "localhost:${registryPort}/${imageName}:${imageTag}"
@@ -13,6 +14,17 @@ $helmZipName = "helm-$helmVersion-windows-amd64.zip"
 $zipPath = "$env:TEMP\$helmZipName"
 $extractPath = "$env:TEMP\helm-$helmVersion"
 $helmExe = "$extractPath\windows-amd64\helm.exe"
+
+# Prerequisites:
+
+$env:DOCKER_BUILDKIT=1
+$globalNugetConfig = "$env:APPDATA\NuGet\NuGet.Config"
+
+Write-Host "Using NuGet.Config at: $globalNugetConfig"
+
+if (-Not (Test-Path $globalNugetConfig)) {
+    throw "NuGet.Config not found"
+}
 
 # 1. Check if local Docker registry is running
 $registryRunning = docker ps --filter "name=$registryName" --filter "status=running" --quiet
@@ -31,7 +43,7 @@ if ([string]::IsNullOrWhiteSpace($registryRunning)) {
 
 # 2. Build Docker image
 Write-Host "Building Docker image $fullImageName..."
-docker build -t $fullImageName $dockerfilePath
+docker build -t $fullImageName -f $dockerfilePath --secret "id=nugetconfig,src=$globalNugetConfig" ./ --progress=plain
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Docker build failed. Exiting."
@@ -80,9 +92,10 @@ else {
 
 # 5. Deploy using Helm
 Write-Host "Deploying Helm chart..."
-helm upgrade --install $releaseName $chartPath `
+helm upgrade --install $releaseName $baseDir\Deploy\$chartPath `
     --namespace $namespace `
-    -f values.local.yaml
+    -f $baseDir\Deploy\values.local.yaml
+    -f $baseDir\Deploy\values.secrets.yaml
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Helm deployment failed."

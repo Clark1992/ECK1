@@ -1,12 +1,11 @@
 ﻿using Confluent.Kafka;
-using Confluent.SchemaRegistry;
 using DbUp;
 using ECK1.CommandsAPI;
 using ECK1.CommandsAPI.Data;
 using ECK1.CommandsAPI.Startup;
+using ECK1.Contracts.Kafka.BusinessEvents.Sample;
 using ECK1.Kafka.Extensions;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,10 +17,6 @@ builder.Configuration.AddDopplerSecrets();
 
 var configuration = builder.Configuration;
 var environment = builder.Environment;
-
-var kafkaSettings = builder.Configuration
-    .GetSection(KafkaSettings.Section)
-    .Get<KafkaSettings>();
 
 builder.Services.AddControllers();
 
@@ -45,15 +40,28 @@ builder.Services.Configure<EventsStoreConfig>(
 );
 builder.Services.AddScoped<SampleRepo>();
 
+#region Kafka
+
+var kafkaSettings = builder.Configuration
+    .GetSection(KafkaSettings.Section)
+    .Get<KafkaSettings>();
+
 builder.Services
-    .AddKafkaRoot(kafkaSettings.BootstrapServers,
+    .AddKafkaRootProducer(kafkaSettings.BootstrapServers,
     c =>
     {
         c.Acks = Acks.Leader;
         c.WithAuth(kafkaSettings.User, kafkaSettings.Secret);
     })
-    .WithJSONSerializer(kafkaSettings.SchemaRegistryUrl,
+    .WithSchemaRegistry(kafkaSettings.SchemaRegistryUrl,
         c => c.WithAuth(kafkaSettings.User, kafkaSettings.Secret));
+
+builder.Services.ConfigTopicProducer<ISampleEvent>(
+    kafkaSettings.SampleBusinessEventsTopic, 
+    Confluent.SchemaRegistry.SubjectNameStrategy.Topic,
+    SerializerType.JSON);
+
+#endregion
 
 var app = builder.Build();
 

@@ -1,74 +1,92 @@
 ﻿using Confluent.Kafka;
 using Confluent.SchemaRegistry;
 using Confluent.SchemaRegistry.Serdes;
-using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 namespace ECK1.Kafka;
 
-public class KafkaJsonTopicProducer<TValue> : IKafkaTopicProducer<TValue>
+public class KafkaTopicProducerBase<TValue> where TValue : class
+{
+    private readonly ILogger logger;
+    private readonly IProducer<string, TValue> producer;
+    private readonly string topic;
+
+    public KafkaTopicProducerBase(
+        Handle rootHandle, 
+        string topic,
+        IAsyncSerializer<TValue> asyncSerializer,
+        ILogger<IKafkaTopicProducer<TValue>> logger)
+    {
+        producer = new DependentProducerBuilder<string, TValue>(rootHandle)
+            .SetValueSerializer(asyncSerializer)
+            .Build();
+
+        this.topic = topic;
+        this.logger = logger;
+    }
+
+    public async Task ProduceAsync(TValue value, string key, CancellationToken ct)
+    {
+        var message = new Message<string, TValue>
+        {
+            Key = key,
+            Value = value
+        };
+
+        try
+        {
+            await producer.ProduceAsync(topic, message, ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error during Produce.");
+        }
+    }
+}
+
+public class KafkaJsonTopicProducer<TValue> : KafkaTopicProducerBase<TValue>, IKafkaTopicProducer<TValue>
     where TValue : class
 {
-    private readonly IProducer<string, TValue> _producer;
-    private readonly string _topic;
-    private readonly JsonSerializerOptions options;
-
     public KafkaJsonTopicProducer(
         Handle rootHandle,
         string topic,
-        ISchemaRegistryClient schemaRegistry)
-    {
-        _producer = new DependentProducerBuilder<string, TValue>(rootHandle)
-            .SetValueSerializer(new JsonSerializer<TValue>(
+        ISchemaRegistryClient schemaRegistry,
+        SubjectNameStrategy strategy,
+        ILogger<KafkaJsonTopicProducer<TValue>> logger): base(
+            rootHandle, 
+            topic, 
+            new JsonSerializer<TValue>(
                 schemaRegistry,
                 new JsonSerializerConfig
                 {
                     AutoRegisterSchemas = false,
                     UseLatestVersion = true,
+                    SubjectNameStrategy = strategy
                 }
-            ))
-            .Build();
-
-        _topic = topic;
-    }
-
-    public async Task ProduceAsync(TValue value, string key = null, CancellationToken ct = default)
+            ),
+            logger)
     {
-        var message = new Message<string, TValue>
-        {
-            Key = key ?? Guid.NewGuid().ToString(),
-            Value = value
-        };
-
-        await _producer.ProduceAsync(_topic, message, ct);
     }
 }
 
-public class KafkaAvroTopicProducer<TValue> : IKafkaTopicProducer<TValue>
+public class KafkaAvroTopicProducer<TValue> : KafkaTopicProducerBase<TValue>, IKafkaTopicProducer<TValue>
+    where TValue : class
 {
-    private readonly IProducer<string, TValue> _producer;
-    private readonly string _topic;
-
-    public KafkaAvroTopicProducer(Handle rootHandle, string topic, ISchemaRegistryClient schemaRegistry)
-    {
-        _producer = new DependentProducerBuilder<string, TValue>(rootHandle)
-            .SetValueSerializer(new AvroSerializer<TValue>(schemaRegistry, new ()
+    public KafkaAvroTopicProducer(
+        Handle rootHandle,
+        string topic,
+        ISchemaRegistryClient schemaRegistry,
+        SubjectNameStrategy strategy,
+        ILogger<KafkaAvroTopicProducer<TValue>> logger) : base(
+            rootHandle,
+            topic,
+            new AvroSerializer<TValue>(schemaRegistry, new()
             {
                 AutoRegisterSchemas = false,
-                UseLatestVersion = true
-            }))
-            .Build();
-
-        _topic = topic;
-    }
-
-    public async Task ProduceAsync(TValue value, string key = null, CancellationToken ct = default)
+                UseLatestVersion = true,
+                SubjectNameStrategy = strategy
+            }),
+            logger)
     {
-        var message = new Message<string, TValue>
-        {
-            Key = key ?? Guid.NewGuid().ToString(),
-            Value = value
-        };
-
-        await _producer.ProduceAsync(_topic, message, ct);
     }
 }

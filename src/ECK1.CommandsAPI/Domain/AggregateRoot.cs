@@ -4,7 +4,8 @@ using System.Text.Json.Serialization;
 
 namespace ECK1.CommandsAPI.Domain;
 
-public abstract class AggregateRoot<TEvent> : AggregateRootHandler<TEvent>
+[HandlerMethod(nameof(Apply))]
+public abstract class AggregateRoot<TEvent> : GenericHandler<TEvent>
 {
     private readonly List<TEvent> _uncommittedEvents = new();
 
@@ -45,63 +46,8 @@ public abstract class AggregateRoot<TEvent> : AggregateRootHandler<TEvent>
         }
         return aggregate;
     }
-}
 
-public abstract class AggregateRootHandler<TEvent>
-{
-    private static readonly Dictionary<Type, Action<AggregateRootHandler<TEvent>, TEvent>> _handlers
-        = new();
-
-    static AggregateRootHandler()
-    {
-        var aggregateType = typeof(AggregateRootHandler<TEvent>).Assembly
-            .GetTypes()
-            .Where(t => typeof(AggregateRootHandler<TEvent>).IsAssignableFrom(t));
-
-        foreach (var type in aggregateType)
-        {
-            var methods = type.GetMethods(
-                BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Public);
-
-            foreach (var method in methods.Where(m => m.Name == nameof(Apply)))
-            {
-                var parameters = method.GetParameters();
-                if (parameters.Length == 2 &&
-                    parameters[0].ParameterType.IsAssignableTo(type) &&
-                    typeof(TEvent).IsAssignableFrom(parameters[1].ParameterType))
-                {
-                    var eventType = parameters[1].ParameterType;
-
-                    // Build delegate: (aggregate, event) => method(aggregate, event)
-                    var aggParam = Expression.Parameter(typeof(AggregateRootHandler<TEvent>), "agg");
-                    var evtParam = Expression.Parameter(typeof(TEvent), "evt");
-
-                    var call = Expression.Call(
-                        method,
-                        Expression.Convert(aggParam, type),
-                        Expression.Convert(evtParam, eventType));
-
-                    var lambda = Expression.Lambda<Action<AggregateRootHandler<TEvent>, TEvent>>(
-                        call, aggParam, evtParam).Compile();
-
-                    _handlers[eventType] = lambda;
-                }
-            }
-        }
-    }
-
-    protected void Apply(TEvent @event)
-    {
-        if (_handlers.TryGetValue(@event.GetType(), out var handler))
-        {
-            handler(this, @event);
-        }
-        else
-        {
-            throw new InvalidOperationException(
-                $"No Apply method found for {@event.GetType().Name}");
-        }
-    }
+    protected void Apply(TEvent @event) => Handle(@event);
 }
 
 public static class AggregateFactory<TAggregate, TEvent>

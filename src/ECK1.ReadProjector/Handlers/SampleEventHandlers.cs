@@ -2,21 +2,27 @@ using MediatR;
 using MongoDB.Driver;
 using ECK1.ReadProjector.Data;
 using ECK1.ReadProjector.Views;
-using ECK1.BusinessEvents.Sample;
+using ECK1.Contracts.Kafka.BusinessEvents.Sample;
 using ECK1.ReadProjector.Notifications;
 
 namespace ECK1.ReadProjector.Handlers;
 
 public class SampleEventHandlers(MongoDbContext db) : 
-    IRequestHandler<EventNotification<SampleCreatedEvent>>,
-    IRequestHandler<EventNotification<SampleNameChangedEvent>>,
-    IRequestHandler<EventNotification<SampleDescriptionChangedEvent>>,
-    IRequestHandler<EventNotification<SampleAddressChangedEvent>>,
-    IRequestHandler<EventNotification<SampleAttachmentAddedEvent>>,
-    IRequestHandler<EventNotification<SampleAttachmentRemovedEvent>>,
-    IRequestHandler<EventNotification<SampleAttachmentUpdatedEvent>>
+    IRequestHandler<EventNotification<ISampleEvent>>
+    //IRequestHandler<EventNotification<SampleCreatedEvent>>,
+    //IRequestHandler<EventNotification<SampleNameChangedEvent>>,
+    //IRequestHandler<EventNotification<SampleDescriptionChangedEvent>>,
+    //IRequestHandler<EventNotification<SampleAddressChangedEvent>>,
+    //IRequestHandler<EventNotification<SampleAttachmentAddedEvent>>,
+    //IRequestHandler<EventNotification<SampleAttachmentRemovedEvent>>,
+    //IRequestHandler<EventNotification<SampleAttachmentUpdatedEvent>>
 
 {
+    public Task Handle(EventNotification<ISampleEvent> request, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task Handle(EventNotification<SampleCreatedEvent> notification, CancellationToken cancellationToken)
     {
         var @event = notification.Event;

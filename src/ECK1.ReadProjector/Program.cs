@@ -1,8 +1,10 @@
-﻿using ECK1.ReadProjector.Data;
+﻿using Confluent.Kafka;
+using Confluent.SchemaRegistry;
+using ECK1.Kafka;
+using ECK1.Kafka.Extensions;
+using ECK1.ReadProjector;
+using ECK1.ReadProjector.Data;
 using ECK1.ReadProjector.Handlers;
-using ECK1.ReadProjector.Kafka;
-using MediatR;
-using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
@@ -10,15 +12,22 @@ using MongoDB.Bson.Serialization.Serializers;
 
 var builder = WebApplication.CreateBuilder(args);
 
+#if DEBUG
+builder.Configuration.AddUserSecrets<Program>();
+#endif
+
+builder.Configuration.AddDopplerSecrets();
+
 var configuration = builder.Configuration;
 var environment = builder.Environment;
 
 builder.Services.AddControllers();
 
-var conventionPack = new ConventionPack { 
+var conventionPack = new ConventionPack {
     new CamelCaseElementNameConvention(), 
     //new IgnoreExtraElementsConvention(true)
 };
+
 ConventionRegistry.Register("CamelCase", conventionPack, t => true);
 
 //BsonDefaults.GuidRepresentationMode = GuidRepresentationMode.V3;
@@ -31,9 +40,33 @@ builder.Services.AddSingleton(sp =>
     return new MongoDbContext(mongoConnectionString, mongoDatabaseName);
 });
 
-//builder.Services.Configure<KafkaOptions>(configuration.GetSection("Kafka"));
+#region Kafka
 
-//builder.Services.AddHostedService<ReadProjectorConsumer>();
+builder.Services.AddScoped(typeof(IMessageHandler<>), typeof(GenericIntegrationHandler<>));
+
+var kafkaSettings = builder.Configuration
+    .GetSection(KafkaSettings.Section)
+    .Get<KafkaSettings>();
+
+builder.Services
+    .WithSchemaRegistry(kafkaSettings.SchemaRegistryUrl,
+        c => c.WithAuth(kafkaSettings.User, kafkaSettings.Secret));
+
+builder.Services.ConfigTopicConsumer<ECK1.Contracts.Kafka.BusinessEvents.Sample.ISampleEvent>(
+    kafkaSettings.BootstrapServers,
+    kafkaSettings.SampleBusinessEventsTopic,
+    kafkaSettings.GroupId,
+    SubjectNameStrategy.Topic,
+    SerializerType.JSON,
+    c =>
+    {
+        c.Acks = Acks.Leader;
+        c.WithAuth(kafkaSettings.User, kafkaSettings.Secret);
+    });
+
+builder.Services.AddHostedService<KafkaTopicConsumerService>();
+
+#endregion
 
 builder.Services.AddCors(options =>
 {
@@ -47,11 +80,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
 var app = builder.Build();
-
-
-ECK1.BusinessEvents.Sample.SampleCreatedEvent ev = new ECK1.BusinessEvents.Sample.SampleCreatedEvent(Guid.NewGuid(), "ss", "ss", new ECK1.BusinessEvents.Sample.SampleAddress("ss", "ss", "ss"));
-var service = app.Services.GetService<IMediator>();
-await service.Send(new ECK1.ReadProjector.Notifications.EventNotification<ECK1.BusinessEvents.Sample.ISampleEvent>(ev));
 
 
 if (app.Environment.IsDevelopment())

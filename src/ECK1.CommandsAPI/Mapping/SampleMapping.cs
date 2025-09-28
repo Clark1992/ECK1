@@ -1,4 +1,5 @@
-﻿using BusinessEvents = ECK1.Contracts.BusinessEvents;
+﻿using ECK1.CommonUtils.Mapping;
+using BusinessEvents = ECK1.Contracts.Kafka.BusinessEvents;
 using DomainEvents = ECK1.CommandsAPI.Domain.Samples;
 
 namespace ECK1.CommandsAPI.Mapping;

@@ -3,7 +3,7 @@ using ECK1.CommandsAPI.Domain;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-using static ECK1.CommandsAPI.Utils.TypeUtils;
+using static ECK1.CommonUtils.Mapping.TypeUtils;
 
 namespace ECK1.CommandsAPI.Startup;
 

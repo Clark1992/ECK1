@@ -2,8 +2,8 @@
 using ECK1.CommandsAPI.Domain.Samples;
 using ECK1.Kafka;
 using MediatR;
-using static ECK1.CommandsAPI.Utils.TypeUtils;
-using EventContracts = ECK1.Contracts.BusinessEvents.Sample;
+using static ECK1.CommonUtils.Mapping.TypeUtils;
+using EventContracts = ECK1.Contracts.Kafka.BusinessEvents.Sample;
 
 namespace ECK1.CommandsAPI.Commands;
 
@@ -38,7 +38,7 @@ public abstract class IntegrationBase<TDomainEvent, TContractEvent> :
         {
             var eventKafkaMessage = mapper.Map(notification.Event, domainEventType, contractType) as TContractEvent
                 ?? throw new InvalidOperationException("Couldnt cast event to contract type");
-            
+
             await SendAsync(eventKafkaMessage, ct);
         }
         else
@@ -58,7 +58,7 @@ public abstract class IntegrationBootstrapper<TDomainEvent, TContractEvent>
 
     static IntegrationBootstrapper()
     {
-        eventMapping = GetEventTypeMapping<TDomainEvent, TContractEvent>();
+        eventMapping = GetTypesMapping<TDomainEvent, TContractEvent>();
     }
 
     public abstract Task Handle(EventNotification<TDomainEvent> @event, CancellationToken ct);

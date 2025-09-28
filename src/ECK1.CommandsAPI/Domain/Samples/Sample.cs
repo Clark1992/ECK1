@@ -2,14 +2,14 @@
 
 public class Sample : AggregateRoot<ISampleEvent>
 {
-    public string Name { get; private set; } = default!;
-    public string Description { get; private set; } = default!;
+    public string Name { get; private set; } = default;
+    public string Description { get; private set; } = default;
     public SampleAddress Address { get; private set; }
 
     private readonly List<SampleAttachment> _attachments = new();
     public IReadOnlyCollection<SampleAttachment> Attachments => _attachments.AsReadOnly();
 
-    private Sample() { } // EF
+    private Sample() { }
 
     public static Sample Create(string name, string description, SampleAddress address = null)
     {
@@ -68,48 +68,48 @@ public class Sample : AggregateRoot<ISampleEvent>
         ApplyChange(new SampleAttachmentUpdatedEvent(Id, attachmentId, newFileName, newUrl));
     }
 
-    private static void Apply(Sample sample, SampleCreatedEvent @event)
+    private void Apply(SampleCreatedEvent @event)
     {
-        sample.Id = @event.SampleId;
-        sample.Name = @event.Name;
-        sample.Description = @event.Description;
-        sample.Address = @event.Address;
+        this.Id = @event.SampleId;
+        this.Name = @event.Name;
+        this.Description = @event.Description;
+        this.Address = @event.Address;
 
-        sample._attachments.Clear();
+        this._attachments.Clear();
     }
 
-    private static void Apply(Sample sample, SampleNameChangedEvent @event)
+    private void Apply(SampleNameChangedEvent @event)
     {
-        sample.Name = @event.NewName;
+        this.Name = @event.NewName;
     }
 
-    private static void Apply(Sample sample, SampleDescriptionChangedEvent @event)
+    private void Apply(SampleDescriptionChangedEvent @event)
     {
-        sample.Description = @event.NewDescription;
+        this.Description = @event.NewDescription;
     }
 
-    private static void Apply(Sample sample, SampleAddressChangedEvent @event)
+    private void Apply(SampleAddressChangedEvent @event)
     {
-        sample.Address = @event.NewAddress;
+        this.Address = @event.NewAddress;
     }
 
-    private static void Apply(Sample sample, SampleAttachmentAddedEvent @event)
+    private void Apply(SampleAttachmentAddedEvent @event)
     {
-        sample._attachments.Add(@event.Attachment);
+        this._attachments.Add(@event.Attachment);
     }
 
-    private static void Apply(Sample sample, SampleAttachmentRemovedEvent @event)
+    private void Apply(SampleAttachmentRemovedEvent @event)
     {
-        var toRemove = sample._attachments.FirstOrDefault(a => a.Id == @event.AttachmentId);
+        var toRemove = this._attachments.FirstOrDefault(a => a.Id == @event.AttachmentId);
         if (toRemove != null)
         {
-            sample._attachments.Remove(toRemove);
+            this._attachments.Remove(toRemove);
         }
     }
 
-    private static void Apply(Sample sample, SampleAttachmentUpdatedEvent @event)
+    private void Apply(SampleAttachmentUpdatedEvent @event)
     {
-        var attachment = sample._attachments.First(a => a.Id == @event.AttachmentId);
+        var attachment = this._attachments.First(a => a.Id == @event.AttachmentId);
         attachment.ApplyUpdate(@event.NewFileName, @event.NewUrl);
     }
 }

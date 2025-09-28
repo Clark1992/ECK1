@@ -18,6 +18,7 @@
         <PackageReference Include="Confluent.SchemaRegistry" />
         <PackageReference Include="Confluent.SchemaRegistry.Serdes.Avro" />
         <PackageReference Include="Confluent.SchemaRegistry.Serdes.Json" />
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     </ItemGroup>
 
 </Project>

@@ -3,15 +3,23 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>d4a99cf4-270e-4697-aec7-45b21fe69f6a</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
     <PackageReference Include="MongoDB.Driver" />
     <PackageReference Include="System.Linq.Dynamic.Core" />
     <PackageReference Include="Confluent.Kafka" />
+    <PackageReference Include="ECK1.Contracts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nuget\ECK1.CommonUtils\ECK1.CommonUtils.csproj" />
+    <ProjectReference Include="..\Nuget\ECK1.Kafka\ECK1.Kafka.csproj" />
   </ItemGroup>
 
 </Project>

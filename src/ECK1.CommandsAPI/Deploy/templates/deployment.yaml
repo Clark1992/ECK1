@@ -21,7 +21,7 @@ spec:
           ports:
             - containerPort: 80
           env:
-            - name: ASPNETCORE_ENVIRONMENT
-              value: {{ .Values.env.ASPNETCORE_ENVIRONMENT | quote }}
-            - name: ConnectionStrings__DefaultConnection
-              value: {{ .Values.env.ConnectionStrings__DefaultConnection | quote }}
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: "{{ $value }}"
+            {{- end }}

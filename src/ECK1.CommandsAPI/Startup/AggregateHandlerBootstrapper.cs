@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-using static ECK1.CommandsAPI.Utils.TypeUtils;
+using static ECK1.CommonUtils.Mapping.TypeUtils;
 
 namespace ECK1.CommandsAPI.Startup;
 
@@ -29,7 +29,7 @@ public static class AggregateHandlerBootstrapper
             var factoryType = typeof(AggregateFactory<,>).MakeGenericType(aggregateType, eventType);
             RuntimeHelpers.RunClassConstructor(factoryType.TypeHandle);
 
-            var baseHandlerType =  typeof(AggregateRootHandler<>).MakeGenericType(eventType);
+            var baseHandlerType =  typeof(GenericHandler<>).MakeGenericType(eventType);
             RuntimeHelpers.RunClassConstructor(baseHandlerType.TypeHandle);
         }
     }

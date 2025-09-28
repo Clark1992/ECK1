@@ -42,3 +42,4 @@ bld/
 *.sln.ide
 
 HiddenREADME.md
+**/values.secrets.yaml

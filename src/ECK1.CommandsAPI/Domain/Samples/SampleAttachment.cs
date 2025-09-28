@@ -6,6 +6,8 @@ public class SampleAttachment
     public string FileName { get; private set; } = default!;
     public string Url { get; private set; } = default!;
 
+    private SampleAttachment() { }
+
     public SampleAttachment(Guid id, string fileName, string url)
     {
         Id = id;

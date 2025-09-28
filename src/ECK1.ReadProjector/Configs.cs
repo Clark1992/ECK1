@@ -1,9 +1,4 @@
-﻿namespace ECK1.CommandsAPI;
-
-public class EventsStoreConfig
-{
-    public int SnapshotInterval { get; set; }
-}
+﻿namespace ECK1.ReadProjector;
 
 public class KafkaSettings
 {
@@ -13,4 +8,5 @@ public class KafkaSettings
     public string User { get; set; }
     public string Secret { get; set; }
     public string SampleBusinessEventsTopic { get; set; }
+    public string GroupId { get; set; }
 }

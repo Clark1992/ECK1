@@ -1,5 +1,5 @@
 using AutoMapper;
-using ECK1.CommandsAPI.Mapping;
+using ECK1.CommonUtils.Mapping;
 
 namespace ECK1.CommandsAPI.Tests;
 
