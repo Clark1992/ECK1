@@ -15,11 +15,8 @@
     <PackageReference Include="System.Linq.Dynamic.Core" />
     <PackageReference Include="Confluent.Kafka" />
     <PackageReference Include="ECK1.Contracts" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Nuget\ECK1.CommonUtils\ECK1.CommonUtils.csproj" />
-    <ProjectReference Include="..\Nuget\ECK1.Kafka\ECK1.Kafka.csproj" />
+    <PackageReference Include="ECK1.Kafka" />
+    <PackageReference Include="ECK1.CommonUtils" />
   </ItemGroup>
 
 </Project>

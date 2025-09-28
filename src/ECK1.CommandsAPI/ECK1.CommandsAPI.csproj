@@ -19,17 +19,14 @@
     <PackageReference Include="AutoMapper" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" />
     <PackageReference Include="dbup-sqlserver" />
+    <PackageReference Include="ECK1.Kafka" />
+    <PackageReference Include="ECK1.CommonUtils" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Nuget\ECK1.CommonUtils\ECK1.CommonUtils.csproj" />
-    <ProjectReference Include="..\Nuget\ECK1.Kafka\ECK1.Kafka.csproj" />
   </ItemGroup>
 
 </Project>
