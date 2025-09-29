@@ -1,7 +1,8 @@
-﻿using System.Net.Http.Headers;
+﻿using Microsoft.Extensions.Configuration;
+using System.Net.Http.Headers;
 using System.Text.Json;
 
-namespace Microsoft.Extensions.Configuration;
+namespace ECK1.CommonUtils.Doppler.ConfigurationExtensions;
 
 public static class DopplerConfigurationExtensions
 {

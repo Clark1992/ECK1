@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 
-namespace ECK1.CommandsAPI.Domain;
+namespace ECK1.CommonUtils.Handler;
 
 
 [AttributeUsage(AttributeTargets.Class)]
