@@ -19,6 +19,7 @@ on:
       - '.github/scripts/update-sln.ps1'
       - '.github/scripts/update-kafka-schema.ps1'
 
+
 jobs:
   generate-schemas:
     if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
