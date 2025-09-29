@@ -42,7 +42,7 @@ builder.Services.AddSingleton(sp =>
 
 #region Kafka
 
-builder.Services.AddScoped(typeof(IMessageHandler<>), typeof(GenericIntegrationHandler<>));
+builder.Services.AddSingleton(typeof(IMessageHandler<>), typeof(GenericIntegrationHandler<>));
 
 var kafkaSettings = builder.Configuration
     .GetSection(KafkaSettings.Section)
