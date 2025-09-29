@@ -10,21 +10,19 @@
   "required": [
     "$type"
   ],
-  "properties": {
-    "SampleId": {
-      "type": "string",
-      "format": "guid"
-    },
-    "OccurredAt": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "$type": {
-      "type": "string"
-    }
-  },
   "definitions": {
     "SampleCreatedEvent": {
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "$type": {
+          "type": "string",
+          "enum": [
+            "SampleCreatedEvent"
+          ]
+        }
+      },
       "allOf": [
         {
           "$ref": "#/definitions/SampleEvent"
@@ -102,6 +100,17 @@
       }
     },
     "SampleNameChangedEvent": {
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "$type": {
+          "type": "string",
+          "enum": [
+            "SampleNameChangedEvent"
+          ]
+        }
+      },
       "allOf": [
         {
           "$ref": "#/definitions/SampleEvent"
@@ -121,6 +130,17 @@
       ]
     },
     "SampleDescriptionChangedEvent": {
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "$type": {
+          "type": "string",
+          "enum": [
+            "SampleDescriptionChangedEvent"
+          ]
+        }
+      },
       "allOf": [
         {
           "$ref": "#/definitions/SampleEvent"
@@ -140,6 +160,17 @@
       ]
     },
     "SampleAddressChangedEvent": {
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "$type": {
+          "type": "string",
+          "enum": [
+            "SampleAddressChangedEvent"
+          ]
+        }
+      },
       "allOf": [
         {
           "$ref": "#/definitions/SampleEvent"
@@ -163,6 +194,17 @@
       ]
     },
     "SampleAttachmentAddedEvent": {
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "$type": {
+          "type": "string",
+          "enum": [
+            "SampleAttachmentAddedEvent"
+          ]
+        }
+      },
       "allOf": [
         {
           "$ref": "#/definitions/SampleEvent"
@@ -208,6 +250,17 @@
       }
     },
     "SampleAttachmentRemovedEvent": {
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "$type": {
+          "type": "string",
+          "enum": [
+            "SampleAttachmentRemovedEvent"
+          ]
+        }
+      },
       "allOf": [
         {
           "$ref": "#/definitions/SampleEvent"
@@ -225,6 +278,17 @@
       ]
     },
     "SampleAttachmentUpdatedEvent": {
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "$type": {
+          "type": "string",
+          "enum": [
+            "SampleAttachmentUpdatedEvent"
+          ]
+        }
+      },
       "allOf": [
         {
           "$ref": "#/definitions/SampleEvent"
@@ -257,9 +321,6 @@
   "oneOf": [
     {
       "$ref": "#/definitions/SampleCreatedEvent"
-    },
-    {
-      "$ref": "#/definitions/SampleEvent"
     },
     {
       "$ref": "#/definitions/SampleNameChangedEvent"
