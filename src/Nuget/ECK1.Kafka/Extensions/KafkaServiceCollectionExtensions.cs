@@ -1,5 +1,6 @@
 ﻿using Confluent.Kafka;
 using Confluent.SchemaRegistry;
+using ECK1.Kafka.Integrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -37,7 +38,7 @@ public static class KafkaServiceCollectionExtensions
         config.SecurityProtocol = SecurityProtocol.SaslSsl;
         config.SaslMechanism = SaslMechanism.Plain;
         config.SaslUsername = user;
-        config.SaslPassword = secret;
+        config.SaslPassword = SN.GetBrokerPassword(secret);
 
         return config;
     }
@@ -45,7 +46,7 @@ public static class KafkaServiceCollectionExtensions
     public static SchemaRegistryConfig WithAuth(this SchemaRegistryConfig config, string user, string secret)
     {
         config.BasicAuthCredentialsSource = AuthCredentialsSource.UserInfo;
-        config.BasicAuthUserInfo = $"{user}:{secret}";
+        config.BasicAuthUserInfo = SN.GetSrPassword(secret);
 
         return config;
     }

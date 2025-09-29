@@ -33,9 +33,8 @@ public class KafkaJsonTopicConsumer<TValue>: IKafkaTopicConsumer
 
         var deserializerConfig = new List<KeyValuePair<string, string>>
         {
-            new("auto.register.schemas", "false"),
-            new("use.latest.version", "true"),
-            new("subject.name.strategy", GetStrategyValue(strategy))
+            new("json.deserializer.use.latest.version", true.ToString()),
+            new("json.deserializer.subject.name.strategy", GetStrategyValue(strategy))
         };
 
         var jsonDeserializer = new JsonDeserializer<TValue>(schemaRegistry, deserializerConfig).AsSyncOverAsync();
@@ -89,6 +88,6 @@ public class KafkaJsonTopicConsumer<TValue>: IKafkaTopicConsumer
         }
     }
 
-    private static string GetStrategyValue(SubjectNameStrategy strategy) => strategy.GetType().FullName;
+    private static string GetStrategyValue(SubjectNameStrategy strategy) => strategy.ToString();
 }
 
