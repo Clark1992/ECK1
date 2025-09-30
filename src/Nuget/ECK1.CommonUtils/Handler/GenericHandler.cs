@@ -33,7 +33,7 @@ public static class HandlerRegistrar
             var methodName = attr?.MethodName ?? defaultMethodName;
 
             var methods = type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                              .Where(m => m.Name == methodName && methodFilter(m));
+                              .Where(m => m.Name == methodName && methodFilter(m)).ToList();
 
             foreach (var method in methods)
             {

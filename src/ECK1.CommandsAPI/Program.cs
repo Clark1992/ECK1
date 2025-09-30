@@ -3,6 +3,7 @@ using DbUp;
 using ECK1.CommandsAPI;
 using ECK1.CommandsAPI.Data;
 using ECK1.CommandsAPI.Startup;
+using ECK1.CommonUtils.Doppler.ConfigurationExtensions;
 using ECK1.Contracts.Kafka.BusinessEvents.Sample;
 using ECK1.Kafka.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -52,6 +53,7 @@ builder.Services
     {
         c.Acks = Acks.Leader;
         c.WithAuth(kafkaSettings.User, kafkaSettings.Secret);
+        c.AllowAutoCreateTopics = true;
     })
     .WithSchemaRegistry(kafkaSettings.SchemaRegistryUrl,
         c => c.WithAuth(kafkaSettings.User, kafkaSettings.Secret));

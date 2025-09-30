@@ -1,10 +1,12 @@
 ﻿using Confluent.Kafka;
 using Confluent.SchemaRegistry;
+using ECK1.CommonUtils.Doppler.ConfigurationExtensions;
 using ECK1.Kafka;
 using ECK1.Kafka.Extensions;
 using ECK1.ReadProjector;
 using ECK1.ReadProjector.Data;
 using ECK1.ReadProjector.Handlers;
+using ECK1.ReadProjector.Startup;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
@@ -25,12 +27,10 @@ builder.Services.AddControllers();
 
 var conventionPack = new ConventionPack {
     new CamelCaseElementNameConvention(), 
-    //new IgnoreExtraElementsConvention(true)
 };
 
 ConventionRegistry.Register("CamelCase", conventionPack, t => true);
 
-//BsonDefaults.GuidRepresentationMode = GuidRepresentationMode.V3;
 BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 
 builder.Services.AddSingleton(sp =>
@@ -42,7 +42,7 @@ builder.Services.AddSingleton(sp =>
 
 #region Kafka
 
-builder.Services.AddSingleton(typeof(IMessageHandler<>), typeof(GenericIntegrationHandler<>));
+builder.Services.AddSingleton(typeof(IMessageHandler<>), typeof(KafkaMessageHandler<>));
 
 var kafkaSettings = builder.Configuration
     .GetSection(KafkaSettings.Section)
@@ -60,7 +60,6 @@ builder.Services.ConfigTopicConsumer<ECK1.Contracts.Kafka.BusinessEvents.Sample.
     SerializerType.JSON,
     c =>
     {
-        c.Acks = Acks.Leader;
         c.WithAuth(kafkaSettings.User, kafkaSettings.Secret);
     });
 
@@ -106,5 +105,7 @@ app.UseSwaggerUI(c =>
 });
 
 app.MapControllers();
+
+GenericHandlerBootstrapper.Initialize(typeof(Program).Assembly);
 
 app.Run();
