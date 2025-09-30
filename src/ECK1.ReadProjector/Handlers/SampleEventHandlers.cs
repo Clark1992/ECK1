@@ -10,7 +10,7 @@ using MongoDB.Driver;
 namespace ECK1.ReadProjector.Handlers;
 
 [HandlerMethod(nameof(Handle))]
-public class SampleEventHandlers(MongoDbContext db, ILogger<SampleEventHandlers> logger) : GenericAsyncHandler<ISampleEvent>, INotificationHandler<EventNotification<ISampleEvent>>,
+public class SampleEventHandlers(MongoDbContext db, ILogger<SampleEventHandlers> logger) : GenericAsyncHandler<ISampleEvent>, INotificationHandler<EventNotification<ISampleEvent>>
 {
     public Task Handle(EventNotification<ISampleEvent> ev, CancellationToken ct)
     {
