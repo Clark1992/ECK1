@@ -16,17 +16,24 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.8" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="9.0.8" />
+    <PackageVersion Include="Microsoft.Orleans.Clustering.Redis" Version="9.2.1" />
+    <PackageVersion Include="Microsoft.Orleans.CodeGenerator.MSBuild" Version="3.8.0" />
+    <PackageVersion Include="Microsoft.Orleans.Hosting.Kubernetes" Version="9.2.1" />
+    <PackageVersion Include="Microsoft.Orleans.Sdk" Version="9.2.1" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="9.0.4" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
     <PackageVersion Include="Confluent.Kafka" Version="2.11.1" />
     <PackageVersion Include="Confluent.SchemaRegistry" Version="2.11.1" />
     <PackageVersion Include="Confluent.SchemaRegistry.Serdes.Avro" Version="2.11.1" />
     <PackageVersion Include="Confluent.SchemaRegistry.Serdes.Json" Version="2.11.1" />
     <PackageVersion Include="MongoDB.Driver" Version="2.19.0" />
+    <PackageVersion Include="Microsoft.Orleans.Server" Version="9.2.1" />
+    <PackageVersion Include="Microsoft.Orleans.Streaming" Version="9.2.1" />
+    <PackageVersion Include="Microsoft.Orleans.Persistence.Redis" Version="9.2.1" />
     <PackageVersion Include="System.Linq.Dynamic.Core" Version="1.6.7" />
     <PackageVersion Include="coverlet.collector" Version="6.0.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />

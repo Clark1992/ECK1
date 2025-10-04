@@ -3,6 +3,7 @@ using Confluent.SchemaRegistry;
 using ECK1.Kafka.Integrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 
 namespace ECK1.Kafka.Extensions;
 
@@ -81,29 +82,76 @@ public static class KafkaServiceCollectionExtensions
         SubjectNameStrategy strategy,
         SerializerType serializer,
         Action<ConsumerConfig> configAction = null)
+        where T : class =>
+        ConfigTopicConsumer<T>(
+            services,
+            bootstrapServers,
+            topic,
+            groupId,
+            strategy,
+            serializer,
+            (sp, consumer) => {
+                var handler = sp.GetRequiredService<IKafkaMessageHandler<T>>();
+                consumer.WithHandler(handler);
+            },
+            configAction);
+
+    public static IServiceCollection ConfigTopicConsumer<T>(
+        this IServiceCollection services,
+        string bootstrapServers,
+        string topic,
+        string groupId,
+        SubjectNameStrategy strategy,
+        SerializerType serializer,
+        Func<string, T, long, CancellationToken, Task> handler,
+        Action<ConsumerConfig> configAction = null)
+        where T : class =>
+        ConfigTopicConsumer<T>(
+            services,
+            bootstrapServers,
+            topic,
+            groupId,
+            strategy,
+            serializer,
+            (_, consumer) => consumer.WithHandler(handler),
+            configAction);
+
+    private static IServiceCollection ConfigTopicConsumer<T>(
+        IServiceCollection services,
+        string bootstrapServers,
+        string topic,
+        string groupId,
+        SubjectNameStrategy strategy,
+        SerializerType serializer,
+        Action<IServiceProvider, IHandlerConfigurator<T>> configHandler,
+        Action<ConsumerConfig> configAction = null)
         where T : class
     {
         services.AddSingleton<IKafkaTopicConsumer>(sp =>
         {
             var sr = sp.GetRequiredService<ISchemaRegistryClient>();
             var logger = sp.GetRequiredService<ILogger<KafkaJsonTopicConsumer<T>>>();
-            var handler = sp.GetRequiredService<IMessageHandler<T>>();
 
             var consumerConfig = new ConsumerConfig
             {
                 BootstrapServers = bootstrapServers,
                 GroupId = groupId,
+                EnableAutoCommit = false,
                 AutoOffsetReset = AutoOffsetReset.Earliest,
             };
 
-            configAction.Invoke(consumerConfig);
+            configAction?.Invoke(consumerConfig);
 
-            return serializer switch
+            var consumer = serializer switch
             {
-                SerializerType.JSON => new KafkaJsonTopicConsumer<T>(consumerConfig, topic, sr, strategy, handler, logger),
-                //Serializer.AVRO => new KafkaAvroTopicProducer<T>(root.Handle, topic, sr, strategy),
+                SerializerType.JSON => new KafkaJsonTopicConsumer<T>(consumerConfig, topic, sr, strategy, logger),
+                //SerializerType.AVRO => new KafkaAvroTopicProducer<T>(root.Handle, topic, sr, strategy),
                 _ => throw new InvalidOperationException("Unknown serializer format")
             };
+
+            configHandler(sp, consumer);
+
+            return consumer;
         });
 
         return services;

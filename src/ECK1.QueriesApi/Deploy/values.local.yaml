@@ -10,13 +10,5 @@ service:
   port: 80
   nodePort: 30180
 
-runMongo: true
-
-mongo:
-  image: mongo:6.0
-  port: 27017
-  nodePort: 32017
-  persistence: true
-
 env:
   ASPNETCORE_ENVIRONMENT: Development

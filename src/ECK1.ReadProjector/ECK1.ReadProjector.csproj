@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
@@ -15,8 +16,12 @@
     <PackageReference Include="System.Linq.Dynamic.Core" />
     <PackageReference Include="Confluent.Kafka" />
     <PackageReference Include="ECK1.Contracts" />
-    <PackageReference Include="ECK1.Kafka" />
-    <PackageReference Include="ECK1.CommonUtils" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nuget\ECK1.CommonUtils\ECK1.CommonUtils.csproj" />
+    <ProjectReference Include="..\Nuget\ECK1.Kafka\ECK1.Kafka.csproj" />
+    <ProjectReference Include="..\Nuget\ECK1.Orleans\ECK1.Orleans.csproj" />
   </ItemGroup>
 
 </Project>

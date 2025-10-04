@@ -7,6 +7,7 @@ using ECK1.CommonUtils.Doppler.ConfigurationExtensions;
 using ECK1.Contracts.Kafka.BusinessEvents.Sample;
 using ECK1.Kafka.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Orleans.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 

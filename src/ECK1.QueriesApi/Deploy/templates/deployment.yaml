@@ -21,8 +21,10 @@ spec:
           ports:
             - containerPort: 80
           env:
-            - name: ASPNETCORE_ENVIRONMENT
-              value: {{ .Values.env.ASPNETCORE_ENVIRONMENT | quote }}
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: "{{ $value }}"
+            {{- end }}
             - name: MongoDb__ConnectionString
               value: "mongodb://{{ .Chart.Name }}-mongo:{{ .Values.mongo.port }}"
             - name: MongoDb__DatabaseName

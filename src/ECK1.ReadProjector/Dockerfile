@@ -1,14 +1,29 @@
+# ---- BUILD ----
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+RUN --mount=type=secret,id=nugetconfig \
+    cp /run/secrets/nugetconfig ./nuget.config
 WORKDIR /src
 
-COPY ["ECK1.ReadProjector.csproj", "./"]
+COPY ./nuget.config ./*.props  ./
 
-RUN dotnet restore "ECK1.ReadProjector.csproj"
+# Copy the main source project files
+COPY src/*/*.csproj ./
+RUN for file in $(ls *.csproj); do name=$(basename "$file" .csproj); mkdir -p src/${name}/ && mv $file src/${name}/; done
 
-COPY . .
+# Copy nugets if needed
+COPY src/Nuget/*/*.csproj ./Nuget/
+RUN for file in $(ls Nuget/*.csproj); do name=$(basename "$file" .csproj); mkdir -p src/Nuget/${name}/ && mv $file src/Nuget/${name}/; done
 
-RUN dotnet publish "ECK1.ReadProjector.csproj" -c Release -o /app/publish
+RUN dotnet restore ./src/ECK1.ReadProjector/ECK1.ReadProjector.csproj
 
+COPY src/ ./
+
+WORKDIR /src/ECK1.ReadProjector
+RUN dotnet publish -c Release -o /app/publish
+
+# ENTRYPOINT ["/bin/bash"]
+
+# # ---- RUNTIME ----
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 

@@ -1,0 +1,15 @@
+{{- if .Values.redis.persistence }}
+  {{- if not .Values.redis.hostPath }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.redis.pvcSize }}
+  storageClassName: standard
+  {{- end }}
+{{- end }}

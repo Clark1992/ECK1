@@ -17,7 +17,7 @@ public class HandlerMethodAttribute : Attribute
 
 public static class HandlerRegistrar
 {
-    public static void RegisterHandlers<TValue, THandler, TDelegate>(
+    public static void RegisterHandlers<THandler, TDelegate>(
         Dictionary<Type, TDelegate> target,
         string defaultMethodName,
         Func<MethodInfo, bool> methodFilter,
@@ -51,7 +51,7 @@ public abstract class GenericHandler<TValue> : GenericHandlerBase<TValue>
 
     static GenericHandler()
     {
-        HandlerRegistrar.RegisterHandlers<TValue, GenericHandler<TValue>, Action<GenericHandler<TValue>, TValue>>(
+        HandlerRegistrar.RegisterHandlers<GenericHandler<TValue>, Action<GenericHandler<TValue>, TValue>>(
             _handlers,
             defaultMethodName: nameof(Handle),
             methodFilter: method =>
@@ -84,14 +84,13 @@ public abstract class GenericHandler<TValue> : GenericHandlerBase<TValue>
     }
 }
 
-
 public abstract class GenericAsyncHandler<TValue> : GenericHandlerBase<TValue>
 {
     private static readonly Dictionary<Type, Func<GenericAsyncHandler<TValue>, TValue, CancellationToken, Task>> _asyncHandlers = new();
 
     static GenericAsyncHandler()
     {
-        HandlerRegistrar.RegisterHandlers<TValue, GenericAsyncHandler<TValue>, Func<GenericAsyncHandler<TValue>, TValue, CancellationToken, Task>>(
+        HandlerRegistrar.RegisterHandlers<GenericAsyncHandler<TValue>, Func<GenericAsyncHandler<TValue>, TValue, CancellationToken, Task>>(
             _asyncHandlers,
             defaultMethodName: nameof(Handle),
             methodFilter: method =>
@@ -126,6 +125,59 @@ public abstract class GenericAsyncHandler<TValue> : GenericHandlerBase<TValue>
         var handler = GetHandler(_asyncHandlers, arg);
 
         await handler(this, arg, ct);
+    }
+}
+
+public abstract class GenericAsyncHandler<TValue, TState> : GenericHandlerBase<TValue>
+{
+    private static readonly Dictionary<Type, Func<GenericAsyncHandler<TValue, TState>, TValue, TState, CancellationToken, Task<TState>>> _asyncHandlers = new();
+
+    static GenericAsyncHandler()
+    {
+        HandlerRegistrar.RegisterHandlers<GenericAsyncHandler<TValue, TState>, Func<GenericAsyncHandler<TValue, TState>, TValue, TState, CancellationToken, Task<TState>>>(
+            _asyncHandlers,
+            defaultMethodName: nameof(Handle),
+            methodFilter: method =>
+            {
+                var parameters = method.GetParameters();
+                var returnType = method.ReturnType;
+                return parameters.Length == 3 &&
+                       typeof(TValue).IsAssignableFrom(parameters[0].ParameterType) &&
+                       typeof(TState).IsAssignableFrom(parameters[1].ParameterType) &&
+                       parameters[2].ParameterType == typeof(CancellationToken) &&
+                       returnType == typeof(Task<TState>);
+            },
+            compileDelegate: (method, handlerType) =>
+            {
+                // Func<GenericAsyncHandler<TValue, TState>, TValue, TState, CancellationToken, Task<TState>>
+                var handlerParam = Expression.Parameter(typeof(GenericAsyncHandler<TValue, TState>), "handler");
+                var argParam = Expression.Parameter(typeof(TValue), "arg");
+                var stateParam = Expression.Parameter(typeof(TState), "arg2");
+                var tokenParam = Expression.Parameter(typeof(CancellationToken), "ct");
+
+                var call = Expression.Call(
+                    Expression.Convert(handlerParam, handlerType),
+                    method,
+                    Expression.Convert(argParam, method.GetParameters()[0].ParameterType),
+                    Expression.Convert(stateParam, method.GetParameters()[1].ParameterType),
+                    tokenParam
+                );
+
+                return Expression.Lambda<Func<
+                    GenericAsyncHandler<TValue, TState>,    // this
+                    TValue,                                 // event
+                    TState,                                 // state
+                    CancellationToken,                      // ct
+                    Task<TState>>>                          // new state in a task
+                    (call, handlerParam, argParam, stateParam, tokenParam).Compile();
+            });
+    }
+
+    protected async Task<TState> Handle(TValue arg, TState state, CancellationToken ct)
+    {
+        var handler = GetHandler(_asyncHandlers, arg);
+
+        return await handler(this, arg, state, ct);
     }
 }
 

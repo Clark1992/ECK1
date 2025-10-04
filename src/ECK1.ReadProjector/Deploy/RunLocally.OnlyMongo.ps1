@@ -2,7 +2,7 @@
 # Checks if local Mongo port (32017) is in use. If not, builds and runs a mongo container from Dockerfile.RunMongo.
 
 $mongoPort = 32017 #on host
-$mongoContainerName = "queriesapi-mongo-local"
+$mongoContainerName = "mongo-local"
 # Use the public mongo image (change if you need a custom build)
 $mongoImage = "mongo:6.0"
 

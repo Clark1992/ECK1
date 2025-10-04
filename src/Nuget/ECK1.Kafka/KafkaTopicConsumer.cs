@@ -3,32 +3,36 @@ using Confluent.Kafka.SyncOverAsync;
 using Confluent.SchemaRegistry;
 using Confluent.SchemaRegistry.Serdes;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualBasic;
 
 namespace ECK1.Kafka;
 
-public interface IMessageHandler<TValue>
+public interface IKafkaMessageHandler<TValue>
     where TValue : class
 {
-    Task Handle(TValue message);
+    Task Handle(string key, TValue message, long offset, CancellationToken ct);
 }
 
 
-public class KafkaJsonTopicConsumer<TValue>: IKafkaTopicConsumer
+public class KafkaJsonTopicConsumer<TValue>: IKafkaTopicConsumer, IHandlerConfigurator<TValue>
     where TValue : class
 {
     private readonly IConsumer<string, TValue> consumer;
-    private readonly IMessageHandler<TValue> handler;
+    private IKafkaMessageHandler<TValue> handler;
+    private Func<string, TValue, long, CancellationToken, Task> handlerFunc;
     private readonly ILogger<KafkaJsonTopicConsumer<TValue>> logger;
+
+    private Func<string, TValue, long, CancellationToken, Task> Handler => this.handler is not null ?
+        this.handler.Handle :
+        this.handlerFunc ?? throw new InvalidOperationException("Handler not set");
 
     public KafkaJsonTopicConsumer(
         ConsumerConfig consumerConfig, 
         string topic,
         ISchemaRegistryClient schemaRegistry,
         SubjectNameStrategy strategy,
-        IMessageHandler<TValue> handler,
         ILogger<KafkaJsonTopicConsumer<TValue>> logger)
     {
-        this.handler = handler;
         this.logger = logger;
 
         var deserializerConfig = new List<KeyValuePair<string, string>>
@@ -47,46 +51,65 @@ public class KafkaJsonTopicConsumer<TValue>: IKafkaTopicConsumer
         consumer.Subscribe(topic);
     }
 
-    public async Task StartConsumingAsync(CancellationToken ct)
+    public IKafkaTopicConsumer WithHandler(IKafkaMessageHandler<TValue> handler)
     {
-        try
+        this.handler = handler;
+        this.handlerFunc = null;
+
+        return this;
+    }
+
+    public IKafkaTopicConsumer WithHandler(Func<string, TValue, long, CancellationToken, Task> handler)
+    {
+        this.handler = null;
+        this.handlerFunc = handler;
+
+        return this;
+    }
+
+    public Task StartConsumingAsync(CancellationToken ct) =>
+        Task.Run(async () =>
         {
-            while (!ct.IsCancellationRequested)
+            try
             {
-                try
+                while (!ct.IsCancellationRequested)
                 {
-                    var result = consumer.Consume(ct);
-                    if (result?.Message != null)
+                    try
                     {
-                        try
+                        var result = consumer.Consume(ct);
+                        if (result?.Message != null)
                         {
-                            await handler.Handle(result.Message.Value);
+                            try
+                            {
+                                await Handler(result.Message.Key, result.Message.Value, result.Offset.Value, ct);
+
+                                consumer.Commit(result);
+                            }
+                            catch (Exception e)
+                            {
+                                logger.LogError(e, "Error during handling {type}", result.Message.Value.GetType().Name);
+                            }
                         }
-                        catch (Exception e)
+                        else
                         {
-                            logger.LogError(e, "Error during handling {type}", result.Message.Value.GetType().Name);
+                            logger.LogWarning("result?.Message is null");
                         }
                     }
-                    else
+                    catch (ConsumeException ex)
                     {
-                        logger.LogWarning("result?.Message is null");
+                        logger.LogError(ex, "Consume error: {Reason}", ex.Error.Reason);
                     }
-                }
-                catch (ConsumeException ex)
-                {
-                    logger.LogError(ex, "Consume error: {Reason}", ex.Error.Reason);
-                }
-                catch (OperationCanceledException)
-                {
-                    break;
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
                 }
             }
-        }
-        finally
-        {
-            consumer.Close();
-        }
-    }
+            finally
+            {
+                consumer.Close();
+            }
+        }, ct);
 
     private static string GetStrategyValue(SubjectNameStrategy strategy) => strategy.ToString();
 }

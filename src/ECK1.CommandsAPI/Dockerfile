@@ -10,11 +10,11 @@ COPY ./nuget.config ./*.props  ./
 
 # Copy the main source project files
 COPY src/*/*.csproj ./
-RUN for file in $(ls *.csproj); do mkdir -p src/${file%.*}/ && mv $file src/${file%.*}/; done
+RUN for file in $(ls *.csproj); do name=$(basename "$file" .csproj); mkdir -p src/${name}/ && mv $file src/${name}/; done
 
 # Copy nugets if needed
 COPY src/Nuget/*/*.csproj ./Nuget/
-RUN for file in $(ls *.csproj); do mkdir -p src/Nuget/${file%.*}/ && mv $file src/Nuget/${file%.*}/; done
+RUN for file in $(ls Nuget/*.csproj); do name=$(basename "$file" .csproj); mkdir -p src/Nuget/${name}/ && mv $file src/Nuget/${name}/; done
 
 RUN dotnet restore ./src/ECK1.CommandsAPI/ECK1.CommandsAPI.csproj
 
@@ -23,7 +23,9 @@ COPY src/ ./
 WORKDIR /src/ECK1.CommandsAPI
 RUN dotnet publish -c Release -o /app/publish
 
-# ---- RUNTIME ----
+# ENTRYPOINT ["/bin/bash"]
+
+# # ---- RUNTIME ----
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 

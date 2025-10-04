@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ECK1.CommandsAPI.Domain.Samples;
+using ECK1.CommonUtils.Mapping;
 using ECK1.Kafka;
 using MediatR;
 using static ECK1.CommonUtils.Mapping.TypeUtils;
@@ -16,7 +17,7 @@ public class SampleIntegrationKafkaSender(IMapper mapper, IKafkaTopicProducer<Ev
 }
 
 public abstract class IntegrationBase<TDomainEvent, TContractEvent> :
-    IntegrationBootstrapper<TDomainEvent, TContractEvent>, 
+    MappingByNameBootstrapper<TDomainEvent, TContractEvent>, 
     INotificationHandler<EventNotification<TDomainEvent>>
     where TContractEvent : class
 {
@@ -31,12 +32,12 @@ public abstract class IntegrationBase<TDomainEvent, TContractEvent> :
 
     protected abstract string Key(TContractEvent @event);
 
-    public async override Task Handle(EventNotification<TDomainEvent> notification, CancellationToken ct)
+    public async Task Handle(EventNotification<TDomainEvent> notification, CancellationToken ct)
     {
         var domainEventType = notification.Event.GetType();
         if (eventMapping.TryGetValue(domainEventType, out var contractType))
         {
-            var eventKafkaMessage = mapper.Map(notification.Event, domainEventType, contractType) as TContractEvent
+            var eventKafkaMessage = mapper.Map(notification.Event, domainEventType, GetDestinationType(domainEventType)) as TContractEvent
                 ?? throw new InvalidOperationException("Couldnt cast event to contract type");
 
             await SendAsync(eventKafkaMessage, ct);
@@ -49,17 +50,4 @@ public abstract class IntegrationBase<TDomainEvent, TContractEvent> :
     }
 
     public Task SendAsync(TContractEvent @event, CancellationToken ct) => producer.ProduceAsync(@event, Key(@event), ct);
-}
-
-public abstract class IntegrationBootstrapper<TDomainEvent, TContractEvent>
-{
-    protected static readonly Dictionary<Type, Type> eventMapping
-        = new();
-
-    static IntegrationBootstrapper()
-    {
-        eventMapping = GetTypesMapping<TDomainEvent, TContractEvent>();
-    }
-
-    public abstract Task Handle(EventNotification<TDomainEvent> @event, CancellationToken ct);
 }

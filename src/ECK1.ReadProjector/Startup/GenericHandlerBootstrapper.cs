@@ -10,24 +10,35 @@ public static class GenericHandlerBootstrapper
 {
     public static void Initialize(params Assembly[] assembliesToScan)
     {
-        var handlerTypes = assembliesToScan
+        List<Type> types = [typeof(GenericAsyncHandler<>), typeof(GenericAsyncHandler<,>)];
+
+        var totalCount = 0;
+        foreach (Type type in types)
+        {
+            var handlerTypes = assembliesToScan
             .SelectMany(a => a.GetTypes())
-            .Where(t => !t.IsAbstract && t.BaseType != null && IsSubclassOfGeneric(t, typeof(GenericAsyncHandler<>)))
+            .Where(t => !t.IsAbstract && t.BaseType != null &&
+                IsSubclassOfGeneric(t, type))
             .ToList();
 
-        if (handlerTypes.Count == 0)
-        {
-            throw new Exception("Missing handlerTypes");
+            totalCount += handlerTypes.Count;
+
+            // foreach combination of generic types call static ctor
+            foreach (var handlerType in handlerTypes)
+            {
+                var baseType = GetGenericBaseType(handlerType, type);
+                var genericArgs = baseType.GetGenericArguments();
+
+                //var argType = baseType.GetGenericArguments()[0];
+                Type baseHandlerType = type.MakeGenericType(genericArgs.ToArray());
+
+                RuntimeHelpers.RunClassConstructor(baseHandlerType.TypeHandle);
+            }
         }
 
-        // foreach combination of generic types call static ctor
-        foreach (var handlerType in handlerTypes)
+        if (totalCount == 0)
         {
-            var baseType = GetGenericBaseType(handlerType, typeof(GenericAsyncHandler<>));
-            var argType = baseType.GetGenericArguments()[0];
-
-            var baseHandlerType =  typeof(GenericAsyncHandler<>).MakeGenericType(argType);
-            RuntimeHelpers.RunClassConstructor(baseHandlerType.TypeHandle);
+            throw new Exception("Missing handlerTypes");
         }
     }
 }

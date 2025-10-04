@@ -6,7 +6,9 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "MongoDb__ConnectionString": "mongodb://localhost:32017",
-        "MongoDb__DatabaseName": "eck1-queries"
+        "MongoDb__DatabaseName": "eck1-queries",
+        "REDIS_CONNECTION": "localhost:30079",
+        "ORLEANS_HOSTING": "local"
       },
       "applicationUrl": "https://localhost:57706;http://localhost:57707"
     }

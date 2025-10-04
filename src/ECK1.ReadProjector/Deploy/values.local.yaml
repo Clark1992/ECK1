@@ -5,8 +5,24 @@ image:
   tag: dev
   pullPolicy: IfNotPresent
 
+service:
+  type: NodePort
+  port: 80
+  nodePort: 30090
+
+runMongo: true
 mongo:
+  image: mongo:6.0
   port: 27017
+  nodePort: 32017
+  persistence: true
+
+runRedis: true
+redis:
+  image: redis:7
+  port: 6379
+  nodePort: 30079
+  persistence: true
 
 env:
   ASPNETCORE_ENVIRONMENT: Development

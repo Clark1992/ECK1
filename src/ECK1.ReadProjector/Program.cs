@@ -1,16 +1,19 @@
-﻿using Confluent.Kafka;
-using Confluent.SchemaRegistry;
+﻿using Confluent.SchemaRegistry;
 using ECK1.CommonUtils.Doppler.ConfigurationExtensions;
 using ECK1.Kafka;
 using ECK1.Kafka.Extensions;
+using ECK1.Orleans.Extensions;
 using ECK1.ReadProjector;
 using ECK1.ReadProjector.Data;
-using ECK1.ReadProjector.Handlers;
 using ECK1.ReadProjector.Startup;
+using ECK1.ReadProjector.Views;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Serializers;
+
+using Contract = ECK1.Contracts.Kafka.BusinessEvents;
+using ViewEvent = ECK1.ReadProjector.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +26,11 @@ builder.Configuration.AddDopplerSecrets();
 var configuration = builder.Configuration;
 var environment = builder.Environment;
 
+builder.Host.SetupOrleansHosting();
+
 builder.Services.AddControllers();
+
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 var conventionPack = new ConventionPack {
     new CamelCaseElementNameConvention(), 
@@ -40,9 +47,15 @@ builder.Services.AddSingleton(sp =>
     return new MongoDbContext(mongoConnectionString, mongoDatabaseName);
 });
 
-#region Kafka
+#region Kafka + Orleans
 
-builder.Services.AddSingleton(typeof(IMessageHandler<>), typeof(KafkaMessageHandler<>));
+
+builder.Services.AddSingleton(typeof(IKafkaMessageHandler<Contract.Sample.ISampleEvent>), typeof(OrleansKafkaAdapter<Contract.Sample.ISampleEvent, ViewEvent.ISampleEvent>));
+
+builder.Services.AddKafkaGrainRouter<
+    ViewEvent.ISampleEvent,
+    SampleView,
+    KafkaMessageHandler<ViewEvent.ISampleEvent, SampleView>>(ev => ev.SampleId.ToString());
 
 var kafkaSettings = builder.Configuration
     .GetSection(KafkaSettings.Section)
@@ -52,7 +65,7 @@ builder.Services
     .WithSchemaRegistry(kafkaSettings.SchemaRegistryUrl,
         c => c.WithAuth(kafkaSettings.User, kafkaSettings.Secret));
 
-builder.Services.ConfigTopicConsumer<ECK1.Contracts.Kafka.BusinessEvents.Sample.ISampleEvent>(
+builder.Services.ConfigTopicConsumer<Contract.Sample.ISampleEvent>(
     kafkaSettings.BootstrapServers,
     kafkaSettings.SampleBusinessEventsTopic,
     kafkaSettings.GroupId,
