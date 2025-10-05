@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using ECK1.Orleans.Kafka;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using StackExchange.Redis;
-using ECK1.Orleans.Kafka;
 
 namespace ECK1.Orleans.Extensions;
 
@@ -40,24 +40,24 @@ public static class OrleansExtensions
         return builder;
     }
 
-    public static IServiceCollection AddKafkaGrainRouter<TEntity, TState, TGrainHandler>(
+    public static GrainRouterConfigurator<TEntity, TMetadata> AddKafkaGrainRouter<TEntity, TMetadata, TState, TGrainHandler>(
         this IServiceCollection services,
         Func<TEntity, string> grainKeySelector)
         where TEntity : class
         where TGrainHandler : class, IStatefulGrainHandler<TEntity, TState>
+        where TMetadata : KafkaGrainMetadata
     {
-        services.AddSingleton<IDupChecker<long, KafkaGrainMetadata>, KafkaDupChecker>();
         services.AddSingleton<IStatefulGrainHandler<TEntity, TState>, TGrainHandler>();
 
-        services.AddSingleton<IKafkaGrainRouter<TEntity>>(sp =>
+        services.AddSingleton<IKafkaGrainRouter<TEntity, TMetadata>>(sp =>
         {
-            var router = new KafkaGrainRouter<TEntity, TState>(sp.GetRequiredService<IClusterClient>());
+            var router = new KafkaGrainRouter<TEntity, TMetadata, TState>(sp.GetRequiredService<IClusterClient>());
 
             router.WithGrainKey(grainKeySelector);
 
             return router;
         });
 
-        return services;
+        return new GrainRouterConfigurator<TEntity, TMetadata>(services);
     }
 }

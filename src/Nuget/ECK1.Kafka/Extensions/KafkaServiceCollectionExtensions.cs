@@ -103,7 +103,7 @@ public static class KafkaServiceCollectionExtensions
         string groupId,
         SubjectNameStrategy strategy,
         SerializerType serializer,
-        Func<string, T, long, CancellationToken, Task> handler,
+        Func<string, T, KafkaMessageId, CancellationToken, Task> handler,
         Action<ConsumerConfig> configAction = null)
         where T : class =>
         ConfigTopicConsumer<T>(

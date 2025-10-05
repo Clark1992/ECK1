@@ -1,4 +1,5 @@
 ﻿using ECK1.CommonUtils.Mapping;
+using ECK1.ReadProjector.OrleansKafka;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -10,7 +11,7 @@ public static class MappingBootstrapper
 {
     public static void Initialize(params Assembly[] assembliesToScan)
     {
-        var type = typeof(OrleansKafkaAdapter<,>);
+        var type = typeof(OrleansKafkaAdapter<,,>);
         var handlerTypes = assembliesToScan
             .SelectMany(a => a.GetTypes())
             .Where(t => !t.IsAbstract && t.BaseType != null &&

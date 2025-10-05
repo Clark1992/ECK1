@@ -10,5 +10,5 @@ internal interface IHandlerConfigurator<TValue>
 {
     IKafkaTopicConsumer WithHandler(IKafkaMessageHandler<TValue> handler);
 
-    IKafkaTopicConsumer WithHandler(Func<string, TValue, long, CancellationToken, Task> handler);
+    IKafkaTopicConsumer WithHandler(Func<string, TValue, KafkaMessageId, CancellationToken, Task> handler);
 }

@@ -1,50 +1,78 @@
-﻿namespace ECK1.Orleans.Kafka;
+﻿using ECK1.Orleans;
+using ECK1.Orleans.Kafka;
 
-
-public class KafkaDupChecker : IDupChecker<long, KafkaGrainMetadata>
-{
-    public bool IsProcessed(long actual, KafkaGrainMetadata persisted) => actual < persisted.LastProcessedOffset;
-}
+namespace ECK1.Orleans.Kafka;
 
 public class KafkaGrainMetadata
 {
-    public long LastProcessedOffset { get; set; }
+    public bool IsFaulted { get; set; }
 }
 
-public class KafkaGrain<TEntity, _TIgnore1, _TIgnore2, TState>(
-    [PersistentState("entityView", "RedisStore")] IPersistentState<KafkaGrainMetadata> state,
+public class KafkaGrain<TEntity, TMetadata, TState>(
+    [PersistentState("entityView", "RedisStore")] IPersistentState<TMetadata> state,
     IStatefulGrainHandler<TEntity, TState> handler,
-    IDupChecker<long, KafkaGrainMetadata> dupChecker)
-    : GenericStatefulGrain<TEntity, long, KafkaGrainMetadata, TState>(state, handler, dupChecker)
+    IDupChecker<TEntity, TMetadata> dupChecker,
+    IMetadataUpdater<TEntity, TMetadata> metadataUpdater,
+    IFaultedStateReset<TEntity> faultedStateReset)
+    : StatefulGrain<TEntity, TMetadata, TState>(state, handler)
     where TEntity : class
+    where TMetadata : KafkaGrainMetadata
 {
-    protected override void MetadataUpdater(long messageId)
+    public override async Task Process(TEntity e, CancellationToken ct)
     {
-        // this.Metadata.State.LastProcessedOffset++;
-        Metadata.State.LastProcessedOffset = messageId;
+        if (dupChecker.IsMessageProcessed(e, Metadata.State))
+        {
+            // Possible dup
+            return;
+        }
+
+        if (metadata.State.IsFaulted || !faultedStateReset.ShouldReset(e))
+        {
+            return;
+        }
+
+        try
+        {
+            await base.Process(e, ct);
+        }
+        catch (Exception ex)
+        {
+            // TODO LOG
+            await MarkFaulted();
+        }
+    }
+
+    private async Task MarkFaulted()
+    {
+        metadata.State.IsFaulted = true;
+        await Metadata.WriteStateAsync(default);
+    }
+
+    protected override void MetadataUpdater(TEntity e, TMetadata meta)
+    {
+        metadataUpdater.Update(e, meta);
     }
 }
 
-public interface IKafkaGrainRouter<TEntity> where TEntity : class
+public interface IKafkaGrainRouter<TEntity, TMetadata> where TEntity : class
 {
-    Task RouteToGrain(TEntity evt, long messageId, CancellationToken ct);
+    Task RouteToGrain(TEntity evt, CancellationToken ct);
+    
     void WithGrainKey(Func<TEntity, string> selector);
 }
 
-public class KafkaGrainRouter<TEntity, TState>(IClusterClient clusterClient) : IKafkaGrainRouter<TEntity>
+public class KafkaGrainRouter<TEntity, TMetadata, TState>(IClusterClient clusterClient) : IKafkaGrainRouter<TEntity, TMetadata>
     where TEntity : class
+    where TMetadata : KafkaGrainMetadata
 {
     private Func<TEntity, string> keySelector;
 
-    public Task RouteToGrain(TEntity evt, long messageId, CancellationToken ct)
+    public Task RouteToGrain(TEntity evt, CancellationToken ct)
     {
-        var grain = clusterClient.GetGrain<IGenericStatefulGrain<TEntity, long, KafkaGrainMetadata, TState>>(keySelector(evt));
+        var grain = clusterClient.GetGrain<IStatefulGrain<TEntity, TMetadata, TState>>(keySelector(evt));
 
-        return grain.Process(evt, messageId, ct);
+        return grain.Process(evt, ct);
     }
 
-    public void WithGrainKey(Func<TEntity, string> selector)
-    {
-        keySelector = selector;
-    }
+    public void WithGrainKey(Func<TEntity, string> selector) => keySelector = selector;
 }

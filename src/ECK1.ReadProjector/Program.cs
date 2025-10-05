@@ -5,6 +5,7 @@ using ECK1.Kafka.Extensions;
 using ECK1.Orleans.Extensions;
 using ECK1.ReadProjector;
 using ECK1.ReadProjector.Data;
+using ECK1.ReadProjector.OrleansKafka;
 using ECK1.ReadProjector.Startup;
 using ECK1.ReadProjector.Views;
 using MongoDB.Bson;
@@ -50,12 +51,19 @@ builder.Services.AddSingleton(sp =>
 #region Kafka + Orleans
 
 
-builder.Services.AddSingleton(typeof(IKafkaMessageHandler<Contract.Sample.ISampleEvent>), typeof(OrleansKafkaAdapter<Contract.Sample.ISampleEvent, ViewEvent.ISampleEvent>));
+builder.Services.AddSingleton(
+    typeof(IKafkaMessageHandler<Contract.Sample.ISampleEvent>), 
+    typeof(OrleansKafkaAdapter<Contract.Sample.ISampleEvent, ViewEvent.ISampleEvent, SampleEventKafkaMetadata>));
 
 builder.Services.AddKafkaGrainRouter<
     ViewEvent.ISampleEvent,
+    SampleEventKafkaMetadata,
     SampleView,
-    KafkaMessageHandler<ViewEvent.ISampleEvent, SampleView>>(ev => ev.SampleId.ToString());
+    KafkaMessageHandler<ViewEvent.ISampleEvent, SampleView>>(
+    ev => ev.SampleId.ToString())
+    .AddDupChecker<SampleEventKafkaMetadata>()
+    .AddMetadataUpdater<SampleEventKafkaMetadata>()
+    .AddFaultedStateReset<SampleEventKafkaMetadata>();
 
 var kafkaSettings = builder.Configuration
     .GetSection(KafkaSettings.Section)

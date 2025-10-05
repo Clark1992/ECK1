@@ -6,30 +6,30 @@ using ECK1.Orleans.Kafka;
 using ECK1.ReadProjector.Notifications;
 using MediatR;
 
-namespace ECK1.ReadProjector;
+namespace ECK1.ReadProjector.OrleansKafka;
 
-public class OrleansKafkaAdapter<TValue, TOrleansSerializableValue> : 
+public class OrleansKafkaAdapter<TValue, TOrleansSerializableValue, TMetadata> : 
     MappingByNameBootstrapper<TValue, TOrleansSerializableValue>, IKafkaMessageHandler<TValue>
     where TValue : class
     where TOrleansSerializableValue : class
 {
-    private readonly IKafkaGrainRouter<TOrleansSerializableValue> router;
+    private readonly IKafkaGrainRouter<TOrleansSerializableValue, TMetadata> router;
     private readonly IMapper mapper;
 
-    public OrleansKafkaAdapter(IKafkaGrainRouter<TOrleansSerializableValue> router, IMapper mapper)
+    public OrleansKafkaAdapter(IKafkaGrainRouter<TOrleansSerializableValue, TMetadata> router, IMapper mapper)
     {
         this.router = router;
         this.mapper = mapper;
     }
 
-    public async Task Handle(string key, TValue message, long offset, CancellationToken ct)
+    public async Task Handle(string key, TValue message, KafkaMessageId _, CancellationToken ct)
     {
         Type contractType = message.GetType();
         var orleansFriendlyValue = (TOrleansSerializableValue)mapper.Map(
             message,
             contractType,
             GetDestinationType(contractType));
-        await router.RouteToGrain(orleansFriendlyValue, offset, ct);
+        await router.RouteToGrain(orleansFriendlyValue, ct);
     }
 }
 

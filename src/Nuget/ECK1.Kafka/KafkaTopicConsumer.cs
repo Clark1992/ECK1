@@ -3,26 +3,31 @@ using Confluent.Kafka.SyncOverAsync;
 using Confluent.SchemaRegistry;
 using Confluent.SchemaRegistry.Serdes;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic;
 
 namespace ECK1.Kafka;
+
+public class KafkaMessageId(TopicPartitionOffset o)
+{
+    public string Topic { get; set; } = o.Topic;
+    public int Partition { get; set; } = o.Partition;
+    public long Offset { get; set; } = o.Offset;
+}
 
 public interface IKafkaMessageHandler<TValue>
     where TValue : class
 {
-    Task Handle(string key, TValue message, long offset, CancellationToken ct);
+    Task Handle(string key, TValue message, KafkaMessageId messageId, CancellationToken ct);
 }
-
 
 public class KafkaJsonTopicConsumer<TValue>: IKafkaTopicConsumer, IHandlerConfigurator<TValue>
     where TValue : class
 {
     private readonly IConsumer<string, TValue> consumer;
     private IKafkaMessageHandler<TValue> handler;
-    private Func<string, TValue, long, CancellationToken, Task> handlerFunc;
+    private Func<string, TValue, KafkaMessageId, CancellationToken, Task> handlerFunc;
     private readonly ILogger<KafkaJsonTopicConsumer<TValue>> logger;
 
-    private Func<string, TValue, long, CancellationToken, Task> Handler => this.handler is not null ?
+    private Func<string, TValue, KafkaMessageId, CancellationToken, Task> Handler => this.handler is not null ?
         this.handler.Handle :
         this.handlerFunc ?? throw new InvalidOperationException("Handler not set");
 
@@ -59,7 +64,7 @@ public class KafkaJsonTopicConsumer<TValue>: IKafkaTopicConsumer, IHandlerConfig
         return this;
     }
 
-    public IKafkaTopicConsumer WithHandler(Func<string, TValue, long, CancellationToken, Task> handler)
+    public IKafkaTopicConsumer WithHandler(Func<string, TValue, KafkaMessageId, CancellationToken, Task> handler)
     {
         this.handler = null;
         this.handlerFunc = handler;
@@ -81,7 +86,7 @@ public class KafkaJsonTopicConsumer<TValue>: IKafkaTopicConsumer, IHandlerConfig
                         {
                             try
                             {
-                                await Handler(result.Message.Key, result.Message.Value, result.Offset.Value, ct);
+                                await Handler(result.Message.Key, result.Message.Value, new KafkaMessageId(result.TopicPartitionOffset), ct);
 
                                 consumer.Commit(result);
                             }
