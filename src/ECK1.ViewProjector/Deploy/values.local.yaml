@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: localhost:5000/read-projector
+  repository: localhost:5000/view-projector
   tag: dev
   pullPolicy: IfNotPresent
 

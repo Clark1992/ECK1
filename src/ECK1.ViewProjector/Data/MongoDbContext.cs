@@ -1,7 +1,7 @@
 using MongoDB.Driver;
-using ECK1.ReadProjector.Views;
+using ECK1.ViewProjector.Views;
 
-namespace ECK1.ReadProjector.Data
+namespace ECK1.ViewProjector.Data
 {
     public class MongoDbContext
     {

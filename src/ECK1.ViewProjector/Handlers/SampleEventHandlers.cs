@@ -1,13 +1,13 @@
 using ECK1.CommonUtils.Handler;
 using ECK1.Kafka;
-using ECK1.ReadProjector.Data;
-using ECK1.ReadProjector.Events;
-using ECK1.ReadProjector.Notifications;
-using ECK1.ReadProjector.Views;
+using ECK1.ViewProjector.Data;
+using ECK1.ViewProjector.Events;
+using ECK1.ViewProjector.Notifications;
+using ECK1.ViewProjector.Views;
 using MediatR;
 using MongoDB.Driver;
 
-namespace ECK1.ReadProjector.Handlers;
+namespace ECK1.ViewProjector.Handlers;
 
 [HandlerMethod(nameof(Handle))]
 public class SampleEventHandlers(
@@ -21,7 +21,7 @@ public class SampleEventHandlers(
     {
         try
         {
-            return await base.Handle(data.Event, data.State, ct);
+            return await Handle(data.Event, data.State, ct);
         }
         catch (Exception ex)
         {

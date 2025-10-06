@@ -3,10 +3,10 @@ using ECK1.CommonUtils.Mapping;
 using ECK1.Kafka;
 using ECK1.Orleans;
 using ECK1.Orleans.Kafka;
-using ECK1.ReadProjector.Notifications;
+using ECK1.ViewProjector.Notifications;
 using MediatR;
 
-namespace ECK1.ReadProjector.Kafka.Orleans;
+namespace ECK1.ViewProjector.Kafka.Orleans;
 
 public class OrleansKafkaAdapter<TValue, TOrleansSerializableValue, TMetadata> : 
     MappingByNameBootstrapper<TValue, TOrleansSerializableValue>, IKafkaMessageHandler<TValue>

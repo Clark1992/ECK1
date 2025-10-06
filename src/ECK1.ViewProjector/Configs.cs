@@ -1,4 +1,4 @@
-﻿namespace ECK1.ReadProjector;
+﻿namespace ECK1.ViewProjector;
 
 public class KafkaSettings
 {

@@ -2,7 +2,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
 
-namespace ECK1.ReadProjector.Views;
+namespace ECK1.ViewProjector.Views;
 
 public class SampleView
 {

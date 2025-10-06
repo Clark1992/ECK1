@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: myregistry.azurecr.io/read-projector
+  repository: myregistry.azurecr.io/view-projector
   tag: latest
   pullPolicy: IfNotPresent
 

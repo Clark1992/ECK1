@@ -2,13 +2,15 @@
 using Confluent.SchemaRegistry;
 using ECK1.Kafka;
 using ECK1.Kafka.Extensions;
-using ECK1.ReadProjector.Kafka.Orleans;
-using ECK1.ReadProjector.Views;
 using ECK1.Orleans.Extensions;
 using Contract = ECK1.Contracts.Kafka.BusinessEvents;
-using ViewEvent = ECK1.ReadProjector.Events;
+using ViewEvent = ECK1.ViewProjector.Events;
+using ECK1.ViewProjector.Kafka.Orleans;
+using ECK1.ViewProjector.Views;
+using ECK1.ViewProjector;
+using ECK1.ViewProjector.Events;
 
-namespace ECK1.ReadProjector.Kafka;
+namespace ECK1.ViewProjector.Kafka;
 
 public static class KafkaSetup
 {
@@ -16,13 +18,13 @@ public static class KafkaSetup
     {
         services.AddSingleton(
             typeof(IKafkaMessageHandler<Contract.Sample.ISampleEvent>),
-            typeof(OrleansKafkaAdapter<Contract.Sample.ISampleEvent, ViewEvent.ISampleEvent, SampleEventKafkaMetadata>));
+            typeof(OrleansKafkaAdapter<Contract.Sample.ISampleEvent, ISampleEvent, SampleEventKafkaMetadata>));
 
         services.AddKafkaGrainRouter<
-            ViewEvent.ISampleEvent,
+            ISampleEvent,
             SampleEventKafkaMetadata,
             SampleView,
-            KafkaMessageHandler<ViewEvent.ISampleEvent, SampleView>>(
+            KafkaMessageHandler<ISampleEvent, SampleView>>(
             ev => ev.SampleId.ToString())
             .AddDupChecker<SampleEventKafkaMetadata>()
             .AddMetadataUpdater<SampleEventKafkaMetadata>()

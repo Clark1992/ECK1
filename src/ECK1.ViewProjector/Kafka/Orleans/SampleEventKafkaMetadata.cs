@@ -1,8 +1,8 @@
 ﻿using ECK1.Orleans;
 using ECK1.Orleans.Kafka;
-using ECK1.ReadProjector.Events;
+using ECK1.ViewProjector.Events;
 
-namespace ECK1.ReadProjector.Kafka.Orleans;
+namespace ECK1.ViewProjector.Kafka.Orleans;
 
 public class SampleEventKafkaMetadata: KafkaGrainMetadata,
     IDupChecker<ISampleEvent, SampleEventKafkaMetadata>,

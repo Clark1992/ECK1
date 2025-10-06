@@ -31,7 +31,7 @@ spec:
         orleans/clusterId: {{ .Chart.Name }}
     spec:
       containers:
-        - name: read-projector
+        - name: view-projector
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:

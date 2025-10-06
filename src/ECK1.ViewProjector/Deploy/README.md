@@ -3,7 +3,7 @@ This Deploy folder contains Helm chart and helper scripts for running the Querie
 Scenarios:
 
 1) Local k8s
-- Use Helm (this chart) to deploy the Read Projector (depends on mongo on 32017)
+- Use Helm (this chart) to deploy the View Projector (depends on mongo on 32017)
 
 2) Local run without Docker
 - Press F5 in Visual Studio to run the project (depends on mongo on 32017).

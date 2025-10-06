@@ -1,6 +1,6 @@
 ﻿using Orleans;
 
-namespace ECK1.ReadProjector.Events;
+namespace ECK1.ViewProjector.Events;
 
 public interface ISampleEvent
 {

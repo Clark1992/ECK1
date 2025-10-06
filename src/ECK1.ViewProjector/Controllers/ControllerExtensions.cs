@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace ECK1.ReadProjector.Controllers;
+namespace ECK1.ViewProjector.Controllers;
 
 public static class ControllerExtensions
 {

@@ -1,8 +1,8 @@
 ﻿using ECK1.Kafka;
-using ECK1.ReadProjector.Notifications;
+using ECK1.ViewProjector.Notifications;
 using MediatR;
 
-namespace ECK1.ReadProjector.Handlers;
+namespace ECK1.ViewProjector.Handlers;
 
 public class KafkaMessageHandler<T>(IMediator mediator) : IKafkaMessageHandler<T>
     where T : class

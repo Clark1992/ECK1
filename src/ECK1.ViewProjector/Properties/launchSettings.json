@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "ECK1.ReadProjector": {
+    "ECK1.ViewProjector": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {

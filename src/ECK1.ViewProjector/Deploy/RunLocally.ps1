@@ -1,12 +1,12 @@
 . "src\_SolutionItems\Deploy\Scripts\Common.ps1"
 
-$baseDir = "src/ECK1.ReadProjector"
+$baseDir = "src/ECK1.ViewProjector"
 $dockerfilePath = "$baseDir/Dockerfile"
-$imageName = "read-projector"
+$imageName = "view-projector"
 $imageTag = "dev"
 $imageNameWithTag = "${imageName}:${imageTag}"
 $chartPath = "."
-$releaseName = "read-projector-release"
+$releaseName = "view-projector-release"
 $namespace = "default"
 
 $mongoPort = 32017 # container port 27017 mapped to host port 32017

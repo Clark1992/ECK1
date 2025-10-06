@@ -14,11 +14,11 @@ RUN for file in $(ls *.csproj); do name=$(basename "$file" .csproj); mkdir -p sr
 COPY src/Nuget/*/*.csproj ./Nuget/
 RUN for file in $(ls Nuget/*.csproj); do name=$(basename "$file" .csproj); mkdir -p src/Nuget/${name}/ && mv $file src/Nuget/${name}/; done
 
-RUN dotnet restore ./src/ECK1.ReadProjector/ECK1.ReadProjector.csproj
+RUN dotnet restore ./src/ECK1.ViewProjector/ECK1.ViewProjector.csproj
 
 COPY src/ ./
 
-WORKDIR /src/ECK1.ReadProjector
+WORKDIR /src/ECK1.ViewProjector
 RUN dotnet publish -c Release -o /app/publish
 
 # ENTRYPOINT ["/bin/bash"]
@@ -34,4 +34,4 @@ EXPOSE 443
 
 ENV ASPNETCORE_URLS=http://+:80
 
-ENTRYPOINT ["dotnet", "ECK1.ReadProjector.dll"]
+ENTRYPOINT ["dotnet", "ECK1.ViewProjector.dll"]

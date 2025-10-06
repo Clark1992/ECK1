@@ -5,12 +5,12 @@ using ECK1.Contracts.Kafka.BusinessEvents.Sample;
 using ECK1.Kafka;
 using ECK1.Kafka.Extensions;
 using ECK1.Orleans.Extensions;
-using ECK1.ReadProjector;
-using ECK1.ReadProjector.Data;
-using ECK1.ReadProjector.Kafka;
-using ECK1.ReadProjector.Kafka.Orleans;
-using ECK1.ReadProjector.Startup;
-using ECK1.ReadProjector.Views;
+using ECK1.ViewProjector;
+using ECK1.ViewProjector.Data;
+using ECK1.ViewProjector.Kafka.Orleans;
+using ECK1.ViewProjector.Views;
+using ECK1.ViewProjector.Kafka;
+using ECK1.ViewProjector.Startup;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
@@ -83,7 +83,7 @@ app.UseAuthorization();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ReadProjector API V1");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ViewProjector API V1");
     c.RoutePrefix = string.Empty;
 });
 

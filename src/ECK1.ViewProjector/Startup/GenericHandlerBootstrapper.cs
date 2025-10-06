@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 using static ECK1.CommonUtils.Mapping.TypeUtils;
 
-namespace ECK1.ReadProjector.Startup;
+namespace ECK1.ViewProjector.Startup;
 
 public static class GenericHandlerBootstrapper
 {
