@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace ECK1.CommandsAPI.Domain.Samples;
 
+// Required for serializing to DB
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
 [JsonDerivedType(typeof(SampleCreatedEvent), nameof(SampleCreatedEvent))]
 [JsonDerivedType(typeof(SampleNameChangedEvent), nameof(SampleNameChangedEvent))]
