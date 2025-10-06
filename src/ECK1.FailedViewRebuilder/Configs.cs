@@ -1,4 +1,4 @@
-﻿namespace ECK1.ReadProjector;
+﻿namespace ECK1.FailedViewRebuilder;
 
 public class KafkaSettings
 {
@@ -7,7 +7,7 @@ public class KafkaSettings
     public string SchemaRegistryUrl { get; set; }
     public string User { get; set; }
     public string Secret { get; set; }
-    public string SampleBusinessEventsTopic { get; set; }
     public string SampleFailureEventsTopic { get; set; }
+    public string SampleEventsRebuildRequestTopic { get; set; }
     public string GroupId { get; set; }
 }

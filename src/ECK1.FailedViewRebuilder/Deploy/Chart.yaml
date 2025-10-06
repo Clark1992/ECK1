@@ -1,0 +1,5 @@
+apiVersion: v2
+name: eck1-failed-view-rebuilder
+description: A Helm chart for ECK1 Failed View Rebuilder
+version: 0.1.0
+appVersion: "1.0"

@@ -31,7 +31,7 @@ public record SampleAttachmentRemovedEvent(Guid SampleId, Guid AttachmentId) : S
 public record SampleAttachmentUpdatedEvent(Guid SampleId, Guid AttachmentId, string NewFileName, string NewUrl) : SampleEvent(SampleId);
 
 [GenerateSerializer]
-public record SampleRegeneratedEvent(Guid SampleId, string Name, string Description, SampleAddress Address, List<SampleAttachment> attachments) : SampleEvent(SampleId);
+public record SampleRebuiltEvent(Guid SampleId, string Name, string Description, SampleAddress Address, List<SampleAttachment> attachments) : SampleEvent(SampleId);
 
 [GenerateSerializer]
 public class SampleAddress

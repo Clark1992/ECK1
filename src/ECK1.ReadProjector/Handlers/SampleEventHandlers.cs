@@ -1,26 +1,39 @@
 using ECK1.CommonUtils.Handler;
+using ECK1.Kafka;
 using ECK1.ReadProjector.Data;
 using ECK1.ReadProjector.Events;
 using ECK1.ReadProjector.Notifications;
 using ECK1.ReadProjector.Views;
 using MediatR;
 using MongoDB.Driver;
-using System.Net.Mail;
 
 namespace ECK1.ReadProjector.Handlers;
 
 [HandlerMethod(nameof(Handle))]
-public class SampleEventHandlers(MongoDbContext db, ILogger<SampleEventHandlers> logger) : GenericAsyncHandler<ISampleEvent, SampleView>, //INotificationHandler<EventNotification<ISampleEvent>>
+public class SampleEventHandlers(
+    MongoDbContext db,
+    ILogger<SampleEventHandlers> logger,
+    IKafkaTopicProducer<Contracts.Kafka.BusinessEvents.Sample.SampleEventFailure> producer) : 
+    GenericAsyncHandler<ISampleEvent, SampleView>,
     IRequestHandler<EventWithStateNotification<ISampleEvent, SampleView>, SampleView>
 {
-    //public Task Handle(EventNotification<ISampleEvent> ev, CancellationToken ct)
-    //{
-    //    return base.Handle(ev.Event, ct);
-    //}
-
-    public Task<SampleView> Handle(EventWithStateNotification<ISampleEvent, SampleView> data, CancellationToken ct)
+    public async Task<SampleView> Handle(EventWithStateNotification<ISampleEvent, SampleView> data, CancellationToken ct)
     {
-        return base.Handle(data.Event, data.State, ct);
+        try
+        {
+            return await base.Handle(data.Event, data.State, ct);
+        }
+        catch (Exception ex)
+        {
+            await producer.ProduceAsync(new Contracts.Kafka.BusinessEvents.Sample.SampleEventFailure
+            {
+                FailedEventType = data.Event.GetType().Name,
+                SampleId = data.Event.SampleId,
+                ErrorMessage = ex.Message,
+                StackTrace = ex.StackTrace
+            }, default);
+            throw;
+        }
     }
 
     public async Task<SampleView> Handle(SampleCreatedEvent @event, SampleView state, CancellationToken cancellationToken)

@@ -121,5 +121,31 @@ function Setup-GlobalNuget {
     if (-Not (Test-Path $globalNugetConfig)) {
         throw "NuGet.Config not found"
     }
+}
 
+function Get-NuGetPackage {
+    param(
+        [string]$PackageId,
+        [string]$Version,
+        [string]$Destination
+    )
+
+    $nupkgPath = Join-Path $Destination "$PackageId.$Version.nupkg"
+
+    if (-not (Test-Path $nupkgPath)) {
+        Write-Host "📦 Downloading $PackageId v$Version..."
+        Invoke-WebRequest -Uri "https://www.nuget.org/api/v2/package/$PackageId/$Version" -OutFile $nupkgPath
+    }
+
+    Write-Host "📂 Extracting $PackageId..."
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    [System.IO.Compression.ZipFile]::ExtractToDirectory($nupkgPath, $Destination, $true)
+
+    $libPath = Get-ChildItem -Path $Destination -Directory -Recurse | Where-Object { $_.FullName -match "lib\\net" } | Select-Object -First 1
+    if ($libPath) {
+        Copy-Item "$($libPath.FullName)\*.dll" $Destination -Force
+    }
+    else {
+        Write-Warning "⚠️  Could not find lib/net* folder for $PackageId."
+    }
 }

@@ -1,9 +1,9 @@
 . "src\_SolutionItems\Deploy\Scripts\Common.ps1"
 . "src\_SolutionItems\Deploy\Scripts\RunDbUpMigrations.ps1"
 
-$baseDir = "src/ECK1.CommandsAPI"
+$baseDir = "src/ECK1.FailedViewRebuilder"
 $dockerfilePath = "$baseDir/Dockerfile"
-$imageName = "commands-api"
+$imageName = "failed-view-rebuilder"
 $imageTag = "dev"
 $imageNameWithTag = "${imageName}:${imageTag}"
 $chartPath = "."
@@ -30,6 +30,8 @@ if ($LASTEXITCODE -ne 0) {
     Write-Error "Helm deployment failed."
     exit 1
 }
+
+Write-Host "Deployment completed successfully."
 
 $cString = Get-EnvValueFromYaml -YamlPath "$baseDir/Deploy/values.local.yaml" -Key "ConnectionStrings__DefaultConnection"
 

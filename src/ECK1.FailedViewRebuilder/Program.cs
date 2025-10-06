@@ -1,8 +1,6 @@
-﻿using ECK1.CommandsAPI;
-using ECK1.CommandsAPI.Data;
-using ECK1.CommandsAPI.Kafka;
-using ECK1.CommandsAPI.Startup;
-using ECK1.CommonUtils.Doppler.ConfigurationExtensions;
+﻿using ECK1.CommonUtils.Doppler.ConfigurationExtensions;
+using ECK1.FailedViewRebuilder.Data;
+using ECK1.FailedViewRebuilder.Kafka;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,8 +16,12 @@ var environment = builder.Environment;
 
 builder.Services.AddControllers();
 
-builder.Services.AddDbContext<CommandsDbContext>(options =>
+builder.Services.AddDbContext<FailuresDbContext>(options =>
     options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
+
+builder.Services.SetupKafka(builder.Configuration);
 
 builder.Services.AddCors(options =>
 {
@@ -32,15 +34,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
-builder.Services.Configure<EventsStoreConfig>(
-    builder.Configuration.GetSection(nameof(EventsStoreConfig))
-);
-builder.Services.AddScoped<SampleRepo>();
-
-builder.Services.SetupKafka(builder.Configuration);
-
 var app = builder.Build();
+
 
 if (app.Environment.IsDevelopment())
 {
@@ -61,13 +56,10 @@ app.UseAuthorization();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Commands API V1");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Failed View Rebuilder Service API V1");
     c.RoutePrefix = string.Empty;
 });
 
 app.MapControllers();
-
-AggregateHandlerBootstrapper.Initialize(typeof(Program).Assembly);
-IntegrationHandlerBootstrapper.Initialize(typeof(Program).Assembly);
 
 app.Run();

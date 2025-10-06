@@ -1,5 +1,5 @@
 ﻿using ECK1.CommonUtils.Mapping;
-using ECK1.ReadProjector.OrleansKafka;
+using ECK1.ReadProjector.Kafka.Orleans;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 

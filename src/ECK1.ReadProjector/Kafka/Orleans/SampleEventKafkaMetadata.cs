@@ -2,7 +2,7 @@
 using ECK1.Orleans.Kafka;
 using ECK1.ReadProjector.Events;
 
-namespace ECK1.ReadProjector.OrleansKafka;
+namespace ECK1.ReadProjector.Kafka.Orleans;
 
 public class SampleEventKafkaMetadata: KafkaGrainMetadata,
     IDupChecker<ISampleEvent, SampleEventKafkaMetadata>,
@@ -17,5 +17,5 @@ public class SampleEventKafkaMetadata: KafkaGrainMetadata,
     public void Update(ISampleEvent entity, SampleEventKafkaMetadata persisted)
         => persisted.LastOccuredAt = entity.OccurredAt;
 
-    public bool ShouldReset(ISampleEvent entity) => entity is SampleRegeneratedEvent;
+    public bool ShouldReset(ISampleEvent entity) => entity is SampleRebuiltEvent;
 }

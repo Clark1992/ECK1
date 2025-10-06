@@ -6,7 +6,7 @@ using ECK1.Orleans.Kafka;
 using ECK1.ReadProjector.Notifications;
 using MediatR;
 
-namespace ECK1.ReadProjector.OrleansKafka;
+namespace ECK1.ReadProjector.Kafka.Orleans;
 
 public class OrleansKafkaAdapter<TValue, TOrleansSerializableValue, TMetadata> : 
     MappingByNameBootstrapper<TValue, TOrleansSerializableValue>, IKafkaMessageHandler<TValue>

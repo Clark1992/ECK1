@@ -45,3 +45,18 @@ public class SampleAttachment
     public string FileName { get; set; }
     public string Url { get; set; }
 }
+
+public class SampleEventFailure
+{
+    public Guid SampleId { get; set; }
+
+    public string FailedEventType { get; set; }
+
+    public DateTimeOffset FailureOccurredAt { get; set; } = DateTimeOffset.UtcNow;
+
+    public string ErrorMessage { get; set; }
+
+    public string StackTrace { get; set; }
+}
+
+public record SampleEventRebuildRequest(Guid SampleId);

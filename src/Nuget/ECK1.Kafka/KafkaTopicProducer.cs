@@ -90,3 +90,47 @@ public class KafkaAvroTopicProducer<TValue> : KafkaTopicProducerBase<TValue>, IK
     {
     }
 }
+
+public interface IKafkaSimpleProducer<TValue>
+{
+    Task ProduceAsync(TValue value, string topic, string key, CancellationToken ct);
+
+    Task ProduceAsync(TValue value, string topic, CancellationToken ct);
+}
+
+public class KafkaSimpleProducer<TValue> : IKafkaSimpleProducer<TValue>
+{
+    private readonly ILogger logger;
+    private readonly IProducer<string, string> producer;
+
+    public KafkaSimpleProducer(
+        Handle rootHandle,
+        ILogger<IKafkaTopicProducer<TValue>> logger)
+    {
+        producer = new DependentProducerBuilder<string, string>(rootHandle)
+            .Build();
+
+        this.logger = logger;
+    }
+
+    public Task ProduceAsync(TValue value, string topic, CancellationToken ct) =>
+        ProduceAsync(value, topic, value.ToString(), ct);
+
+    public async Task ProduceAsync(TValue value, string topic, string key, CancellationToken ct)
+    {
+        var message = new Message<string, string>
+        {
+            Key = key,
+            Value = value.ToString()
+        };
+
+        try
+        {
+            await producer.ProduceAsync(topic, message, ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error during Produce.");
+        }
+    }
+}
