@@ -29,4 +29,5 @@ public record ChangeSampleAddressCommand(Guid Id, SampleAddress NewAddress) : IR
 public record AddSampleAttachmentCommand(Guid Id, SampleAttachment Attachment) : IRequest<ICommandResult>;
 public record RemoveSampleAttachmentCommand(Guid Id, Guid AttachmentId) : IRequest<ICommandResult>;
 public record UpdateSampleAttachmentCommand(Guid Id, Guid AttachmentId, string NewFileName, string NewUrl) : IRequest<ICommandResult>;
+public record RebuildSampleViewCommand(Guid Id) : IRequest<ICommandResult>;
 

@@ -1,4 +1,5 @@
 ﻿using Confluent.Kafka;
+using ECK1.CommandsAPI.Commands;
 using ECK1.Contracts.Kafka.BusinessEvents.Sample;
 using ECK1.Kafka.Extensions;
 
@@ -27,6 +28,19 @@ public static class KafkaSetup
             kafkaSettings.SampleBusinessEventsTopic,
             Confluent.SchemaRegistry.SubjectNameStrategy.Topic,
             SerializerType.JSON);
+
+        #region Rebuild view
+
+        services.AddScoped<SampleRebuildHandler>();
+
+        services
+            .ConfigSimpleTopicConsumer<Guid, SampleRebuildHandler>(
+                kafkaSettings.BootstrapServers,
+                kafkaSettings.SampleEventsRebuildRequestTopic,
+                kafkaSettings.GroupId,
+                Guid.Parse);
+
+        #endregion
 
         return services;
     }

@@ -1,6 +1,7 @@
 ﻿using ECK1.CommonUtils.Doppler.ConfigurationExtensions;
 using ECK1.FailedViewRebuilder.Data;
 using ECK1.FailedViewRebuilder.Kafka;
+using ECK1.FailedViewRebuilder.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +23,8 @@ builder.Services.AddDbContext<FailuresDbContext>(options =>
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 builder.Services.SetupKafka(builder.Configuration);
+
+builder.Services.AddScoped(typeof(IRebuildRequestService<,>), typeof(RebuildRequestService<,>));
 
 builder.Services.AddCors(options =>
 {

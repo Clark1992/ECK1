@@ -10,6 +10,7 @@ public class FailuresDbContext : DbContext
     }
 
     public DbSet<SampleEventFailure> SampleEventFailures { get; set; }
+    public DbSet<JobHistory> JobHistories { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

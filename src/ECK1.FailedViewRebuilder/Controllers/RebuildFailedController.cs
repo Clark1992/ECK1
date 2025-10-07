@@ -1,21 +1,40 @@
+using ECK1.FailedViewRebuilder.Data.Models;
 using ECK1.FailedViewRebuilder.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace ECK1.FailedViewRebuilder.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[ProducesResponseType(typeof(DateTimeOffset), StatusCodes.Status202Accepted)]
-[ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
-[ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
-public class RebuildFailedController(SampleRebuildRequestService service) : ControllerBase
+[ProducesResponseType(typeof(string), StatusCodes.Status202Accepted)]
+public class RebuildFailedController(
+    IRebuildRequestService<SampleEventFailure, Guid> sampleService,
+    IOptionsSnapshot<KafkaSettings> config) : ControllerBase
 {
 
-    [HttpPost("sample")]
-    public async Task<IActionResult> RebuildSample([FromQuery] int? count, CancellationToken ct)
+    [HttpPost("samples")]
+    public async Task<IActionResult> StartRebuildSample([FromQuery] int? count)
     {
-        service.SendRebuildRequests(e => e.FailureOccurredAt, true, count, e => e.SampleId, ct);
+        var result = await sampleService.StartJob(
+            config.Value.SampleEventsRebuildRequestTopic,
+            e => e.FailureOccurredAt,
+            true,
+            count, 
+            e => e.SampleId);
 
-        return Accepted();
+        return Accepted(result);
     }
+
+    [HttpDelete("samples")]
+    public async Task<IActionResult> StopRebuildSample()
+    {
+        var result = await sampleService.StopJob(config.Value.SampleEventsRebuildRequestTopic);
+
+        return Accepted(result);
+    }
+
+    [HttpGet("samples")]
+    public async Task<IActionResult> GetSampleOverview() => 
+        Ok(await sampleService.GetFailedViewsOverview(x => x.SampleId, x => x.FailureOccurredAt, true));
 }

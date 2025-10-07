@@ -30,3 +30,4 @@ public record SampleAddressChangedEvent(Guid SampleId, SampleAddress NewAddress)
 public record SampleAttachmentAddedEvent(Guid SampleId, SampleAttachment Attachment) : SampleEvent(SampleId);
 public record SampleAttachmentRemovedEvent(Guid SampleId, Guid AttachmentId) : SampleEvent(SampleId);
 public record SampleAttachmentUpdatedEvent(Guid SampleId, Guid AttachmentId, string NewFileName, string NewUrl) : SampleEvent(SampleId);
+public record SampleRebuiltEvent(Guid SampleId, string Name, string Description, SampleAddress Address, SampleAttachment SampleAttachment) : SampleEvent(SampleId);

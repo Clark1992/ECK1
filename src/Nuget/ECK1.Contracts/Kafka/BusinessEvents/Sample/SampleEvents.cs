@@ -12,6 +12,8 @@ namespace ECK1.Contracts.Kafka.BusinessEvents.Sample;
 [JsonDerivedType(typeof(SampleAttachmentAddedEvent), nameof(SampleAttachmentAddedEvent))]
 [JsonDerivedType(typeof(SampleAttachmentRemovedEvent), nameof(SampleAttachmentRemovedEvent))]
 [JsonDerivedType(typeof(SampleAttachmentUpdatedEvent), nameof(SampleAttachmentUpdatedEvent))]
+[JsonDerivedType(typeof(SampleRebuiltEvent), nameof(SampleRebuiltEvent))]
+
 public interface ISampleEvent
 {
     Guid SampleId { get; }
@@ -30,6 +32,7 @@ public record SampleAddressChangedEvent(Guid SampleId, SampleAddress NewAddress)
 public record SampleAttachmentAddedEvent(Guid SampleId, SampleAttachment Attachment) : SampleEvent(SampleId);
 public record SampleAttachmentRemovedEvent(Guid SampleId, Guid AttachmentId) : SampleEvent(SampleId);
 public record SampleAttachmentUpdatedEvent(Guid SampleId, Guid AttachmentId, string NewFileName, string NewUrl) : SampleEvent(SampleId);
+public record SampleRebuiltEvent(Guid SampleId, string Name, string Description, SampleAddress Address, List<SampleAttachment> Attachments) : SampleEvent(SampleId);
 
 public class SampleAddress
 {

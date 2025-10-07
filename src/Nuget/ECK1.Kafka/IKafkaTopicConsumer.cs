@@ -6,9 +6,7 @@ public interface IKafkaTopicConsumer
 }
 
 internal interface IHandlerConfigurator<TValue>
-    where TValue : class
 {
-    IKafkaTopicConsumer WithHandler(IKafkaMessageHandler<TValue> handler);
-
+    IKafkaTopicConsumer WithHandler<THandler>() where THandler: IKafkaMessageHandler<TValue>;
     IKafkaTopicConsumer WithHandler(Func<string, TValue, KafkaMessageId, CancellationToken, Task> handler);
 }

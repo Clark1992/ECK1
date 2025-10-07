@@ -2,6 +2,8 @@
 using ECK1.CommandsAPI.Data;
 using ECK1.CommandsAPI.Domain.Samples;
 using MediatR;
+using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace ECK1.CommandsAPI.Commands;
 
@@ -12,15 +14,18 @@ public class SampleCommandHandlers :
     IRequestHandler<ChangeSampleAddressCommand, ICommandResult>,
     IRequestHandler<AddSampleAttachmentCommand, ICommandResult>,
     IRequestHandler<RemoveSampleAttachmentCommand, ICommandResult>,
-    IRequestHandler<UpdateSampleAttachmentCommand, ICommandResult>
+    IRequestHandler<UpdateSampleAttachmentCommand, ICommandResult>,
+    IRequestHandler<RebuildSampleViewCommand, ICommandResult>
 {
     private readonly SampleRepo repo;
     private readonly IMediator mediator;
+    private readonly IMapper mapper;
 
-    public SampleCommandHandlers(SampleRepo repo, IMediator mediator)
+    public SampleCommandHandlers(SampleRepo repo, IMediator mediator, IMapper mapper)
     {
         this.repo = repo;
         this.mediator = mediator;
+        this.mapper = mapper;
     }
 
     public async Task<ICommandResult> Handle(CreateSampleCommand command, CancellationToken ct)
@@ -90,13 +95,26 @@ public class SampleCommandHandlers :
         return await SaveAndNotify(sample, ct);
     }
 
+    public async Task<ICommandResult> Handle(RebuildSampleViewCommand command, CancellationToken ct)
+    {
+        var sample = await repo.LoadAsync(command.Id, ct);
+
+        await mediator.Publish(new EventNotification<ISampleEvent>(mapper.Map<SampleRebuiltEvent>(sample)), ct);
+
+        return new Success(sample.Id, new List<Guid> { Guid.Empty });
+    }
+
     private async Task<ICommandResult> SaveAndNotify(Sample sample, CancellationToken ct)
     {
         List<ISampleEvent> events = [.. sample.UncommittedEvents];
         var eventIds = await repo.SaveAsync(sample, ct);
 
-        events.ForEach(e => mediator.Publish(new EventNotification<ISampleEvent>(e), ct));
+        foreach (var e in events)
+        {
+            await mediator.Publish(new EventNotification<ISampleEvent>(e), ct);
+        }
 
         return new Success(sample.Id, eventIds);
     }
+
 }

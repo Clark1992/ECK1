@@ -13,4 +13,6 @@ public class KafkaSettings
     public string User { get; set; }
     public string Secret { get; set; }
     public string SampleBusinessEventsTopic { get; set; }
+    public string SampleEventsRebuildRequestTopic { get; set; }
+    public string GroupId { get; set; }
 }

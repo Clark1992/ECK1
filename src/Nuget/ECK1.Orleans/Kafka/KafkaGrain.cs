@@ -1,5 +1,6 @@
 ﻿using ECK1.Orleans;
 using ECK1.Orleans.Kafka;
+using Microsoft.Extensions.Logging;
 
 namespace ECK1.Orleans.Kafka;
 
@@ -13,7 +14,8 @@ public class KafkaGrain<TEntity, TMetadata, TState>(
     IStatefulGrainHandler<TEntity, TState> handler,
     IDupChecker<TEntity, TMetadata> dupChecker,
     IMetadataUpdater<TEntity, TMetadata> metadataUpdater,
-    IFaultedStateReset<TEntity> faultedStateReset)
+    IFaultedStateReset<TEntity> faultedStateReset,
+    ILogger<KafkaGrain<TEntity, TMetadata, TState>> logger)
     : StatefulGrain<TEntity, TMetadata, TState>(state, handler)
     where TEntity : class
     where TMetadata : KafkaGrainMetadata
@@ -22,7 +24,7 @@ public class KafkaGrain<TEntity, TMetadata, TState>(
     {
         if (dupChecker.IsMessageProcessed(e, Metadata.State))
         {
-            // Possible dup
+            logger.LogInformation("Skipping dup: {input}", e);
             return;
         }
 
@@ -37,7 +39,10 @@ public class KafkaGrain<TEntity, TMetadata, TState>(
         }
         catch (Exception ex)
         {
-            // TODO LOG
+            logger.LogError(ex, "Error in kafka grain {id}. Marking as faulted. Input: {input}, Metadata: {state}", 
+                this.IdentityString,
+                e,
+                Metadata.State);
             await MarkFaulted();
         }
     }

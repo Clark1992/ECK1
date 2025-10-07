@@ -2,6 +2,7 @@
 using Confluent.Kafka.SyncOverAsync;
 using Confluent.SchemaRegistry;
 using Confluent.SchemaRegistry.Serdes;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace ECK1.Kafka;
@@ -14,61 +15,77 @@ public class KafkaMessageId(TopicPartitionOffset o)
 }
 
 public interface IKafkaMessageHandler<TValue>
-    where TValue : class
 {
     Task Handle(string key, TValue message, KafkaMessageId messageId, CancellationToken ct);
 }
 
-public class KafkaJsonTopicConsumer<TValue>: IKafkaTopicConsumer, IHandlerConfigurator<TValue>
-    where TValue : class
+#region Handler resolvers
+
+public interface IKafkaHandlerResolver<TParsedValue>
+{
+    Func<string, TParsedValue, KafkaMessageId, CancellationToken, Task> Resolve(IServiceScope scope);
+}
+
+public class DelegateKafkaHandlerResolver<TParsedValue>(
+    Func<string, TParsedValue, KafkaMessageId, CancellationToken, Task> func)
+    : IKafkaHandlerResolver<TParsedValue>
+{
+    public Func<string, TParsedValue, KafkaMessageId, CancellationToken, Task> Resolve(IServiceScope _) => func;
+}
+
+public class TypeKafkaHandlerResolver<THandler, TParsedValue>()
+    : IKafkaHandlerResolver<TParsedValue>
+    where THandler : IKafkaMessageHandler<TParsedValue>
+{
+    public Func<string, TParsedValue, KafkaMessageId, CancellationToken, Task> Resolve(IServiceScope scope)
+    {
+        var handler = scope.ServiceProvider.GetRequiredService<THandler>();
+        return handler.Handle;
+    }
+}
+
+#endregion
+
+#region Consumers
+
+public abstract class KafkaConsumerBase<TValue, TParsedValue> : IKafkaTopicConsumer, IHandlerConfigurator<TParsedValue>
 {
     private readonly IConsumer<string, TValue> consumer;
-    private IKafkaMessageHandler<TValue> handler;
-    private Func<string, TValue, KafkaMessageId, CancellationToken, Task> handlerFunc;
-    private readonly ILogger<KafkaJsonTopicConsumer<TValue>> logger;
+    private readonly ILogger logger;
+    private readonly IServiceScopeFactory scopeFactory;
+    private IKafkaHandlerResolver<TParsedValue> handlerResolver;
 
-    private Func<string, TValue, KafkaMessageId, CancellationToken, Task> Handler => this.handler is not null ?
-        this.handler.Handle :
-        this.handlerFunc ?? throw new InvalidOperationException("Handler not set");
-
-    public KafkaJsonTopicConsumer(
-        ConsumerConfig consumerConfig, 
+    protected KafkaConsumerBase(
+        ConsumerConfig consumerConfig,
         string topic,
-        ISchemaRegistryClient schemaRegistry,
-        SubjectNameStrategy strategy,
-        ILogger<KafkaJsonTopicConsumer<TValue>> logger)
+        ILogger logger,
+        IServiceScopeFactory scopeFactory,
+        Func<ConsumerBuilder<string, TValue>, ConsumerBuilder<string, TValue>> configBuilder = null)
     {
         this.logger = logger;
+        this.scopeFactory = scopeFactory;
 
-        var deserializerConfig = new List<KeyValuePair<string, string>>
-        {
-            new("json.deserializer.use.latest.version", true.ToString()),
-            new("json.deserializer.subject.name.strategy", GetStrategyValue(strategy))
-        };
-
-        var jsonDeserializer = new JsonDeserializer<TValue>(schemaRegistry, deserializerConfig).AsSyncOverAsync();
-
-        consumer = new ConsumerBuilder<string, TValue>(consumerConfig)
-           .SetValueDeserializer(jsonDeserializer)
-           .SetErrorHandler((_, e) => logger.LogError("Kafka Error: {Error}", e))
-           .Build();
+        var builder = new ConsumerBuilder<string, TValue>(consumerConfig);
+        builder = configBuilder?.Invoke(builder);
+        consumer = builder
+            .SetErrorHandler((_, e) => logger.LogError("Kafka Error: {Error}", e))
+            .Build();
 
         consumer.Subscribe(topic);
     }
 
-    public IKafkaTopicConsumer WithHandler(IKafkaMessageHandler<TValue> handler)
-    {
-        this.handler = handler;
-        this.handlerFunc = null;
+    protected abstract TParsedValue GetValue(TValue value);
 
+    public IKafkaTopicConsumer WithHandler(Func<string, TParsedValue, KafkaMessageId, CancellationToken, Task> handler)
+    {
+        handlerResolver = new DelegateKafkaHandlerResolver<TParsedValue>(handler);
         return this;
     }
 
-    public IKafkaTopicConsumer WithHandler(Func<string, TValue, KafkaMessageId, CancellationToken, Task> handler)
+    public IKafkaTopicConsumer WithHandler<THandler>()
+        where THandler : IKafkaMessageHandler<TParsedValue>
     {
-        this.handler = null;
-        this.handlerFunc = handler;
-
+        handlerResolver = new TypeKafkaHandlerResolver<THandler, TParsedValue>();
         return this;
     }
 
@@ -82,22 +99,24 @@ public class KafkaJsonTopicConsumer<TValue>: IKafkaTopicConsumer, IHandlerConfig
                     try
                     {
                         var result = consumer.Consume(ct);
-                        if (result?.Message != null)
-                        {
-                            try
-                            {
-                                await Handler(result.Message.Key, result.Message.Value, new KafkaMessageId(result.TopicPartitionOffset), ct);
+                        if (result?.Message == null)
+                            continue;
 
-                                consumer.Commit(result);
-                            }
-                            catch (Exception e)
-                            {
-                                logger.LogError(e, "Error during handling {type}", result.Message.Value.GetType().Name);
-                            }
-                        }
-                        else
+                        using var scope = scopeFactory.CreateScope();
+                        var handler = handlerResolver.Resolve(scope);
+                        try
                         {
-                            logger.LogWarning("result?.Message is null");
+                            await handler(
+                                result.Message.Key,
+                                GetValue(result.Message.Value),
+                                new KafkaMessageId(result.TopicPartitionOffset),
+                                ct);
+
+                            consumer.Commit(result);
+                        }
+                        catch (Exception e)
+                        {
+                            logger.LogError(e, "Error during handling {type}", result.Message.Value.GetType().Name);
                         }
                     }
                     catch (ConsumeException ex)
@@ -115,7 +134,62 @@ public class KafkaJsonTopicConsumer<TValue>: IKafkaTopicConsumer, IHandlerConfig
                 consumer.Close();
             }
         }, ct);
-
-    private static string GetStrategyValue(SubjectNameStrategy strategy) => strategy.ToString();
 }
 
+public abstract class KafkaConsumerBase<TValue>(
+    ConsumerConfig consumerConfig,
+    string topic,
+    ILogger logger,
+    IServiceScopeFactory scopeFactory,
+    Func<ConsumerBuilder<string, TValue>, ConsumerBuilder<string, TValue>> configBuilder = null)
+    : KafkaConsumerBase<TValue, TValue>(
+        consumerConfig,
+        topic,
+        logger,
+        scopeFactory,
+        configBuilder)
+{
+    protected override TValue GetValue(TValue value) => value;
+}
+
+#endregion
+
+#region Specific consumers
+
+public class KafkaJsonTopicConsumer<TValue>(
+    ConsumerConfig consumerConfig,
+    string topic,
+    ISchemaRegistryClient schemaRegistry,
+    SubjectNameStrategy strategy,
+    ILogger<KafkaJsonTopicConsumer<TValue>> logger,
+    IServiceScopeFactory scopeFactory)
+    : KafkaConsumerBase<TValue>(
+        consumerConfig,
+        topic,
+        logger,
+        scopeFactory,
+        builder =>
+        {
+            var deserializerConfig = new List<KeyValuePair<string, string>>
+            {
+                new("json.deserializer.use.latest.version", "true"),
+                new("json.deserializer.subject.name.strategy", strategy.ToString())
+            };
+            var jsonDeserializer = new JsonDeserializer<TValue>(schemaRegistry, deserializerConfig).AsSyncOverAsync();
+            return builder.SetValueDeserializer(jsonDeserializer);
+        })
+    where TValue : class
+{ }
+
+public class KafkaSimpleTopicConsumer<TValue>(
+    ConsumerConfig consumerConfig,
+    string topic,
+    Func<string, TValue> parser,
+    ILogger<KafkaSimpleTopicConsumer<TValue>> logger,
+    IServiceScopeFactory scopeFactory) :
+    KafkaConsumerBase<string, TValue>(consumerConfig, topic, logger, scopeFactory)
+{
+    protected override TValue GetValue(string value) => parser(value);
+}
+
+#endregion

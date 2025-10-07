@@ -112,4 +112,6 @@ public class Sample : AggregateRoot<ISampleEvent>
         var attachment = this._attachments.First(a => a.Id == @event.AttachmentId);
         attachment.ApplyUpdate(@event.NewFileName, @event.NewUrl);
     }
+
+    private void Apply(SampleRebuiltEvent @event) { }
 }

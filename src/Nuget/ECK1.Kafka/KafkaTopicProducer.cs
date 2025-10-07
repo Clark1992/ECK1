@@ -100,12 +100,12 @@ public interface IKafkaSimpleProducer<TValue>
 
 public class KafkaSimpleProducer<TValue> : IKafkaSimpleProducer<TValue>
 {
-    private readonly ILogger logger;
+    private readonly ILogger<KafkaSimpleProducer<TValue>> logger;
     private readonly IProducer<string, string> producer;
 
     public KafkaSimpleProducer(
         Handle rootHandle,
-        ILogger<IKafkaTopicProducer<TValue>> logger)
+        ILogger<KafkaSimpleProducer<TValue>> logger)
     {
         producer = new DependentProducerBuilder<string, string>(rootHandle)
             .Build();

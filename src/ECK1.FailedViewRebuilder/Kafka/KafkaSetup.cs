@@ -3,8 +3,6 @@ using Confluent.SchemaRegistry;
 using ECK1.Contracts.Kafka.BusinessEvents.Sample;
 using ECK1.Kafka;
 using ECK1.Kafka.Extensions;
-using Microsoft.Extensions.DependencyInjection;
-using System.Diagnostics.Contracts;
 
 namespace ECK1.FailedViewRebuilder.Kafka;
 
@@ -22,7 +20,7 @@ public static class ServiceCollectionExtensions
             .WithSchemaRegistry(kafkaSettings.SchemaRegistryUrl,
                 c => c.WithAuth(kafkaSettings.User, kafkaSettings.Secret));
 
-        services.AddSingleton<IKafkaMessageHandler<SampleEventFailure>, IKafkaMessageHandler<SampleEventFailure>>();
+        services.AddScoped<IKafkaMessageHandler<SampleEventFailure>, FailuresHandler>();
 
         services.ConfigTopicConsumer<SampleEventFailure>(
             kafkaSettings.BootstrapServers,
@@ -43,10 +41,7 @@ public static class ServiceCollectionExtensions
                 c.AllowAutoCreateTopics = true;
             });
 
-        services.ConfigTopicProducer<SampleEventFailure>(
-            kafkaSettings.SampleEventsRebuildRequestTopic,
-            SubjectNameStrategy.Topic,
-            SerializerType.JSON);
+        services.ConfigSimpleTopicProducer<Guid>();
 
         return services;
     }

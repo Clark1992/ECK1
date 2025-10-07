@@ -3,7 +3,6 @@ using ECK1.CommandsAPI.Domain.Samples;
 using ECK1.CommonUtils.Mapping;
 using ECK1.Kafka;
 using MediatR;
-using static ECK1.CommonUtils.Mapping.TypeUtils;
 using EventContracts = ECK1.Contracts.Kafka.BusinessEvents.Sample;
 
 namespace ECK1.CommandsAPI.Commands;

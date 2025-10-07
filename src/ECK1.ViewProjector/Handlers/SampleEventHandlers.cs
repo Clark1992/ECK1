@@ -1,3 +1,4 @@
+using AutoMapper;
 using ECK1.CommonUtils.Handler;
 using ECK1.Kafka;
 using ECK1.ViewProjector.Data;
@@ -11,31 +12,13 @@ namespace ECK1.ViewProjector.Handlers;
 
 [HandlerMethod(nameof(Handle))]
 public class SampleEventHandlers(
+    IMediator mediator,
+    IMapper mapper,
     MongoDbContext db,
-    ILogger<SampleEventHandlers> logger,
-    IKafkaTopicProducer<Contracts.Kafka.BusinessEvents.Sample.SampleEventFailure> producer) : 
+    ILogger<SampleEventHandlers> logger) : 
     GenericAsyncHandler<ISampleEvent, SampleView>,
     IRequestHandler<EventWithStateNotification<ISampleEvent, SampleView>, SampleView>
 {
-    public async Task<SampleView> Handle(EventWithStateNotification<ISampleEvent, SampleView> data, CancellationToken ct)
-    {
-        try
-        {
-            return await Handle(data.Event, data.State, ct);
-        }
-        catch (Exception ex)
-        {
-            await producer.ProduceAsync(new Contracts.Kafka.BusinessEvents.Sample.SampleEventFailure
-            {
-                FailedEventType = data.Event.GetType().Name,
-                SampleId = data.Event.SampleId,
-                ErrorMessage = ex.Message,
-                StackTrace = ex.StackTrace
-            }, default);
-            throw;
-        }
-    }
-
     public async Task<SampleView> Handle(SampleCreatedEvent @event, SampleView state, CancellationToken cancellationToken)
     {
         var existing = await db.Samples.Find(s => s.SampleId == @event.SampleId).FirstOrDefaultAsync(cancellationToken);
@@ -47,19 +30,7 @@ public class SampleEventHandlers(
             return existing;
         }
 
-        var view = new SampleView
-        {
-            SampleId = @event.SampleId,
-            Name = @event.Name,
-            Description = @event.Description,
-            Address = new SampleAddressView
-            {
-                Id = Guid.NewGuid(),
-                Street = @event.Address.Street,
-                City = @event.Address.City,
-                Country = @event.Address.Country
-            }
-        };
+        var view = mapper.Map<SampleView>(@event);
 
         await db.Samples.InsertOneAsync(view, cancellationToken: cancellationToken);
 
@@ -89,18 +60,14 @@ public class SampleEventHandlers(
 
         state.Description = @event.NewDescription;
 
+        throw new Exception("Test exception");
+
         return state;
     }
 
     public async Task<SampleView> Handle(SampleAddressChangedEvent @event, SampleView state, CancellationToken cancellationToken)
     {
-        var address = new SampleAddressView
-        {
-            Id = Guid.NewGuid(),
-            Street = @event.NewAddress.Street,
-            City = @event.NewAddress.City,
-            Country = @event.NewAddress.Country
-        };
+        var address = mapper.Map<SampleAddressView>(@event.NewAddress);
 
         await db.Samples.UpdateOneAsync(
             Builders<SampleView>.Filter.Eq(s => s.SampleId, @event.SampleId),
@@ -115,12 +82,7 @@ public class SampleEventHandlers(
 
     public async Task<SampleView> Handle(SampleAttachmentAddedEvent @event, SampleView state, CancellationToken cancellationToken)
     {
-        var attachment = new SampleAttachmentView
-        {
-            Id = @event.Attachment.Id,
-            FileName = @event.Attachment.FileName,
-            Url = @event.Attachment.Url
-        };
+        var attachment = mapper.Map<SampleAttachmentView>(@event.Attachment);
 
         await db.Samples.UpdateOneAsync(
             Builders<SampleView>.Filter.Eq(s => s.SampleId, @event.SampleId),
@@ -168,4 +130,48 @@ public class SampleEventHandlers(
 
         return state;
     }
+
+    public async Task<SampleView> Handle(SampleRebuiltEvent @event, SampleView state, CancellationToken cancellationToken)
+    {
+        var existing = await db.Samples.Find(s => s.SampleId == @event.SampleId).FirstOrDefaultAsync(cancellationToken);
+        var view = mapper.Map<SampleView>(@event);
+
+        if (existing is null)
+        {
+            logger.LogWarning("Entity {Id} not found in {table}. Inserting new one.", @event.SampleId, nameof(db.Samples));
+
+            await db.Samples.InsertOneAsync(
+                view,
+                cancellationToken: cancellationToken);
+        }
+        else
+        {
+            await db.Samples.ReplaceOneAsync(
+                Builders<SampleView>.Filter.Eq(s => s.SampleId, @event.SampleId),
+                view,
+                cancellationToken: cancellationToken);
+        }
+
+        return view;
+    }
+
+    public async Task<SampleView> Handle(EventWithStateNotification<ISampleEvent, SampleView> data, CancellationToken ct)
+    {
+        try
+        {
+            return await Handle(data.Event, data.State, ct);
+        }
+        catch (Exception ex)
+        {
+            await mediator.Publish(new SampleEventFailure
+            {
+                FailedEventType = data.Event.GetType().Name,
+                SampleId = data.Event.SampleId,
+                ErrorMessage = ex.Message,
+                StackTrace = ex.StackTrace
+            }, default);
+            throw;
+        }
+    }
+
 }
