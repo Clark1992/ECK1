@@ -1,0 +1,13 @@
+environment: local
+replicaCount: 2
+kafka:
+  storage:
+    sizeKafka: 10Gi
+    sizeZookeeper: 5Gi
+
+  config:
+    offsets.topic.replication.factor: 2
+    transaction.state.log.replication.factor: 2
+    transaction.state.log.min.isr: 1
+    default.replication.factor: 2
+    

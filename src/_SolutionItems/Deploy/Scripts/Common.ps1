@@ -112,6 +112,34 @@ function Ensure-Helm {
     }
 }
 
+function Ensure-Kubectl {
+    $kubectlExists = Get-Command kubectl -ErrorAction SilentlyContinue
+
+    if ($kubectlExists) {
+        Write-Host "✅ kubectl is already installed."
+        return
+    }
+
+    Write-Host "⚠ kubectl not found. Installing to temp folder..."
+
+    $installDir = Join-Path $env:TEMP "kubectl_install"
+    if (-not (Test-Path $installDir)) {
+        New-Item -ItemType Directory -Path $installDir | Out-Null
+    }
+
+    $version = (Invoke-RestMethod -Uri "https://storage.googleapis.com/kubernetes-release/release/stable.txt").Trim()
+    $url = "https://dl.k8s.io/release/$version/bin/windows/amd64/kubectl.exe"
+    $kubectlPath = Join-Path $installDir "kubectl.exe"
+
+    Write-Host "Downloading kubectl $version..."
+    Invoke-WebRequest -Uri $url -OutFile $kubectlPath
+
+    $env:PATH = "$installDir;$env:PATH"
+
+    Write-Host "✅ kubectl installed to temporary folder: $kubectlPath"
+}
+
+
 function Setup-GlobalNuget {
     $env:DOCKER_BUILDKIT=1
     $globalNugetConfig = "$env:APPDATA\NuGet\NuGet.Config"

@@ -1,0 +1,81 @@
+{{- if ne .Values.environment "local" }}
+apiVersion: kafka.strimzi.io/v1beta1
+kind: KafkaTopic
+metadata:
+  namespace: kafka
+  name: storage-topic
+  labels:
+    strimzi.io/cluster: {{ .Values.storage.clusterName }}
+spec:
+  partitions: 1
+  replicas: 1
+  config:
+    cleanup.policy: compact
+---
+apiVersion: kafka.strimzi.io/v1beta1
+kind: KafkaTopic
+metadata:
+  namespace: kafka
+  name: global-id-topic
+  labels:
+    strimzi.io/cluster: {{ .Values.storage.clusterName }}
+spec:
+  partitions: 1
+  replicas: 1
+  config:
+    cleanup.policy: compact
+---
+apiVersion: kafka.strimzi.io/v1beta1
+kind: KafkaTopic
+metadata:
+  namespace: kafka
+  name: input-topic
+  labels:
+    strimzi.io/cluster: {{ .Values.storage.clusterName }}
+spec:
+  partitions: 1
+  replicas: 1
+  config:
+    cleanup.policy: compact
+---
+apiVersion: kafka.strimzi.io/v1beta1
+kind: KafkaTopic
+metadata:
+  namespace: kafka
+  name: logx-topic
+  labels:
+    strimzi.io/cluster: {{ .Values.storage.clusterName }}
+spec:
+  partitions: 1
+  replicas: 1
+  config:
+    cleanup.policy: compact
+---
+apiVersion: kafka.strimzi.io/v1beta1
+kind: KafkaTopic
+metadata:
+  namespace: kafka
+  name: dbx-topic
+  labels:
+    strimzi.io/cluster: {{ .Values.storage.clusterName }}
+spec:
+  partitions: 1
+  replicas: 1
+  config:
+    cleanup.policy: compact
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  namespace: kafka
+  name: kafkasql-journal
+  labels:
+    strimzi.io/cluster:  {{ .Values.storage.clusterName }}
+spec:
+  partitions: 1
+  replicas: 2
+  config:
+    cleanup.policy: compact
+    segment.bytes: 104857600
+    min.insync.replicas: 1
+{{- end }}

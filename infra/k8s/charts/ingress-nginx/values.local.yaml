@@ -1,0 +1,14 @@
+controller:
+  replicaCount: 1
+
+  service:
+    type: NodePort
+    nodePorts:
+      http: 30200
+      https: 30443
+
+  metrics:
+    enabled: false
+
+defaultBackend:
+  enabled: true

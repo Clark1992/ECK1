@@ -1,0 +1,4 @@
+apiVersion: v2
+name: apicurio-registry
+description: Apicurio Registry deployment for local Strimzi Kafka
+version: 0.1.0

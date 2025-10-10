@@ -1,0 +1,4 @@
+apiVersion: v2
+name: strimzi-kafka
+description: Deploys Kafka cluster custom resource for Strimzi
+version: 0.1.0

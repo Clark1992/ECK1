@@ -1,0 +1,39 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: Kafka
+metadata:
+  name: {{ .Values.environment }}-cluster
+  namespace: kafka
+spec:
+  kafka:
+    version: "3.9.0"
+    replicas: {{ .Values.replicaCount }}
+    listeners:
+      - name: internal
+        port: 9092
+        type: internal
+        tls: false
+      - name: internaltls
+        port: 9093
+        type: internal
+        tls: true
+      - name: external
+        port: 9094
+        type: nodeport
+        tls: true
+    storage:
+      type: persistent-claim
+      class: hostpath
+      size: {{ .Values.kafka.storage.sizeKafka }}
+    {{- with .Values.kafka.config }}
+    config:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  zookeeper:
+    replicas: 1
+    storage:
+      type: persistent-claim
+      class: hostpath
+      size: {{ .Values.kafka.storage.sizeZookeeper }}
+  entityOperator:
+    topicOperator: {}
+    userOperator: {}
