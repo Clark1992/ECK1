@@ -1,17 +1,37 @@
+{{- if eq .Values.environment "local" }}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: zk-hostpath
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: kafka-hostpath
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+---
+{{- range $i := until (int .Values.replicaCount) }}
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: kafka-pv
+  name: kafka-pv-{{ $i }}
 spec:
   capacity:
-    storage: {{ .Values.kafka.storage.sizeKafka }}
+    storage: {{ $.Values.kafka.storage.sizeKafka }}
   accessModes:
     - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: hostpath
   hostPath:
-    path: {{ .Values.kafka.storage.hostPath }}/kafka
+    path: {{ printf "%s/kafka/%d" $.Values.kafka.storage.hostPath $i }}
+    type: DirectoryOrCreate
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: kafka-hostpath
 ---
+{{- end }}
+
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -22,6 +42,8 @@ spec:
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: hostpath
+  storageClassName: zk-hostpath
   hostPath:
     path: {{ .Values.kafka.storage.hostPath }}/zookeeper
+    type: DirectoryOrCreate
+{{- end }}

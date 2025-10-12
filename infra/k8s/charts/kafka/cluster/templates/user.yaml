@@ -1,0 +1,26 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaUser
+metadata:
+  name: kafka-user
+  labels:
+    strimzi.io/cluster: {{ .Values.environment }}-cluster
+spec:
+  authentication:
+    type: scram-sha-512
+  authorization:
+    type: simple
+    acls:
+      # Allow producing and consuming any topic
+      - resource:
+          type: topic
+          name: '*'
+          patternType: literal
+        operations:
+          - All
+      # Allow using any consumer group
+      - resource:
+          type: group
+          name: '*'
+          patternType: literal
+        operations: 
+          - All

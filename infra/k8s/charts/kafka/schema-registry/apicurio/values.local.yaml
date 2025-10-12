@@ -9,26 +9,19 @@ storage:
   clusterName: local-cluster
 
 service:
+  name: apicurio-registry
   type: ClusterIP
   port: 8080
 
 ingress:
+  httpPort: 30200
   enabled: true
   className: nginx
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
   hosts:
-    - host: registry.localdev.me
+    - host: registry.localhost
       paths:
         - path: /
           pathType: Prefix
   tls: []
-
-env:
-   # SASL placeholders (пусть будут пустыми)
-  REGISTRY_KAFKASQL_SECURITY_SASL_MECHANISM: PLAIN
-  REGISTRY_KAFKASQL_SECURITY_SASL_CLIENT_ID: test
-  REGISTRY_KAFKASQL_SECURITY_SASL_CLIENT_SECRET: test
-  REGISTRY_KAFKASQL_SECURITY_SASL_TOKEN_ENDPOINT: http://dummy
-  REGISTRY_KAFKASQL_SECURITY_SASL_LOGIN_CALLBACK_HANDLER_CLASS: org.apicurio.dummy.Handler
-  QUARKUS_DATASOURCE_JDBC_URL: "jdbc:h2:mem:apicurio;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"

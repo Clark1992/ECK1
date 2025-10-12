@@ -32,7 +32,8 @@ spec:
             - name: KAFKA_BOOTSTRAP_SERVERS
               value: {{ .Values.kafka.bootstrapServers }}
             - name: REGISTRY_UI_CONFIG_APIURL
-              value: "http://registry.localdev.me" 
+              value: http://{{ (index .Values.ingress.hosts 0).host }}:{{ .Values.ingress.httpPort }}/apis/registry
+            
           livenessProbe:
             httpGet:
               path: /health/live

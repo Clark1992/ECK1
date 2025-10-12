@@ -7,11 +7,24 @@ spec:
   kafka:
     version: "3.9.0"
     replicas: {{ .Values.replicaCount }}
+    authorization:
+      type: simple
+    template:
+      pod:
+        securityContext:
+          runAsUser: 0
+          fsGroup: 0
+      container:
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
     listeners:
       - name: internal
         port: 9092
         type: internal
         tls: false
+        authentication:
+          type: scram-sha-512
       - name: internaltls
         port: 9093
         type: internal
@@ -20,9 +33,12 @@ spec:
         port: 9094
         type: nodeport
         tls: true
+        authentication:
+          type: scram-sha-512
     storage:
       type: persistent-claim
-      class: hostpath
+      class: kafka-hostpath
+      deleteClaim: false
       size: {{ .Values.kafka.storage.sizeKafka }}
     {{- with .Values.kafka.config }}
     config:
@@ -30,10 +46,17 @@ spec:
     {{- end }}
   zookeeper:
     replicas: 1
+    template:
+      pod:
+        securityContext:
+          runAsUser: 0
+          fsGroup: 0
     storage:
       type: persistent-claim
-      class: hostpath
+      class: zk-hostpath
+      deleteClaim: false
       size: {{ .Values.kafka.storage.sizeZookeeper }}
+    
   entityOperator:
     topicOperator: {}
     userOperator: {}
