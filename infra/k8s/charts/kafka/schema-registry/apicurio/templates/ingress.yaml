@@ -3,30 +3,24 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: apicurio-registry
-  namespace: apicurio
-  annotations:
-{{- range $key, $val := .Values.ingress.annotations }}
-    {{ $key }}: {{ $val }}
-{{- end }}
+  namespace: {{ .Values.namespace }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
+      secretName: {{ .Values.ingress.tls.secretName }}
+  {{- end }}
   rules:
-{{- range .Values.ingress.hosts }}
-    - host: {{ .host }}
+    - host: {{ .Values.ingress.host }}
       http:
         paths:
-        {{- range .paths }}
-          - path: {{ .path }}
-            pathType: {{ .pathType }}
+          - path: /
+            pathType: Prefix
             backend:
               service:
-                name: apicurio-registry
+                name: apicurio-registry-service
                 port:
                   number: 8080
-        {{- end }}
-{{- end }}
-  tls:
-{{- if .Values.ingress.tls }}
-{{ toYaml .Values.ingress.tls | indent 4 }}
-{{- end }}
 {{- end }}

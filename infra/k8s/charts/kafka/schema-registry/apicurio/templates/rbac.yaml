@@ -1,0 +1,157 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    apicur.io/name: apicurio-registry-operator
+    apicur.io/type: operator
+    apicur.io/version: 1.1.3
+  name: apicurio-registry-operator-leader-election-role
+  namespace: {{ .Values.namespace }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    apicur.io/name: apicurio-registry-operator
+    apicur.io/type: operator
+    apicur.io/version: 1.1.3
+  name: apicurio-registry-operator-role
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - daemonsets
+  - deployments
+  - replicasets
+  - statefulsets
+  verbs:
+  - '*'
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - endpoints
+  - persistentvolumeclaims
+  - pods
+  - secrets
+  - services
+  - services/finalizers
+  verbs:
+  - '*'
+- apiGroups:
+  - events
+  resources:
+  - events
+  verbs:
+  - '*'
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
+  verbs:
+  - '*'
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - '*'
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  verbs:
+  - '*'
+- apiGroups:
+  - policy
+  resources:
+  - poddisruptionbudgets
+  verbs:
+  - '*'
+- apiGroups:
+  - registry.apicur.io
+  resources:
+  - apicurioregistries
+  verbs:
+  - '*'
+- apiGroups:
+  - registry.apicur.io
+  resources:
+  - apicurioregistries/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - registry.apicur.io
+  resources:
+  - apicurioregistries/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    apicur.io/name: apicurio-registry-operator
+    apicur.io/type: operator
+    apicur.io/version: 1.1.3
+  name: apicurio-registry-operator-leader-election-rolebinding
+  namespace: {{ .Values.namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: apicurio-registry-operator-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: apicurio-registry-operator
+  namespace: {{ .Values.namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    apicur.io/name: apicurio-registry-operator
+    apicur.io/type: operator
+    apicur.io/version: 1.1.3
+  name: apicurio-registry-operator-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: apicurio-registry-operator-role
+subjects:
+- kind: ServiceAccount
+  name: apicurio-registry-operator
+  namespace: {{ .Values.namespace }}

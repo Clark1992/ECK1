@@ -1,0 +1,28 @@
+apiVersion: registry.apicur.io/v1
+kind: ApicurioRegistry
+metadata:
+  name: apicurio-registry
+  namespace: {{ .Values.namespace }}
+spec:
+  deployment:
+    replicas: {{ .Values.replicaCount }}
+
+  configuration:
+    persistence: kafkasql
+    kafkasql:
+      bootstrapServers: {{ .Values.kafka.bootstrapServers }}
+      security:
+        scram:
+          mechanism: SCRAM-SHA-512
+          user: {{ .Values.kafka.userSecret.name }}
+          passwordSecretName: {{ .Values.kafka.userSecret.name }}
+          truststoreSecretName: {{ .Values.kafka.userSecret.clusterCaSecret }}
+    env:
+      - name: REGISTRY_UI_CONFIG_APIURL
+        value: http://{{ .Values.ingress.host }}:{{ .Values.ingress.httpPort }}/apis/registry
+      - name: REGISTRY_RULES_GLOBAL_COMPATIBILITY
+        value: BACKWARD
+
+  deployment:
+    managedResources:
+      disableIngress: true

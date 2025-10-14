@@ -5,6 +5,8 @@ param(
     [string]$KafkaUserSecretName = "kafka-user"
 )
 
+$ErrorActionPreference = "Stop"
+
 Write-Host "🔹 Deploying Strimzi Kafka Operator to namespace '$Namespace'..."
 
 # 1️⃣ namespace
@@ -61,7 +63,7 @@ Write-Host "Waiting for KafkaUser secret '$KafkaUserSecretName' to be created...
 $maxAttempts = 60
 $attempt = 0
 while ($attempt -lt $maxAttempts) {
-    $secret = kubectl get secret $KafkaUserSecretName -n $KafkaNamespace --ignore-not-found
+    $secret = kubectl get secret $KafkaUserSecretName -n $Namespace --ignore-not-found
     if ($LASTEXITCODE -eq 0 -and $secret) {
         Write-Host "KafkaUser secret '$KafkaUserSecretName' found."
         break
@@ -79,24 +81,29 @@ if (-not $secret) {
 # --- Extract credentials ---
 Write-Host "Extracting KafkaUser credentials..."
 
-$PasswordB64 = kubectl get secret $KafkaUserSecretName -n $KafkaNamespace -o jsonpath='{.data.password}'
+$PasswordB64 = kubectl get secret $KafkaUserSecretName -n $Namespace -o jsonpath='{.data.password}'
 $Password = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($PasswordB64))
 
-$jaasConfigB64 = kubectl get secret $KafkaUserSecretName -n $KafkaNamespace -o jsonpath='{.data.sasl.jaas.config}'
+$jaasConfigB64 = kubectl get secret $KafkaUserSecretName -n $Namespace -o jsonpath="{.data['sasl\.jaas\.config']}"
 $jaasConfig = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($jaasConfigB64))
+
+Write-Host "Extracted"
+
 # --- Set environment variables for subsequent scripts ---
 Write-Host "Setting environment variables for Kafka credentials..."
 
 $KafkaClusterName = "$Environment-cluster"
+$env:KAFKA_CLUSTER = $KafkaClusterName
 $env:KAFKA_USERNAME = $KafkaUsername
 $env:KAFKA_PASSWORD = $Password
-$env:KAFKA_BOOTSTRAP_WITH_NAMESPACE = "$KafkaClusterName-kafka-bootstrap.$KafkaNamespace.svc.cluster.local:9092"
+$env:KAFKA_TLS_BOOTSTRAP_WITH_NAMESPACE = "$KafkaClusterName-kafka-bootstrap.$Namespace.svc.cluster.local:9093"
 $env:KAFKA_BOOTSTRAP = "$KafkaClusterName-kafka-bootstrap:9092"
 $env:KAFKA_JAAS_CONFIG = $jaasConfig
 
 Write-Host "Kafka credentials ready:"
+Write-Host "  KAFKA_CLUSTER=$env:KAFKA_CLUSTER"
 Write-Host "  KAFKA_USERNAME=$env:KAFKA_USERNAME"
 Write-Host "  KAFKA_PASSWORD=<hidden>"
 Write-Host "  KAFKA_BOOTSTRAP=$env:KAFKA_BOOTSTRAP"
-Write-Host "  KAFKA_BOOTSTRAP_WITH_NAMESPACE=$env:KAFKA_BOOTSTRAP_WITH_NAMESPACE"
+Write-Host "  KAFKA_TLS_BOOTSTRAP_WITH_NAMESPACE=$env:KAFKA_TLS_BOOTSTRAP_WITH_NAMESPACE"
 Write-Host "  KAFKA_JAAS_CONFIG=<hidden>"

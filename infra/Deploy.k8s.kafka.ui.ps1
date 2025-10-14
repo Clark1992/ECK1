@@ -1,8 +1,11 @@
 param(
     [string]$Namespace = "kafka",
     [string]$ReleaseName = "kafka-ui",
-    [string]$Environment = "local"
+    [string]$Environment = "local",
+    [string]$KafkaUiVersion = "0.7.6"
 )
+
+$ErrorActionPreference = "Stop"
 
 Write-Host "=== Setting up Kafka UI in namespace '$Namespace' ==="
 
@@ -21,15 +24,21 @@ helm repo update
 
 # Deploy via Helm
 Write-Host "Deploying Kafka UI Helm release '$ReleaseName'..."
+
+$jaasConfigKey = "yamlApplicationConfig.kafka.clusters[0].properties.sasl\.jaas\.config"
+
+$jaasConfig = $env:KAFKA_JAAS_CONFIG.Replace('"', '\"')
+
 helm upgrade --install $ReleaseName kafka-ui/kafka-ui `
     --namespace $Namespace `
     -f ./infra/k8s/charts/kafka/ui/values.${Environment}.yaml `
-     --set yamlApplicationConfig.kafka.clusters[0].name=${Environment} `
+    --set yamlApplicationConfig.kafka.clusters[0].name=${Environment} `
     --set yamlApplicationConfig.kafka.clusters[0].bootstrapServers=$env:KAFKA_BOOTSTRAP `
-    --set env.KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM="SCRAM-SHA-512" `
-    --set env.KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL="SASL_PLAINTEXT" `
-    --set env.KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG=$env.KAFKA_JAAS_CONFIG `
-    --create-namespace
+    --set yamlApplicationConfig.kafka.clusters[0].properties.security.protocol="SASL_PLAINTEXT" `
+    --set yamlApplicationConfig.kafka.clusters[0].properties.sasl.mechanism="SCRAM-SHA-512" `
+    --set-string "$jaasConfigKey=$jaasConfig" `
+    --create-namespace `
+    --version $KafkaUiVersion
 
 
 if ($LASTEXITCODE -eq 0) {

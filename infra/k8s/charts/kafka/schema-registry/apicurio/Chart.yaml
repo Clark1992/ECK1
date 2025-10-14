@@ -1,4 +1,5 @@
 apiVersion: v2
 name: apicurio-registry
-description: Apicurio Registry deployment for local Strimzi Kafka
+description: Helm chart for Apicurio Registry Operator + CR
+type: application
 version: 0.1.0

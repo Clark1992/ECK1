@@ -2,26 +2,26 @@ environment: local
 
 replicaCount: 1
 
-persistence:
-  kind: streams
-
-storage:
-  clusterName: local-cluster
+namespace: apicurio
+image:
+  operator: quay.io/apicurio/apicurio-registry-operator:1.1.3
+  registry: quay.io/apicurio/apicurio-registry-kafkasql
+  registryVersion: 2.6.4.Final
 
 service:
   name: apicurio-registry
   type: ClusterIP
   port: 8080
 
+kafka:
+  userSecret:
+    name: kafka-user
+
 ingress:
   httpPort: 30200
   enabled: true
+  host: registry.localhost
   className: nginx
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
-  hosts:
-    - host: registry.localhost
-      paths:
-        - path: /
-          pathType: Prefix
-  tls: []
+  tls:
+    enabled: false
+    secretName: ""
