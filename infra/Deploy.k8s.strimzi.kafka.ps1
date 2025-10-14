@@ -2,7 +2,8 @@ param(
     [string]$Namespace = "kafka",
     [string]$Environment = "local",
     [string]$OperatorVersion = "0.45.0",
-    [string]$KafkaUserSecretName = "kafka-user"
+    [string]$KafkaUserSecretName = "kafka-user",
+    [string]$K8sHost = "localhost"
 )
 
 $ErrorActionPreference = "Stop"
@@ -94,11 +95,14 @@ Write-Host "Setting environment variables for Kafka credentials..."
 
 $KafkaClusterName = "$Environment-cluster"
 $env:KAFKA_CLUSTER = $KafkaClusterName
-$env:KAFKA_USERNAME = $KafkaUsername
+$env:KAFKA_USERNAME = $KafkaUserSecretName
 $env:KAFKA_PASSWORD = $Password
 $env:KAFKA_TLS_BOOTSTRAP_WITH_NAMESPACE = "$KafkaClusterName-kafka-bootstrap.$Namespace.svc.cluster.local:9093"
 $env:KAFKA_BOOTSTRAP = "$KafkaClusterName-kafka-bootstrap:9092"
 $env:KAFKA_JAAS_CONFIG = $jaasConfig
+
+$externalPort = kubectl get svc $KafkaClusterName-kafka-external-bootstrap -n $Namespace -o jsonpath='{.spec.ports[0].nodePort}'
+$env:KAFKA_EXTERNAL_TLS_BOOTSTRAP = "${K8sHost}:${externalPort}"
 
 Write-Host "Kafka credentials ready:"
 Write-Host "  KAFKA_CLUSTER=$env:KAFKA_CLUSTER"
@@ -106,4 +110,5 @@ Write-Host "  KAFKA_USERNAME=$env:KAFKA_USERNAME"
 Write-Host "  KAFKA_PASSWORD=<hidden>"
 Write-Host "  KAFKA_BOOTSTRAP=$env:KAFKA_BOOTSTRAP"
 Write-Host "  KAFKA_TLS_BOOTSTRAP_WITH_NAMESPACE=$env:KAFKA_TLS_BOOTSTRAP_WITH_NAMESPACE"
+Write-Host "  KAFKA_EXTERNAL_TLS_BOOTSTRAP=$env:KAFKA_EXTERNAL_TLS_BOOTSTRAP"
 Write-Host "  KAFKA_JAAS_CONFIG=<hidden>"

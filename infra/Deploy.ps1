@@ -15,3 +15,7 @@ $env = "local"
 & ${PSScriptRoot}\Deploy.k8s.kafka.ui.ps1 -Environment $env
 
 & ${PSScriptRoot}\Deploy.k8s.apicurio.ps1 -Environment $env
+
+if ($env -eq "local") {
+    & ${PSScriptRoot}\Local.SetupSecrets.ps1
+}
