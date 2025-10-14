@@ -56,3 +56,8 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "Failed deploy Apicurio Registry!"
     exit 1
 }
+
+Write-Host "------------- REVIEW THIS --------------------"
+
+$env:KAFKA_SCHEMAREGISTRYURL_INTERNAL="apicurio-registry-service:8080/apis/registry"
+$env:KAFKA_SCHEMAREGISTRYURL_EXTERNAL="http://registry.localhost:30200/apis/registry"
