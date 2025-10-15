@@ -16,7 +16,7 @@ spec:
           mechanism: SCRAM-SHA-512
           user: {{ .Values.kafka.userSecret.name }}
           passwordSecretName: {{ .Values.kafka.userSecret.name }}
-          truststoreSecretName: {{ .Values.kafka.userSecret.clusterCaSecret }}
+          truststoreSecretName: {{ .Values.kafka.clusterCaSecret }}
     env:
       - name: REGISTRY_UI_CONFIG_APIURL
         value: http://{{ .Values.ingress.host }}:{{ .Values.ingress.httpPort }}/apis/registry

@@ -48,7 +48,8 @@ Write-Host "bootstrap = $env:KAFKA_TLS_BOOTSTRAP_WITH_NAMESPACE"
 helm upgrade --install apicurio ./infra/k8s/charts/kafka/schema-registry/apicurio `
   --namespace $Namespace `
   -f ./infra/k8s/charts/kafka/schema-registry/apicurio/values.${Environment}.yaml `
-  --set kafka.bootstrapServers=$env:KAFKA_TLS_BOOTSTRAP_WITH_NAMESPACE
+  --set kafka.bootstrapServers=$env:KAFKA_TLS_BOOTSTRAP_WITH_NAMESPACE `
+  --set kafka.clusterCaSecret=$KafkaClusterSecret
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "✅ Apicurio Registry deployed successfully!"
