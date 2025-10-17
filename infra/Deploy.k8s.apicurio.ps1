@@ -40,7 +40,7 @@ $secretYaml | kubectl apply -n apicurio -f -
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Failed copying secret"
-    exit 1
+    throw
 }
 
 Write-Host "bootstrap = $env:KAFKA_TLS_BOOTSTRAP_WITH_NAMESPACE"
@@ -55,10 +55,66 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "✅ Apicurio Registry deployed successfully!"
 } else {
     Write-Host "Failed deploy Apicurio Registry!"
-    exit 1
+    throw
 }
 
-Write-Host "------------- REVIEW THIS --------------------"
+# Basic Auth through ingress
 
-$env:KAFKA_SCHEMAREGISTRYURL_INTERNAL="apicurio-registry-service:8080/apis/registry"
-$env:KAFKA_SCHEMAREGISTRYURL_EXTERNAL="http://registry.localhost:30200/apis/registry"
+if (-not $env:KAFKA_USERNAME -or -not $env:KAFKA_PASSWORD) {
+    Write-Host "❌ KAFKA_USERNAME / KAFKA_PASSWORD NOT SET"
+    throw
+}
+
+$Username = $env:KAFKA_USERNAME
+$Password = $env:KAFKA_PASSWORD
+
+# 3️⃣ Generate bcrypt-hash
+Write-Host "🔐 Generate bcrypt hash for user '$Username'..."
+
+$authClean = (docker run --rm httpd:2.4 htpasswd -nb $Username $Password)[0].Trim()
+
+# 4️⃣ Check if secret changed
+Write-Host "🔍  Check current secret 'apicurio-basic-auth'..."
+$existingSecret = kubectl get secret apicurio-basic-auth -n $Namespace -o json 2>$null
+$needUpdate = $true
+if ($existingSecret) {
+    $existingData = ($existingSecret | ConvertFrom-Json).data.auth
+    if ($existingData) {
+        $existingDecoded = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($existingData))
+        if ($existingDecoded.Trim() -eq $authClean) {
+            Write-Host "✅ Secret unchanged"
+            $needUpdate = $false
+        }
+    }
+}
+
+# 5️⃣ Update secret
+$ingressName = "apicurio-registry"
+
+if ($needUpdate) {
+    Write-Host "📦 Recreating secret 'apicurio-basic-auth'..."
+    kubectl delete secret apicurio-basic-auth -n $Namespace --ignore-not-found | Out-Null
+    kubectl create secret generic apicurio-basic-auth -n $Namespace --from-literal=auth="$authClean" | Out-Null
+
+    $maxRetries = 10
+    for ($i=0; $i -lt $maxRetries; $i++) {
+        $secretCheck = kubectl get secret apicurio-basic-auth -n $Namespace --ignore-not-found
+        if ($secretCheck) { break }
+        Start-Sleep -Seconds $WaitSeconds
+    }
+    if (-not $secretCheck) {
+        Write-Host "❌ Secret didnt appear in $($maxRetries*$WaitSeconds) sec"
+        throw
+    }
+
+    Write-Host "✅ Secret updated."
+
+    $ts = Get-Date -UFormat %s
+    kubectl annotate ingress $ingressName -n $Namespace refresh-trigger="$ts" --overwrite | Out-Null
+
+    Write-Host "✅ Ingress refreshed."
+} else {
+    Write-Host "⏭️  Skip update unchanged secret."
+}
+
+Write-Host "`n🎉 Done!"

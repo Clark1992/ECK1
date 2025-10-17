@@ -9,15 +9,13 @@ spec:
     replicas: {{ .Values.replicaCount }}
     authorization:
       type: simple
+    {{- if eq .Values.environment "local" }}
     template:
       pod:
         securityContext:
           runAsUser: 0
           fsGroup: 0
-      container:
-        securityContext:
-          runAsUser: 0
-          runAsGroup: 0
+    {{- end }}
     listeners:
       - name: internal
         port: 9092
@@ -33,10 +31,24 @@ spec:
           type: scram-sha-512
       - name: external
         port: 9094
-        type: nodeport
         tls: true
         authentication:
           type: scram-sha-512
+        {{- if eq .Values.environment "local" }}
+        type: nodeport
+        configuration:
+          bootstrap:
+            nodePort: {{ $.Values.fixedPorts.bootstrapPort }}   
+          brokers:
+            {{- range $i := until (int .Values.replicaCount) }}
+            - broker: {{ $i }}
+              advertisedHost: 127.0.0.1
+              advertisedPort: {{ index $.Values.fixedPorts.brokerPorts $i }}
+              nodePort: {{ index $.Values.fixedPorts.brokerPorts $i }}
+            {{- end }}
+        {{- else }}
+        type: loadbalancer
+        {{- end }}
     storage:
       type: persistent-claim
       class: kafka-hostpath
@@ -48,11 +60,13 @@ spec:
     {{- end }}
   zookeeper:
     replicas: 1
+{{- if eq .Values.environment "local" }}
     template:
       pod:
         securityContext:
           runAsUser: 0
           fsGroup: 0
+{{- end }}
     storage:
       type: persistent-claim
       class: zk-hostpath

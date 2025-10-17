@@ -9,9 +9,20 @@ Write-Host "🔍 Scanning for .csproj files under $Root..." -ForegroundColor Cya
 
 $userSecretsRoot = Join-Path $env:APPDATA "Microsoft\UserSecrets"
 
+$ingressName = "apicurio-registry-local-dns"
+$ingressNamespace = "apicurio"
+
+# Wait for ingress to create
+$cmd = "kubectl get ingress $ingressName -n $ingressNamespace --ignore-not-found"
+$output = Wait-ForCommand -Command $cmd -TimeoutSeconds 90
+
+$ingressData = kubectl get ingress $ingressName -n $ingressNamespace -o json | ConvertFrom-Json
+
+$SchemaRegistryUrl ="http://$($ingressData.spec.rules.host):$env:INGRESS_HTTP_PORT/apis/ccompat/v7"
+
 $newKafkaConfig = @{
     "BootstrapServers" = $env:KAFKA_EXTERNAL_TLS_BOOTSTRAP
-    "SchemaRegistryUrl" = $env:KAFKA_SCHEMAREGISTRYURL_EXTERNAL
+    "SchemaRegistryUrl" = $SchemaRegistryUrl
     "User" = $env:KAFKA_USERNAME
     "Secret" = $env:KAFKA_PASSWORD
 }

@@ -1,23 +1,26 @@
 {{- if .Values.ingress.enabled }}
+{{- if eq .Values.environment "local" }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: apicurio-registry
+  name: apicurio-registry-local-dns
   namespace: {{ .Values.namespace }}
   annotations:
     nginx.ingress.kubernetes.io/auth-type: basic
     nginx.ingress.kubernetes.io/auth-secret: apicurio-basic-auth
     nginx.ingress.kubernetes.io/auth-realm: "Authentication Required"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   {{- if .Values.ingress.tls.enabled }}
   tls:
     - hosts:
-        - {{ .Values.ingress.host }}
+        - registry.127.0.0.1.nip.io
       secretName: {{ .Values.ingress.tls.secretName }}
   {{- end }}
   rules:
-    - host: {{ .Values.ingress.host }}
+    - host: registry.127.0.0.1.nip.io
       http:
         paths:
           - path: /
@@ -27,4 +30,5 @@ spec:
                 name: apicurio-registry-service
                 port:
                   number: 8080
+{{- end }}
 {{- end }}

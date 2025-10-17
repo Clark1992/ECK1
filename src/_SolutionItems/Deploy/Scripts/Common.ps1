@@ -21,7 +21,7 @@ function Start-LocalDockerRegistry {
 
     if ($registryRunning -and $registryRunning.Contains("failed")) {
         Write-Error "Error detected: $registryRunning"
-        exit 1
+        throw
     }
 
     if ([string]::IsNullOrWhiteSpace($registryRunning)) {
@@ -63,14 +63,14 @@ function Build-DockerImage {
 
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Docker build failed"
-        exit 1
+        throw
     }
 
     Write-Host "Pushing API image to local registry..."
     docker push $fullImageName
     if ($LASTEXITCODE -ne 0) { 
         Write-Error "Docker push failed"; 
-        exit 1 
+        throw 
     }
 }
 
@@ -139,7 +139,6 @@ function Ensure-Kubectl {
     Write-Host "✅ kubectl installed to temporary folder: $kubectlPath"
 }
 
-
 function Setup-GlobalNuget {
     $env:DOCKER_BUILDKIT=1
     $globalNugetConfig = "$env:APPDATA\NuGet\NuGet.Config"
@@ -175,5 +174,92 @@ function Get-NuGetPackage {
     }
     else {
         Write-Warning "⚠️  Could not find lib/net* folder for $PackageId."
+    }
+}
+
+function Get-YamlValue {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$PropPath,
+        
+        [Parameter(Mandatory = $true)]
+        [string]$YamlPath
+    )
+
+    if (-not (Get-Module -ListAvailable -Name powershell-yaml)) {
+        Install-Module -Name powershell-yaml -Scope CurrentUser -Force
+    }
+    Import-Module powershell-yaml -ErrorAction Stop
+
+    if (-not (Test-Path $YamlPath)) {
+        throw "YAML file not found: $YamlPath"
+    }
+
+    $yaml = Get-Content $YamlPath -Raw | ConvertFrom-Yaml
+
+    $segments = $PropPath -split '\.'
+
+    $current = $yaml
+    foreach ($segment in $segments) {
+        if ($segment -match '^([^\[]+)\[(\d+)\]$') {
+            $key = $matches[1]
+            $index = [int]$matches[2]
+
+            if ($current -is [System.Collections.IDictionary]) {
+                $current = $current[$key]
+            } else {
+                throw "Expected a dictionary for key '$key', but got $($current.GetType().Name)"
+            }
+
+            if ($null -eq $current -or $index -ge $current.Count) {
+                throw "Index [$index] out of range for '$key'"
+            }
+
+            $current = $current[$index]
+        }
+        else {
+            if ($current -is [System.Collections.IDictionary]) {
+                if ($current.ContainsKey($segment)) {
+                    $current = $current[$segment]
+                } else {
+                    throw "Key '$segment' not found"
+                }
+            }
+            else {
+                throw "Cannot access property '$segment' on non-dictionary type '$($current.GetType().Name)'"
+            }
+        }
+    }
+
+    return $current
+}
+
+function Wait-ForCommand {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Command,
+        [int]$TimeoutSeconds = 60,
+        [int]$IntervalSeconds = 2
+    )
+
+    $elapsed = 0
+
+    while ($true) {
+        try {
+            $output = Invoke-Expression $Command
+
+            if ($output -and $LASTEXITCODE -eq 0) {
+                return $output
+            }
+        }
+        catch {
+        }
+
+        if ($elapsed -ge $TimeoutSeconds) {
+            throw "Timeout: $TimeoutSeconds seconds.`nCommand: $Command"
+        }
+
+        Start-Sleep -Seconds $IntervalSeconds
+        $elapsed += $IntervalSeconds
     }
 }

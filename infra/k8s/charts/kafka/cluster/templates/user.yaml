@@ -24,3 +24,9 @@ spec:
           patternType: literal
         operations: 
           - All
+      - resource:
+          type: cluster
+          name: {{ .Values.environment }}-cluster
+          patternType: literal
+        operations:
+          - Describe

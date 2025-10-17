@@ -81,7 +81,7 @@ if ($mongoInUse) {
 
         if ($mongoInUse) {
             Write-Host "Port $mongoPort is still in use after $maxRetries retries. Failing deploy."
-            exit 1
+            throw
         }
     } else {
         # check maybe it is k8s mongo
@@ -89,7 +89,7 @@ if ($mongoInUse) {
 
         if (-not $isMongoAlreadyOnK8s) {
             Write-Host "Couldn't find a Mongo container to shutdown. Failing deploy."
-            exit 1
+            throw
         } else {
             Write-Host "Mongo already running on k8s. Proceeding with deploy."
         }
@@ -105,7 +105,7 @@ helm upgrade --install $releaseName $baseDir\Deploy\$chartPath `
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Helm deployment failed."
-    exit 1
+    throw
 }
 
 Write-Host "Deployment completed."

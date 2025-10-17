@@ -45,5 +45,5 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "✅ === Kafka UI deployed successfully! ==="
 } else {
     Write-Host "❌ Failed to apply Kafka UI!"
-    exit 1
+    throw
 }

@@ -1,5 +1,4 @@
 environment: local
-replicaCount: 2
 kafka:
   storage:
     sizeKafka: 10Gi
@@ -10,4 +9,11 @@ kafka:
     transaction.state.log.replication.factor: 2
     transaction.state.log.min.isr: 1
     default.replication.factor: 2
-    
+
+replicaCount: 2
+fixedPorts:
+  bootstrapPort: 30800
+  brokerPorts:
+    - 32130
+    - 32131
+    # more if needed

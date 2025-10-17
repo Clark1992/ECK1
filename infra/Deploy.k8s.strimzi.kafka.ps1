@@ -29,7 +29,7 @@ helm upgrade --install strimzi strimzi/strimzi-kafka-operator `
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Helm deployment failed!"
-    exit 1
+    throw
 }
 
 Write-Host "✅ Strimzi Kafka Operator deployed successfully!"
@@ -55,7 +55,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "✅ Kafka cluster applied successfully!"
 } else {
     Write-Host "❌ Failed to apply Kafka cluster!"
-    exit 1
+    throw
 }
 
 # --- Wait for KafkaUser secret ---
@@ -76,7 +76,7 @@ while ($attempt -lt $maxAttempts) {
 
 if (-not $secret) {
     throw "Timeout waiting for KafkaUser secret '$KafkaUserSecretName'."
-    exit 1
+    throw
 }
 
 # --- Extract credentials ---
@@ -101,7 +101,7 @@ $env:KAFKA_TLS_BOOTSTRAP_WITH_NAMESPACE = "$KafkaClusterName-kafka-bootstrap.$Na
 $env:KAFKA_BOOTSTRAP = "$KafkaClusterName-kafka-bootstrap:9092"
 $env:KAFKA_JAAS_CONFIG = $jaasConfig
 
-$externalPort = kubectl get svc $KafkaClusterName-kafka-external-bootstrap -n $Namespace -o jsonpath='{.spec.ports[0].nodePort}'
+$externalPort = Get-YamlValue -YamlPath "./infra/k8s/charts/kafka/cluster/values.$Environment.yaml" -PropPath "fixedPorts.bootstrapPort"
 $env:KAFKA_EXTERNAL_TLS_BOOTSTRAP = "${K8sHost}:${externalPort}"
 
 Write-Host "Kafka credentials ready:"

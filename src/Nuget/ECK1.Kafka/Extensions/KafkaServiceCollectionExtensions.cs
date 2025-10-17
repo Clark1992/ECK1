@@ -36,9 +36,9 @@ public static class KafkaServiceCollectionExtensions
         where TConfig : ClientConfig
     {
         config.SecurityProtocol = SecurityProtocol.SaslSsl;
-        config.SaslMechanism = SaslMechanism.Plain;
+        config.SaslMechanism = SaslMechanism.ScramSha512;
         config.SaslUsername = user;
-        config.SaslPassword = SN.GetBrokerPassword(secret);
+        config.SaslPassword = secret;
 
         return config;
     }
@@ -46,7 +46,7 @@ public static class KafkaServiceCollectionExtensions
     public static SchemaRegistryConfig WithAuth(this SchemaRegistryConfig config, string user, string secret)
     {
         config.BasicAuthCredentialsSource = AuthCredentialsSource.UserInfo;
-        config.BasicAuthUserInfo = SN.GetSrPassword(secret);
+        config.BasicAuthUserInfo = $"{user}:{secret}";
 
         return config;
     }

@@ -24,7 +24,7 @@ helm upgrade --install $releaseName $baseDir\Deploy\$chartPath `
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Helm deployment failed."
-    exit 1
+    throw
 }
 
 Write-Host "Deployment completed."

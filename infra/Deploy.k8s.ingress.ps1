@@ -21,11 +21,13 @@ helm upgrade --install ingress-nginx "ingress-nginx/ingress-nginx" `
   --version $IngressChartVersion `
   -f "./infra/k8s/charts/ingress-nginx/values.${Environment}.yaml"
 
-
 if ($LASTEXITCODE -eq 0) {
     Write-Host "✅ Ingress NGINX deployed successfully!"
 } else {
-  exit 1
+  throw
 }
 
-
+try {
+$env:INGRESS_HTTP_PORT = Get-YamlValue -YamlPath "./infra/k8s/charts/ingress-nginx/values.${Environment}.yaml" -PropPath "controller.service.nodePorts.http"
+} catch { Write-Warning "Warning: HTTP Port not found for ingress: $($_.Exception.Message)" }
+$env:INGRESS_HTTPS_PORT = Get-YamlValue -YamlPath "./infra/k8s/charts/ingress-nginx/values.${Environment}.yaml" -PropPath "controller.service.nodePorts.https"

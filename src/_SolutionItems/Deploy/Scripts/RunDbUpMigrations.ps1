@@ -13,12 +13,12 @@ function Run-DbUp {
 
     if (-not $ScriptsPath) {
         Write-Error "❌ Missing parameter: -ScriptsPath"
-        exit 1
+        throw
     }
 
     if (-not (Test-Path $ScriptsPath)) {
         Write-Error "❌ Scripts path '$ScriptsPath' not found."
-        exit 2
+        throw
     }
 
     if (-not $ConnectionString) {
@@ -68,37 +68,5 @@ function Run-DbUp {
     }
     finally {
         Pop-Location
-    }
-}
-
-function Get-EnvValueFromYaml {
-    param(
-        [string]$Key,
-        [string]$YamlPath
-    )
-    
-    if (-not (Get-Module -ListAvailable -Name powershell-yaml)) {
-        Install-Module -Name powershell-yaml -Scope CurrentUser -Force
-    }
-
-    Import-Module powershell-yaml
-
-    if (-not (Test-Path $YamlPath)) {
-        throw "YAML file not found: $YamlPath"
-    }
-
-    $yamlContent = Get-Content $YamlPath -Raw | ConvertFrom-Yaml
-
-    if (-not $yamlContent.env) {
-        throw "'env' section not found in YAML"
-    }
-
-    $envSection = $yamlContent.env
-
-    if ($envSection.ContainsKey($Key)) {
-        return $envSection[$Key]
-    }
-    else {
-        throw "Key '$Key' not found in env section"
     }
 }

@@ -28,10 +28,10 @@ helm upgrade --install $releaseName $baseDir\Deploy\$chartPath `
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Helm deployment failed."
-    exit 1
+    throw
 }
 
-$cString = Get-EnvValueFromYaml -YamlPath "$baseDir/Deploy/values.local.yaml" -Key "ConnectionStrings__DefaultConnection"
+$cString = Get-YamlValue -YamlPath "$baseDir/Deploy/values.local.yaml" -PropPath "env.ConnectionStrings__DefaultConnection"
 
 Run-DbUp -ScriptsPath "$baseDir/Migrations" -ConnectionString $cString
 
