@@ -25,3 +25,12 @@ spec:
             - name: {{ $key }}
               value: "{{ $value }}"
             {{- end }}
+
+          volumeMounts:
+            - name: kafka-client-secret
+              mountPath: /etc/secrets
+              readOnly: true
+      volumes:
+        - name: kafka-client-secret
+          secret:
+            secretName: kafka-client-secret

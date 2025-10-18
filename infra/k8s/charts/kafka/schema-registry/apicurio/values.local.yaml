@@ -8,11 +8,6 @@ image:
   registry: quay.io/apicurio/apicurio-registry-kafkasql
   registryVersion: 2.6.4.Final
 
-service:
-  name: apicurio-registry
-  type: ClusterIP
-  port: 8080
-
 kafka:
   userSecret:
     name: kafka-user

@@ -19,11 +19,6 @@ public static class KafkaSetup
             {
                 c.Acks = Acks.Leader;
                 c.WithAuth(kafkaSettings.User, kafkaSettings.Secret);
-#if DEBUG
-                c.AllowAutoCreateTopics = true;
-                c.SslEndpointIdentificationAlgorithm = SslEndpointIdentificationAlgorithm.None;
-                c.EnableSslCertificateVerification = false;
-#endif
             })
             .WithSchemaRegistry(kafkaSettings.SchemaRegistryUrl,
                 c => c.WithAuth(kafkaSettings.User, kafkaSettings.Secret));

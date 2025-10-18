@@ -1,14 +1,6 @@
-﻿using Confluent.Kafka;
-using Confluent.SchemaRegistry;
-using ECK1.CommonUtils.Doppler.ConfigurationExtensions;
-using ECK1.Contracts.Kafka.BusinessEvents.Sample;
-using ECK1.Kafka;
-using ECK1.Kafka.Extensions;
+﻿using ECK1.CommonUtils.Doppler.ConfigurationExtensions;
 using ECK1.Orleans.Extensions;
-using ECK1.ViewProjector;
 using ECK1.ViewProjector.Data;
-using ECK1.ViewProjector.Kafka.Orleans;
-using ECK1.ViewProjector.Views;
 using ECK1.ViewProjector.Kafka;
 using ECK1.ViewProjector.Startup;
 using MongoDB.Bson;
@@ -18,6 +10,7 @@ using MongoDB.Bson.Serialization.Serializers;
 
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddKeyPerFile("/etc/secrets", true);
 
 #if DEBUG
 builder.Configuration.AddUserSecrets<Program>();

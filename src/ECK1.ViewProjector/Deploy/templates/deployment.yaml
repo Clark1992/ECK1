@@ -73,3 +73,12 @@ spec:
                   fieldPath: status.podIP
             - name: DOTNET_SHUTDOWNTIMEOUTSECONDS
               value: "120"
+
+          volumeMounts:
+            - name: kafka-client-secret
+              mountPath: /etc/secrets
+              readOnly: true
+      volumes:
+        - name: kafka-client-secret
+          secret:
+            secretName: kafka-client-secret

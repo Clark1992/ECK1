@@ -20,10 +20,7 @@ public static class OrleansExtensions
             {
                 siloBuilder
                     .UseLocalhostClustering()
-                    .AddRedisGrainStorage("RedisStore", options =>
-                    {
-                        options.ConfigurationOptions = ConfigurationOptions.Parse(redisConnection);
-                    });
+                    .AddMemoryGrainStorage("RedisStore");
             }
             else if (hostingMode.Equals("k8s", StringComparison.OrdinalIgnoreCase))
             {

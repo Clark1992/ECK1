@@ -98,7 +98,7 @@ $env:KAFKA_CLUSTER = $KafkaClusterName
 $env:KAFKA_USERNAME = $KafkaUserSecretName
 $env:KAFKA_PASSWORD = $Password
 $env:KAFKA_TLS_BOOTSTRAP_WITH_NAMESPACE = "$KafkaClusterName-kafka-bootstrap.$Namespace.svc.cluster.local:9093"
-$env:KAFKA_BOOTSTRAP = "$KafkaClusterName-kafka-bootstrap:9092"
+$env:KAFKA_BOOTSTRAP_WITH_NAMESPACE = "$KafkaClusterName-kafka-bootstrap.$Namespace.svc.cluster.local:9092"
 $env:KAFKA_JAAS_CONFIG = $jaasConfig
 
 $externalPort = Get-YamlValue -YamlPath "./infra/k8s/charts/kafka/cluster/values.$Environment.yaml" -PropPath "fixedPorts.bootstrapPort"
@@ -108,7 +108,19 @@ Write-Host "Kafka credentials ready:"
 Write-Host "  KAFKA_CLUSTER=$env:KAFKA_CLUSTER"
 Write-Host "  KAFKA_USERNAME=$env:KAFKA_USERNAME"
 Write-Host "  KAFKA_PASSWORD=<hidden>"
-Write-Host "  KAFKA_BOOTSTRAP=$env:KAFKA_BOOTSTRAP"
+Write-Host "  KAFKA_BOOTSTRAP_WITH_NAMESPACE=$env:KAFKA_BOOTSTRAP_WITH_NAMESPACE"
 Write-Host "  KAFKA_TLS_BOOTSTRAP_WITH_NAMESPACE=$env:KAFKA_TLS_BOOTSTRAP_WITH_NAMESPACE"
 Write-Host "  KAFKA_EXTERNAL_TLS_BOOTSTRAP=$env:KAFKA_EXTERNAL_TLS_BOOTSTRAP"
 Write-Host "  KAFKA_JAAS_CONFIG=<hidden>"
+
+Write-Host "✅ === Kafka cluster deployed successfully! ==="
+
+# =======================================        TOPICS      =======================================
+Write-Host "Deploying topics..."
+
+helm upgrade --install kafka-topics ./infra/k8s/charts/kafka/topic `
+    --namespace $Namespace `
+    --create-namespace `
+    -f ./infra/k8s/charts/kafka/topic/values.$Environment.yaml
+
+Write-Host "✅ === Kafka Topics deployed successfully! ==="

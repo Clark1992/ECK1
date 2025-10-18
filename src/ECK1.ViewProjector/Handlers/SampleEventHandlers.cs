@@ -1,6 +1,5 @@
 using AutoMapper;
 using ECK1.CommonUtils.Handler;
-using ECK1.Kafka;
 using ECK1.ViewProjector.Data;
 using ECK1.ViewProjector.Events;
 using ECK1.ViewProjector.Notifications;

@@ -33,9 +33,18 @@ public class OrleansKafkaAdapter<TValue, TOrleansSerializableValue, TMetadata> :
     }
 }
 
-public class KafkaMessageHandler<TEvent, TState>(IMediator mediator) : IStatefulGrainHandler<TEvent, TState>
+public class KafkaMessageHandler<TEvent, TState>(IMediator mediator, ILogger<KafkaMessageHandler<TEvent, TState>> logger) 
+    : IStatefulGrainHandler<TEvent, TState>
     where TEvent : class
 {
-    public Task<TState> Handle(TEvent ev, TState view, CancellationToken ct) =>
-        mediator.Send(new EventWithStateNotification<TEvent, TState>(ev, view), ct);
+    public async Task<TState> Handle(TEvent ev, TState view, CancellationToken ct)
+    { 
+        var type = ev.GetType();
+        logger.LogInformation("Handling {messageType}", type);
+        var newState = await mediator.Send(new EventWithStateNotification<TEvent, TState>(ev, view), ct);
+
+        logger.LogInformation("Handled {messageType}", type);
+
+        return newState;
+    }
 }

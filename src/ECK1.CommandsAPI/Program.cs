@@ -6,6 +6,7 @@ using ECK1.CommonUtils.Doppler.ConfigurationExtensions;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddKeyPerFile("/etc/secrets", true);
 
 #if DEBUG
 builder.Configuration.AddUserSecrets<Program>();

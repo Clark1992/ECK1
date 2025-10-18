@@ -7,13 +7,13 @@ namespace ECK1.FailedViewRebuilder.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[ProducesResponseType(typeof(string), StatusCodes.Status202Accepted)]
 public class RebuildFailedController(
     IRebuildRequestService<SampleEventFailure, Guid> sampleService,
     IOptionsSnapshot<KafkaSettings> config) : ControllerBase
 {
 
     [HttpPost("samples")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status202Accepted)]
     public async Task<IActionResult> StartRebuildSample([FromQuery] int? count)
     {
         var result = await sampleService.StartJob(
@@ -27,14 +27,16 @@ public class RebuildFailedController(
     }
 
     [HttpDelete("samples")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     public async Task<IActionResult> StopRebuildSample()
     {
         var result = await sampleService.StopJob(config.Value.SampleEventsRebuildRequestTopic);
 
-        return Accepted(result);
+        return Ok(result);
     }
 
     [HttpGet("samples")]
+    [ProducesResponseType(typeof(FailedViewsResponse<Guid>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetSampleOverview() => 
         Ok(await sampleService.GetFailedViewsOverview(x => x.SampleId, x => x.FailureOccurredAt, true));
 }

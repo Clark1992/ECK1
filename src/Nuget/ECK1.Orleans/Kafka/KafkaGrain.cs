@@ -28,7 +28,7 @@ public class KafkaGrain<TEntity, TMetadata, TState>(
             return;
         }
 
-        if (metadata.State.IsFaulted || !faultedStateReset.ShouldReset(e))
+        if (metadata.State.IsFaulted && !faultedStateReset.ShouldReset(e))
         {
             return;
         }

@@ -33,7 +33,7 @@ helm upgrade --install $ReleaseName kafka-ui/kafka-ui `
     --namespace $Namespace `
     -f ./infra/k8s/charts/kafka/ui/values.${Environment}.yaml `
     --set yamlApplicationConfig.kafka.clusters[0].name=${Environment} `
-    --set yamlApplicationConfig.kafka.clusters[0].bootstrapServers=$env:KAFKA_BOOTSTRAP `
+    --set yamlApplicationConfig.kafka.clusters[0].bootstrapServers=$env:KAFKA_BOOTSTRAP_WITH_NAMESPACE `
     --set yamlApplicationConfig.kafka.clusters[0].properties.security.protocol="SASL_PLAINTEXT" `
     --set yamlApplicationConfig.kafka.clusters[0].properties.sasl.mechanism="SCRAM-SHA-512" `
     --set-string "$jaasConfigKey=$jaasConfig" `

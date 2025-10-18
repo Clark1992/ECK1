@@ -19,15 +19,12 @@ if (-not (kubectl get ns $Namespace -o name 2>$null)) {
 helm upgrade --install ingress-nginx "ingress-nginx/ingress-nginx" `
   --namespace $Namespace `
   --version $IngressChartVersion `
-  -f "./infra/k8s/charts/ingress-nginx/values.${Environment}.yaml"
+  -f "./infra/k8s/charts/ingress-nginx/values.${Environment}.yaml" `
+  --set controller.service.nodePorts.http=$env:INGRESS_HTTP_PORT `
+  --set controller.service.nodePorts.https=$env:INGRESS_HTTPS_PORT
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "✅ Ingress NGINX deployed successfully!"
 } else {
   throw
 }
-
-try {
-$env:INGRESS_HTTP_PORT = Get-YamlValue -YamlPath "./infra/k8s/charts/ingress-nginx/values.${Environment}.yaml" -PropPath "controller.service.nodePorts.http"
-} catch { Write-Warning "Warning: HTTP Port not found for ingress: $($_.Exception.Message)" }
-$env:INGRESS_HTTPS_PORT = Get-YamlValue -YamlPath "./infra/k8s/charts/ingress-nginx/values.${Environment}.yaml" -PropPath "controller.service.nodePorts.https"
