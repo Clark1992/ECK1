@@ -1,18 +1,4 @@
 {{- if eq .Values.environment "local" }}
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: zk-hostpath
-provisioner: kubernetes.io/no-provisioner
-volumeBindingMode: WaitForFirstConsumer
-
----
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: kafka-hostpath
-provisioner: kubernetes.io/no-provisioner
-volumeBindingMode: WaitForFirstConsumer
 ---
 {{- range $i := until (int .Values.replicaCount) }}
 apiVersion: v1
@@ -25,10 +11,13 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: {{ printf "%s/kafka/%d" $.Values.kafka.storage.hostPath $i }}
+    path: {{ printf "/var/lib/%s/kafka/%d" $.Values.kafka.storage.hostPath $i }}
     type: DirectoryOrCreate
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: kafka-hostpath
+  storageClassName: hostpath
+  claimRef:
+    namespace: {{ $.Values.namespace }}
+    name: data-{{ $.Values.environment }}-cluster-kafka-{{ $i }}
 ---
 {{- end }}
 
@@ -42,8 +31,11 @@ spec:
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: zk-hostpath
+  storageClassName: hostpath
   hostPath:
-    path: {{ .Values.kafka.storage.hostPath }}/zookeeper
+    path: /var/lib/{{ .Values.kafka.storage.hostPath }}/zookeeper
     type: DirectoryOrCreate
+  claimRef:
+    namespace: {{ .Values.namespace }}
+    name: data-{{ .Values.environment }}-cluster-zookeeper-0
 {{- end }}

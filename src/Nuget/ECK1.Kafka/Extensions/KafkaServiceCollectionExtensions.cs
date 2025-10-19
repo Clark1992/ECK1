@@ -1,6 +1,5 @@
 ﻿using Confluent.Kafka;
 using Confluent.SchemaRegistry;
-using ECK1.Kafka.Integrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -35,18 +34,30 @@ public static class KafkaServiceCollectionExtensions
     public static TConfig WithAuth<TConfig>(this TConfig config, string user, string secret)
         where TConfig : ClientConfig
     {
+#if DEBUG
         config.SecurityProtocol = SecurityProtocol.SaslSsl;
+#else
+        config.SecurityProtocol = SecurityProtocol.SaslPlaintext;
+#endif
         config.SaslMechanism = SaslMechanism.ScramSha512;
         config.SaslUsername = user;
         config.SaslPassword = secret;
+
+#if DEBUG
+        config.AllowAutoCreateTopics = true;
+        config.SslEndpointIdentificationAlgorithm = SslEndpointIdentificationAlgorithm.None;
+        config.EnableSslCertificateVerification = false;
+#endif
 
         return config;
     }
 
     public static SchemaRegistryConfig WithAuth(this SchemaRegistryConfig config, string user, string secret)
     {
+#if DEBUG
         config.BasicAuthCredentialsSource = AuthCredentialsSource.UserInfo;
         config.BasicAuthUserInfo = $"{user}:{secret}";
+#endif
 
         return config;
     }

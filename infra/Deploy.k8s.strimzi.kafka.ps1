@@ -42,12 +42,14 @@ if ($Environment -eq 'local') {
   helm upgrade --install kafka ./infra/k8s/charts/kafka/cluster `
     --namespace $Namespace `
     --create-namespace `
+    -f ./infra/k8s/charts/kafka/cluster/values.yaml `
     -f ./infra/k8s/charts/kafka/cluster/values.$Environment.yaml `
     -f ./infra/k8s/charts/kafka/cluster/values.secrets.yaml
 } else {
   helm upgrade --install kafka ./infra/k8s/charts/kafka/cluster `
     --namespace $Namespace `
     --create-namespace `
+    -f ./infra/k8s/charts/kafka/cluster/values.yaml `
     -f ./infra/k8s/charts/kafka/cluster/values.$Environment.yaml
 }
 
@@ -115,7 +117,7 @@ Write-Host "  KAFKA_JAAS_CONFIG=<hidden>"
 
 Write-Host "✅ === Kafka cluster deployed successfully! ==="
 
-# =======================================        TOPICS      =======================================
+# =============================        TOPICS      ==============================
 Write-Host "Deploying topics..."
 
 helm upgrade --install kafka-topics ./infra/k8s/charts/kafka/topic `

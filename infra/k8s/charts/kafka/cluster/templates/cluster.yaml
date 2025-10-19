@@ -2,7 +2,7 @@ apiVersion: kafka.strimzi.io/v1beta2
 kind: Kafka
 metadata:
   name: {{ .Values.environment }}-cluster
-  namespace: kafka
+  namespace: {{ .Values.namespace }}
 spec:
   kafka:
     version: "3.9.0"
@@ -51,7 +51,7 @@ spec:
         {{- end }}
     storage:
       type: persistent-claim
-      class: kafka-hostpath
+      class: hostpath
       deleteClaim: false
       size: {{ .Values.kafka.storage.sizeKafka }}
     {{- with .Values.kafka.config }}
@@ -69,7 +69,7 @@ spec:
 {{- end }}
     storage:
       type: persistent-claim
-      class: zk-hostpath
+      class: hostpath
       deleteClaim: false
       size: {{ .Values.kafka.storage.sizeZookeeper }}
     

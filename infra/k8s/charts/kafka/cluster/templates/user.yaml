@@ -4,6 +4,7 @@ metadata:
   name: kafka-user
   labels:
     strimzi.io/cluster: {{ .Values.environment }}-cluster
+  namespace: {{ .Values.namespace }}
 spec:
   authentication:
     type: scram-sha-512

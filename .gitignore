@@ -44,3 +44,4 @@ bld/
 HiddenREADME.md
 **/values.secrets.yaml
 *.env
+.devtests/**
