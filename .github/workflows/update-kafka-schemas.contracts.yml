@@ -16,7 +16,6 @@ on:
       - '.github/workflows/actions/run-generator/action.yml'
       - '.github/workflows/actions/download-secrets/action.yml'
       - '.github/workflows/actions/run-generator/schema-gen-job-params.json'
-      - '.github/scripts/update-kafka-schema.ps1'
 
 
 jobs:
