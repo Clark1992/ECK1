@@ -17,7 +17,6 @@ on:
       - '.github/workflows/actions/download-secrets/action.yml'
       - '.github/workflows/actions/run-generator/schema-gen-job-params.json'
 
-
 jobs:
   generate-schemas:
     if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
