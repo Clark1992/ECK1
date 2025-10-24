@@ -1,3 +1,6 @@
+. $PSScriptRoot/Wait.ps1
+. $PSScriptRoot/Ensure.ps1
+
 function Test-PortInUse {
     param([int]$port)
     try {
@@ -72,71 +75,6 @@ function Build-DockerImage {
         Write-Error "Docker push failed"; 
         throw 
     }
-}
-
-function Ensure-Helm {
-    param (
-        [string]$helmVersion = "v3.12.0"
-    )
-
-    $helmZipName = "helm-$helmVersion-windows-amd64.zip"
-    $zipPath     = "$env:TEMP\$helmZipName"
-    $extractPath = "$env:TEMP\helm-$helmVersion"
-    $helmExe     = "$extractPath\windows-amd64\helm.exe"
-
-    if (-not (Get-Command helm -ErrorAction SilentlyContinue)) {
-        Write-Host "Helm not found in system. Using temporary path."
-
-        # Download the ZIP if it's not already downloaded
-        if (-not (Test-Path $zipPath)) {
-            Write-Host "Downloading Helm ZIP..."
-            $helmUrl = "https://get.helm.sh/$helmZipName"
-            Invoke-WebRequest -Uri $helmUrl -OutFile $zipPath
-        } else {
-            Write-Host "Helm ZIP already downloaded: $zipPath"
-        }
-
-        # Extract the ZIP if it's not already extracted
-        if (-not (Test-Path $helmExe)) {
-            Write-Host "Extracting Helm..."
-            Expand-Archive -Path $zipPath -DestinationPath $extractPath -Force
-        } else {
-            Write-Host "Helm already extracted: $helmExe"
-        }
-
-        # Temporarily add Helm to the PATH for the current session
-        $env:PATH = "$extractPath\windows-amd64;" + $env:PATH
-        Write-Host "Helm added to temporary PATH: $helmExe"
-    } else {
-        Write-Host "Helm found in system: $(Get-Command helm)"
-    }
-}
-
-function Ensure-Kubectl {
-    $kubectlExists = Get-Command kubectl -ErrorAction SilentlyContinue
-
-    if ($kubectlExists) {
-        Write-Host "✅ kubectl is already installed."
-        return
-    }
-
-    Write-Host "⚠ kubectl not found. Installing to temp folder..."
-
-    $installDir = Join-Path $env:TEMP "kubectl_install"
-    if (-not (Test-Path $installDir)) {
-        New-Item -ItemType Directory -Path $installDir | Out-Null
-    }
-
-    $version = (Invoke-RestMethod -Uri "https://storage.googleapis.com/kubernetes-release/release/stable.txt").Trim()
-    $url = "https://dl.k8s.io/release/$version/bin/windows/amd64/kubectl.exe"
-    $kubectlPath = Join-Path $installDir "kubectl.exe"
-
-    Write-Host "Downloading kubectl $version..."
-    Invoke-WebRequest -Uri $url -OutFile $kubectlPath
-
-    $env:PATH = "$installDir;$env:PATH"
-
-    Write-Host "✅ kubectl installed to temporary folder: $kubectlPath"
 }
 
 function Setup-GlobalNuget {
@@ -234,32 +172,38 @@ function Get-YamlValue {
     return $current
 }
 
-function Wait-ForCommand {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Command,
-        [int]$TimeoutSeconds = 60,
-        [int]$IntervalSeconds = 2
+function Clean-Secret {
+    param (
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [object] $Secret
     )
 
-    $elapsed = 0
-
-    while ($true) {
-        try {
-            $output = Invoke-Expression $Command
-
-            if ($output -and $LASTEXITCODE -eq 0) {
-                return $output
-            }
-        }
-        catch {
-        }
-
-        if ($elapsed -ge $TimeoutSeconds) {
-            throw "Timeout: $TimeoutSeconds seconds.`nCommand: $Command"
-        }
-
-        Start-Sleep -Seconds $IntervalSeconds
-        $elapsed += $IntervalSeconds
+    if ($Secret -is [System.Array]) {
+        $jsonString = $Secret -join "`n"
     }
+    elseif ($Secret -is [string]) {
+        $jsonString = $Secret
+    }
+
+    try {
+        $secretObject = $jsonString | ConvertFrom-Json -ErrorAction Stop
+    } catch {
+        throw "❌ Failed to parse JSON secret: $($_.Exception.Message)"
+    }
+
+    $propsToRemove = @(
+        'ownerReferences',
+        'namespace',
+        'resourceVersion',
+        'uid',
+        'creationTimestamp'
+    )
+
+    foreach ($prop in $propsToRemove) {
+        if ($secretObject.metadata.PSObject.Properties.Name -contains $prop) {
+            $secretObject.metadata.PSObject.Properties.Remove($prop)
+        }
+    }
+
+    return ($secretObject | ConvertTo-Yaml)
 }

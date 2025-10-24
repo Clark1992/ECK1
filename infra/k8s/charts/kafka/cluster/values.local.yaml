@@ -1,4 +1,5 @@
 environment: local
+k8sHost: localhost
 kafka:
   storage:
     sizeKafka: 10Gi

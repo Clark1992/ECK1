@@ -10,11 +10,12 @@ Write-Host "🔍 Scanning for .csproj files under $Root..." -ForegroundColor Cya
 $userSecretsRoot = Join-Path $env:APPDATA "Microsoft\UserSecrets"
 
 $ingressName = "apicurio-registry-local-dns"
-$ingressNamespace = "apicurio"
+# $ingressNamespace = "apicurio"
+$ingressNamespace = $env:APICURIO_NS
 
 # Wait for ingress to create
 $cmd = "kubectl get ingress $ingressName -n $ingressNamespace --ignore-not-found"
-$output = Wait-ForCommand -Command $cmd -TimeoutSeconds 90
+$output = WaitFor-Command -Command $cmd -MaxAttempts 30
 
 $ingressData = kubectl get ingress $ingressName -n $ingressNamespace -o json | ConvertFrom-Json
 

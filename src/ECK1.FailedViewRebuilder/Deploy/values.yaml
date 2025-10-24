@@ -8,7 +8,7 @@ image:
 service:
   type: NodePort
   port: 80
-  nodePort: 30080
+  nodePort: 30100
 
 env:
   ASPNETCORE_ENVIRONMENT: Development

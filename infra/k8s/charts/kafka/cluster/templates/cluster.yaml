@@ -2,7 +2,6 @@ apiVersion: kafka.strimzi.io/v1beta2
 kind: Kafka
 metadata:
   name: {{ .Values.environment }}-cluster
-  namespace: {{ .Values.namespace }}
 spec:
   kafka:
     version: "3.9.0"

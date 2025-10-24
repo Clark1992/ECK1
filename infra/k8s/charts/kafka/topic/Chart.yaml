@@ -1,0 +1,4 @@
+apiVersion: v2
+name: kafka-topics
+description: Deploys Kafka topics custom resource to cluster (Strimzi)
+version: 0.1.0

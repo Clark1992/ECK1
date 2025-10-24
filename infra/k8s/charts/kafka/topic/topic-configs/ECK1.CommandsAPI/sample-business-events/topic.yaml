@@ -1,0 +1,6 @@
+name: sample-business-events
+partitions: 2
+replicationFactor: 1
+config:
+  cleanup.policy: delete
+  retention.ms: "604800000"

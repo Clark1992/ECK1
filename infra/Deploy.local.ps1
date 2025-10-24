@@ -1,10 +1,11 @@
-# $ErrorActionPreference = "Stop"
-# try {
-# . ${PSScriptRoot}\Deploy.ps1 -Environment "local"
+$ErrorActionPreference = "Stop"
+try {
 
-# & ${PSScriptRoot}\Local.SetupSecrets.ps1
+    . ${PSScriptRoot}\Deploy.ps1 -Environment "local"
 
-# } catch {
-#     Write-Error "Error: $_"
-#     throw
-# }
+    & ${PSScriptRoot}\Local.SetupSecrets.ps1
+
+} catch {
+    Write-Error "Error: $_"
+    throw
+}

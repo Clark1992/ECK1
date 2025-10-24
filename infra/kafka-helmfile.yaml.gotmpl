@@ -1,0 +1,78 @@
+environments:
+  local: {}
+
+repositories:
+  - name: strimzi
+    url: https://strimzi.io/charts
+
+---
+
+{{- $default := (readFile "./kafka-values.default.yaml" | fromYaml) }}
+
+releases:
+  - name: strimzi
+    namespace: {{ $default.namespace }}
+    chart: strimzi/strimzi-kafka-operator
+    version: {{ $default.operatorVersion }}
+    
+  - name: kafka
+    needs:
+      - strimzi
+    namespace: {{ $default.namespace }}
+    chart: k8s/charts/kafka/cluster
+    values:
+      - k8s/charts/kafka/cluster/values.{{ .Environment.Name }}.yaml
+      {{- if isFile "k8s/charts/kafka/cluster/values.secrets.yaml" }}
+      - k8s/charts/kafka/cluster/values.secrets.yaml
+      {{- end }}
+      - kafkaUserSecretName: {{ $default.kafkaUserSecretName }}
+      - namespace: {{ $default.namespace }}
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "powershell"
+        args:
+          - "-Command"
+          - |
+            Get-Content "../.github/scripts/Wait.ps1" -Raw | Invoke-Expression
+
+            $secretName = "{{ $default.kafkaUserSecretName }}"
+            $Namespace = "{{ $default.namespace }}"
+
+            try {
+              $cmd = "kubectl get secret $secretName -n $Namespace --ignore-not-found"
+              WaitFor-Command -Command $cmd -MaxAttempts 90
+              Write-Host "✅ === Kafka secret ready! ==="
+            } catch {
+              Write-Host $_
+              Write-Host "❌ Kafka secret not created!"
+              throw
+            }
+
+  - name: kafka-topics
+    needs:
+      - strimzi
+    namespace: {{ $default.namespace }}
+    chart: k8s/charts/kafka/topic
+    values:
+      - environment: {{ .Environment.Name }}
+      {{- $topics := list }}
+      {{- $base := "k8s/charts/kafka/topic/topic-configs" }}
+      {{- range $serviceDir := readDirEntries $base }}
+        {{- $servicePath := printf "%s/%s" $base $serviceDir.Name }}
+        {{- range $subDir := readDirEntries $servicePath }}
+          {{- $topicPath := printf "%s/%s/topic.yaml" $servicePath $subDir.Name }}
+          {{- $topic := readFile $topicPath | fromYaml }}
+          {{- $topics = append $topics $topic }}
+        {{- end }}
+      {{- end }}
+      - kafkaTopics: 
+      {{- toYaml $topics | nindent 8 }}
+
+      
+      
+
+          
+
+
+

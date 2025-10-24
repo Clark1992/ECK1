@@ -1,0 +1,94 @@
+environments:
+  local: {}
+
+repositories:
+  - name: ingress-nginx
+    url: https://kubernetes.github.io/ingress-nginx
+  - name: kafka-ui 
+    url: https://provectus.github.io/kafka-ui-charts
+
+---
+
+{{- $default := (readFile "./values.default.yaml" | fromYaml) }}
+
+releases:
+  - name: ingress-nginx
+    namespace: {{ $default.ingress.namespace }}
+    chart: ingress-nginx/ingress-nginx
+    version: {{ $default.ingress.ingressChartVersion }}
+    values:
+      - k8s/charts/ingress-nginx/values.{{ .Environment.Name }}.yaml
+    set:
+      - name: controller.service.nodePorts.http
+        value: {{ $default.ingress.ingressHttpPort }}
+      - name: controller.service.nodePorts.https
+        value: {{ $default.ingress.ingressHttpsPort }}
+
+  - name: apicurio
+    needs:
+      - {{ $default.ingress.namespace }}/ingress-nginx
+    namespace: {{ requiredEnv "APICURIO_NS" }}
+    chart: k8s/charts/kafka/schema-registry/apicurio
+    values:
+      - /k8s/charts/kafka/schema-registry/apicurio/values.{{ .Environment.Name }}.yaml
+    set:
+    - name: kafka.bootstrapServers
+      value: {{ requiredEnv "KAFKA_TLS_BOOTSTRAP_WITH_NAMESPACE" }}
+    - name: kafka.clusterCaSecret
+      value: {{ requiredEnv "KAFKA_CLUSTER" }}-cluster-ca-cert
+    hooks:
+      - name: "apicurio basic auth"
+        events: ["postsync"]
+        showlogs: true
+        command: "pwsh"
+        args:
+          - "-NoProfile"
+          - "-ExecutionPolicy"
+          - "Bypass"
+          - "-File"
+          - "hooks/helmfile.posthook.apicurio.ps1"
+          - "-KafkaNamespace"
+          - '{{ requiredEnv "KAFKA_NS" }}'
+          - "-Namespace"
+          - '{{ requiredEnv "APICURIO_NS" }}'
+          - "-KafkaClusterName"
+          - '{{ .Environment.Name }}-cluster'
+          - "-KafkaUserSecretName"
+          - '{{ requiredEnv "KAFKA_USERNAME" }}'
+          - "-Password"
+          - '{{ requiredEnv "KAFKA_PASSWORD" }}'
+
+  - name: kafka-ui
+    needs:
+      - {{ $default.ingress.namespace }}/ingress-nginx
+    namespace: {{ requiredEnv "KAFKA_NS" }}
+    chart: kafka-ui/kafka-ui
+    version: {{ $default.kafkaUi.version }}
+    values:
+      - /k8s/charts/kafka/ui/values.{{ .Environment.Name }}.yaml
+    set:
+      - name: yamlApplicationConfig.kafka.clusters[0].name
+        value: {{ .Environment.Name }}
+      - name: yamlApplicationConfig.kafka.clusters[0].bootstrapServers
+        value: {{ requiredEnv "KAFKA_BOOTSTRAP_WITH_NAMESPACE" }}
+      - name: yamlApplicationConfig.kafka.clusters[0].properties.security.protocol
+        value: SASL_PLAINTEXT
+      - name: yamlApplicationConfig.kafka.clusters[0].properties.sasl.mechanism
+        value: SCRAM-SHA-512
+      - name: yamlApplicationConfig.kafka.clusters[0].properties.sasl.jaas.config
+        value: '{{ requiredEnv "KAFKA_JAAS_CONFIG" }}'
+
+  - name: secrets
+    namespace: default
+    chart: k8s/charts/secrets
+    set:
+      - name: secretName
+        value: kafka-client-secret
+      - name: kafkaBootstrapServers
+        value: {{ requiredEnv "KAFKA_BOOTSTRAP_WITH_NAMESPACE" }}
+      - name: kafkaSchemaRegistryUrl
+        value: {{ requiredEnv "SCHEMAREGISTRYURL_INTERNAL" }}
+      - name: kafkaUser
+        value: {{ requiredEnv "KAFKA_USERNAME" }}
+      - name: kafkaSecret
+        value: {{ requiredEnv "KAFKA_PASSWORD" }}
