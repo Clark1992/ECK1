@@ -1,4 +1,4 @@
-name: Upload Schemas
+name: Generate Kafka Schemas
 
 permissions:
   contents: write
