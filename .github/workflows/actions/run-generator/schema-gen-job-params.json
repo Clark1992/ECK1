@@ -6,5 +6,13 @@
     "format": "json",
     "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/sample-business-events",
     "topic": "sample-business-events"
+  },
+  {
+    "assemblyPath": "__ASSEMBLY_PATH__",
+    "typeName": "ECK1.Contracts.Kafka.BusinessEvents.Sample.SampleEventFailure",
+    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.ViewProjector/sample-business-events.dlq",
+    "format": "json",
+    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.ViewProjector/sample-business-events.dlq",
+    "topic": "sample-business-events.dlq"
   }
 ]
