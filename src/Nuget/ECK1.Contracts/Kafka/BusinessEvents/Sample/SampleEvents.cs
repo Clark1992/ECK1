@@ -61,5 +61,3 @@ public class SampleEventFailure
 
     public string StackTrace { get; set; }
 }
-
-public record SampleEventRebuildRequest(Guid SampleId);
