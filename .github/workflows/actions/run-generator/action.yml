@@ -22,7 +22,7 @@ runs:
     - name: Prepare schema-gen-job-params.json
       shell: pwsh
       run: |
-        mkdir "/tmp/evolve-schema" -Force
+        New-Item -ItemType Directory -Path "/tmp/evolve-schema" -Force | Out-Null
 
         $content = Get-Content "${{ github.action_path }}/schema-gen-job-params.json" -Raw
         $content = $content -replace "__ASSEMBLY_PATH__", "${{ inputs.assembly-path }}"
