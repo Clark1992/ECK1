@@ -34,7 +34,7 @@ releases:
         args:
           - "-Command"
           - |
-            Get-Content "../.github/scripts/Wait.ps1" -Raw | Invoke-Expression
+            Get-Content "../.github/scripts/wait.ps1" -Raw | Invoke-Expression
 
             $secretName = "{{ $default.kafkaUserSecretName }}"
             $Namespace = "{{ $default.namespace }}"

@@ -1,5 +1,5 @@
-. "src\_SolutionItems\Deploy\Scripts\Common.ps1"
-. "src\_SolutionItems\Deploy\Scripts\RunDbUpMigrations.ps1"
+. ".github\scripts\common.ps1"
+. ".github\scripts\run-dbup-migrations.ps1"
 
 $baseDir = "src/ECK1.CommandsAPI"
 $dockerfilePath = "$baseDir/Dockerfile"

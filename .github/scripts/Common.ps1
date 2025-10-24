@@ -1,5 +1,5 @@
-. $PSScriptRoot/Wait.ps1
-. $PSScriptRoot/Ensure.ps1
+. $PSScriptRoot/wait.ps1
+. $PSScriptRoot/ensure.ps1
 
 function Test-PortInUse {
     param([int]$port)

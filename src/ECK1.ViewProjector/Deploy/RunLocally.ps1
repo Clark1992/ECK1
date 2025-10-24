@@ -1,4 +1,4 @@
-. "src\_SolutionItems\Deploy\Scripts\Common.ps1"
+. ".github\scripts\common.ps1"
 
 $baseDir = "src/ECK1.ViewProjector"
 $dockerfilePath = "$baseDir/Dockerfile"

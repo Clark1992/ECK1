@@ -2,7 +2,7 @@ param(
     [string]$Environment = "local"
 )
 
-. .github\scripts\Common.ps1
+. .github\scripts\common.ps1
 
 $ErrorActionPreference = "Stop"
 

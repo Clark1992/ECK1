@@ -8,8 +8,8 @@ param(
 
 Write-Host "Copying secret from $KafkaNamespace to $Namespace namespace"
 
-. "../.github/scripts/Common.ps1"
-. "../.github/scripts/Wait.ps1"
+. "../.github/scripts/common.ps1"
+. "../.github/scripts/wait.ps1"
 
 if (-not $KafkaUserSecretName -or -not $Password) {
     Write-Host "❌ KAFKA_USERNAME / KAFKA_PASSWORD NOT SET"
