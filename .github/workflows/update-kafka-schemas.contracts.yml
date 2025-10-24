@@ -5,6 +5,7 @@ permissions:
   packages: read
 
 on:
+  workflow_dispatch: {}
   workflow_run:
     workflows: ["Publish ECK1.Contracts"] 
     types:
