@@ -287,6 +287,60 @@
           ]
         }
       }
+    },
+    "SampleRebuiltEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "SampleId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "OccurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "Name": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Description": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Address": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/SampleAddress"
+            }
+          ]
+        },
+        "Attachments": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/SampleAttachment"
+          }
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "SampleRebuiltEvent"
+          ]
+        }
+      }
     }
   },
   "oneOf": [
@@ -310,6 +364,9 @@
     },
     {
       "$ref": "#/definitions/SampleAttachmentUpdatedEvent"
+    },
+    {
+      "$ref": "#/definitions/SampleRebuiltEvent"
     }
   ]
 }

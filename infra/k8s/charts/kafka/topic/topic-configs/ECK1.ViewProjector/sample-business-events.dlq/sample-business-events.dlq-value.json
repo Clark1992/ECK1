@@ -1,0 +1,34 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "SampleEventFailure",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "SampleId": {
+      "type": "string",
+      "format": "guid"
+    },
+    "FailedEventType": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "FailureOccurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ErrorMessage": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "StackTrace": {
+      "type": [
+        "null",
+        "string"
+      ]
+    }
+  }
+}
