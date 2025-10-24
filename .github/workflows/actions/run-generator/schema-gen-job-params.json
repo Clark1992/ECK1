@@ -2,17 +2,9 @@
   {
     "assemblyPath": "__ASSEMBLY_PATH__",
     "typeName": "ECK1.Contracts.Kafka.BusinessEvents.Sample.ISampleEvent",
-    "currentLatestSchemaPath": "__SCHEMA_TO_COMPARE_PATH__/BusinessEvents/Sample",
+    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/sample-business-events",
     "format": "json",
-    "outputPath": "__SOLUTION_DIR__/__SCHEMA_ROOT__/BusinessEvents/Sample",
+    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/sample-business-events",
     "topic": "sample-business-events"
-  },
-  {
-    "assemblyPath": "__ASSEMBLY_PATH__",
-    "typeName": "ECK1.Contracts.Kafka.BusinessEvents.Sample.SampleEventFailure",
-    "currentLatestSchemaPath": "__SCHEMA_TO_COMPARE_PATH__/BusinessEvents/SampleEventFailure",
-    "format": "json",
-    "outputPath": "__SOLUTION_DIR__/__SCHEMA_ROOT__/BusinessEvents/SampleEventFailure",
-    "topic": "sample-business-events.dlq"
   }
 ]

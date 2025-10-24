@@ -16,7 +16,6 @@ on:
       - '.github/workflows/actions/run-generator/action.yml'
       - '.github/workflows/actions/download-secrets/action.yml'
       - '.github/workflows/actions/run-generator/schema-gen-job-params.json'
-      - '.github/scripts/update-sln.ps1'
       - '.github/scripts/update-kafka-schema.ps1'
 
 
@@ -26,9 +25,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      SCHEMA_ROOT: _SolutionItems/SchemaRegistry
       SOLUTION_DIR: src
-      SCHEMA_BACKUP_PATH: /tmp/evolve-schema/schema-backup
 
     steps:
       - name: Checkout repo
@@ -100,21 +97,12 @@ jobs:
 
           echo "ASSEMBLY_PATH=$DLL_PATH" >> $GITHUB_ENV
 
-      - name: Move current schemas
-        run: |
-          mkdir -p ${{ env.SCHEMA_BACKUP_PATH }}
-          if [ -d "${{ env.SOLUTION_DIR }}/${{ env.SCHEMA_ROOT }}" ]; then
-            mv ${{ env.SOLUTION_DIR }}/${{ env.SCHEMA_ROOT }}/* ${{ env.SCHEMA_BACKUP_PATH }}/
-          fi
-
       - name: Run generator
         uses: ./.github/workflows/actions/run-generator
         with:
           assembly-path: ${{ env.ASSEMBLY_PATH }}
           solution-dir: ${{ env.SOLUTION_DIR }}
           solution-file: ECK1.sln
-          schema-root: ${{ env.SCHEMA_ROOT }}
-          schema-backup-path: ${{ env.SCHEMA_BACKUP_PATH }}
 
       - name: Commit changes
         run: |
@@ -125,8 +113,3 @@ jobs:
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Run schema update
-        shell: pwsh
-        run: |
-          ./.github/scripts/update-kafka-schema.ps1 -SchemaDir "${{ env.SOLUTION_DIR }}/${{ env.SCHEMA_ROOT }}"
