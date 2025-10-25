@@ -6,6 +6,7 @@ using ECK1.ViewProjector.Notifications;
 using ECK1.ViewProjector.Views;
 using MediatR;
 using MongoDB.Driver;
+using System.Threading;
 
 namespace ECK1.ViewProjector.Handlers;
 
@@ -51,6 +52,7 @@ public class SampleEventHandlers(
 
     public async Task<SampleView> Handle(SampleDescriptionChangedEvent @event, SampleView state, CancellationToken cancellationToken)
     {
+        throw new Exception("Test exception");
         await db.Samples.UpdateOneAsync(
             Builders<SampleView>.Filter.Eq(s => s.SampleId, @event.SampleId),
             Builders<SampleView>.Update.Set(s => s.Description, @event.NewDescription),
@@ -58,8 +60,6 @@ public class SampleEventHandlers(
             cancellationToken);
 
         state.Description = @event.NewDescription;
-
-        throw new Exception("Test exception");
 
         return state;
     }
@@ -130,10 +130,11 @@ public class SampleEventHandlers(
         return state;
     }
 
-    public async Task<SampleView> Handle(SampleRebuiltEvent @event, SampleView state, CancellationToken cancellationToken)
+    public async Task<SampleView> Handle(SampleRebuiltEvent @event, SampleView _, CancellationToken cancellationToken)
     {
         var existing = await db.Samples.Find(s => s.SampleId == @event.SampleId).FirstOrDefaultAsync(cancellationToken);
         var view = mapper.Map<SampleView>(@event);
+        view.Id = existing.Id;
 
         if (existing is null)
         {
@@ -158,7 +159,19 @@ public class SampleEventHandlers(
     {
         try
         {
-            return await Handle(data.Event, data.State, ct);
+            var state = data.State switch
+            {
+                not null => data.State,
+                null when data.Event is SampleCreatedEvent => null,
+                _ => await GetState(data.Event.SampleId, ct)
+            };
+
+            if (state is null && data.Event is not SampleCreatedEvent)
+            {
+                throw new InvalidOperationException($"Can't retrieve state for {data.Event.SampleId}");
+            }
+            
+            return await Handle(data.Event, state, ct);
         }
         catch (Exception ex)
         {
@@ -173,4 +186,6 @@ public class SampleEventHandlers(
         }
     }
 
+    private Task<SampleView> GetState(Guid sampleId, CancellationToken ct) => 
+        db.Samples.Find(s => s.SampleId == sampleId).FirstOrDefaultAsync(ct);
 }

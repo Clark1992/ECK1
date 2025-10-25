@@ -6,7 +6,7 @@ $imageName = "queries-api"
 $imageTag = "dev"
 $imageNameWithTag = "${imageName}:${imageTag}"
 $chartPath = "."
-$releaseName = "queries-api-release"
+$releaseName = "$imageName-release"
 $namespace = "default"
 
 # 1. Ensure local registry

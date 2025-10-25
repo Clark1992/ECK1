@@ -10,7 +10,10 @@ public class SampleMapping: Profile
     {
         this.CreateMap<SampleAddress, SampleAddressView>(MemberList.Destination);
         this.CreateMap<SampleAttachment, SampleAttachmentView>(MemberList.Destination);
-        this.CreateMap<SampleCreatedEvent, SampleView>(MemberList.Destination);
-        this.CreateMap<SampleRebuiltEvent, SampleView>(MemberList.Destination);
+        this.CreateMap<SampleCreatedEvent, SampleView>(MemberList.Destination)
+            .ForMember(s => s.Id, o => o.Ignore())
+            .ForMember(s => s.Attachments, o => o.Ignore());
+        this.CreateMap<SampleRebuiltEvent, SampleView>(MemberList.Destination)
+            .ForMember(s => s.Id, o => o.Ignore());
     }
 }

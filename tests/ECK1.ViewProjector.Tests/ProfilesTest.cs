@@ -1,9 +1,8 @@
 using AutoFixture;
 using AutoMapper;
-using ECK1.CommandsAPI.Mapping;
-using ECK1.CommonUtils.Mapping;
+using ECK1.ViewProjector.Mapping;
 
-namespace ECK1.CommandsAPI.Tests;
+namespace ECK1.ViewProjector.Tests;
 
 public class ProfilesTest
 {

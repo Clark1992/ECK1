@@ -2,7 +2,7 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
 
-namespace ECK1.CommonUtils.Doppler.ConfigurationExtensions;
+namespace ECK1.CommonUtils.Secrets.Doppler;
 
 public static class DopplerConfigurationExtensions
 {

@@ -1,10 +1,15 @@
-﻿using ECK1.CommonUtils.Doppler.ConfigurationExtensions;
+﻿using ECK1.CommonUtils.AspNet;
+using ECK1.CommonUtils.JobQueue;
+using ECK1.CommonUtils.Secrets.Doppler;
+using ECK1.CommonUtils.Secrets.K8s;
 using ECK1.FailedViewRebuilder.Data;
 using ECK1.FailedViewRebuilder.Kafka;
 using ECK1.FailedViewRebuilder.Services;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddK8sSecrets();
 
 #if DEBUG
 builder.Configuration.AddUserSecrets<Program>();
@@ -15,7 +20,8 @@ builder.Configuration.AddDopplerSecrets();
 var configuration = builder.Configuration;
 var environment = builder.Environment;
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options => 
+    options.Conventions.Add(new RouteTokenTransformerConvention(new SlugifyParameterTransformer())));
 
 builder.Services.AddDbContext<FailuresDbContext>(options =>
     options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
@@ -37,8 +43,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
-var app = builder.Build();
+builder.Services.AddQueueProcessing(c => c.AddRunner(typeof(IJobRunner<,>), typeof(JobRunner<,>)));
 
+var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {

@@ -12,4 +12,4 @@ service:
 
 env:
   ASPNETCORE_ENVIRONMENT: Development
-  ConnectionStrings__DefaultConnection: "Server=...;Database=CommandsDb;User=sa;Password=12345;"
+  ConnectionStrings__DefaultConnection: "Server=...;Database=FailedViewRebuilderDb;User=sa;Password=12345;"

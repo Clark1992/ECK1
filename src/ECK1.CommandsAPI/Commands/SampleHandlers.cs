@@ -2,8 +2,6 @@
 using ECK1.CommandsAPI.Data;
 using ECK1.CommandsAPI.Domain.Samples;
 using MediatR;
-using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
 
 namespace ECK1.CommandsAPI.Commands;
 
@@ -99,9 +97,11 @@ public class SampleCommandHandlers :
     {
         var sample = await repo.LoadAsync(command.Id, ct);
 
+        if (sample is null) return new NotFound();
+
         await mediator.Publish(new EventNotification<ISampleEvent>(mapper.Map<SampleRebuiltEvent>(sample)), ct);
 
-        return new Success(sample.Id, new List<Guid> { Guid.Empty });
+        return new Success(sample.Id, []);
     }
 
     private async Task<ICommandResult> SaveAndNotify(Sample sample, CancellationToken ct)

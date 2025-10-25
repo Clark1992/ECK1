@@ -2,11 +2,14 @@
 using ECK1.CommandsAPI.Data;
 using ECK1.CommandsAPI.Kafka;
 using ECK1.CommandsAPI.Startup;
-using ECK1.CommonUtils.Doppler.ConfigurationExtensions;
+using ECK1.CommonUtils.AspNet;
+using ECK1.CommonUtils.Secrets.Doppler;
+using ECK1.CommonUtils.Secrets.K8s;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Configuration.AddKeyPerFile("/etc/secrets", true);
+builder.Configuration.AddK8sSecrets();
 
 #if DEBUG
 builder.Configuration.AddUserSecrets<Program>();
@@ -17,7 +20,8 @@ builder.Configuration.AddDopplerSecrets();
 var configuration = builder.Configuration;
 var environment = builder.Environment;
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+    options.Conventions.Add(new RouteTokenTransformerConvention(new SlugifyParameterTransformer())));
 
 builder.Services.AddDbContext<CommandsDbContext>(options =>
     options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));

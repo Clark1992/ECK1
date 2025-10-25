@@ -23,8 +23,19 @@ public static class HandlerRegistrar
         Func<MethodInfo, bool> methodFilter,
         Func<MethodInfo, Type, TDelegate> compileDelegate)
     {
-        var handlerTypes = Assembly.GetEntryAssembly()
-            .GetTypes()
+        var handlerTypes = AppDomain.CurrentDomain
+            .GetAssemblies()
+            .SelectMany(a =>
+            {
+                try
+                {
+                    return a.GetTypes();
+                }
+                catch (ReflectionTypeLoadException ex)
+                {
+                    return ex.Types.Where(t => t != null)!;
+                }
+            })
             .Where(t => typeof(THandler).IsAssignableFrom(t) && !t.IsAbstract);
 
         foreach (var type in handlerTypes)

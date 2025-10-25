@@ -1,6 +1,6 @@
 CREATE TABLE [dbo].[JobHistory]
 (
-    [Id] int NOT NULL,
+    [Id] int NOT NULL IDENTITY(1, 1),
     [Name] NVARCHAR(512) NOT NULL,
     [StartedAt] DATETIMEOFFSET NOT NULL,
     [FinishedAt] DATETIMEOFFSET NULL,

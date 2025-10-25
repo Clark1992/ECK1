@@ -26,6 +26,6 @@ spec:
               value: "{{ $value }}"
             {{- end }}
             - name: MongoDb__ConnectionString
-              value: "mongodb://{{ .Chart.Name }}-mongo:{{ .Values.mongo.port }}"
+              value: "{{ .Values.mongo.connectionString }}"
             - name: MongoDb__DatabaseName
               value: eck1-queries

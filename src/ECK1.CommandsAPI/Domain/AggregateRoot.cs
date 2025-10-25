@@ -8,7 +8,7 @@ namespace ECK1.CommandsAPI.Domain;
 [HandlerMethod(nameof(Apply))]
 public abstract class AggregateRoot<TEvent> : GenericHandler<TEvent>
 {
-    private readonly List<TEvent> _uncommittedEvents = new();
+    private readonly List<TEvent> _uncommittedEvents = [];
 
     public Guid Id { get; protected set; } = Guid.NewGuid();
     public int Version { get; protected set; } = 0;
@@ -36,10 +36,11 @@ public abstract class AggregateRoot<TEvent> : GenericHandler<TEvent>
 
     public void MarkEventsAsCommitted() => _uncommittedEvents.Clear();
 
-    public static TAggregate FromHistory<TAggregate>(IEnumerable<TEvent> history)
+    public static TAggregate FromHistory<TAggregate>(IEnumerable<TEvent> history, Guid id)
         where TAggregate : AggregateRoot<TEvent>
     {
         var aggregate = AggregateFactory<TAggregate, TEvent>.Create();
+        aggregate.Id = id;
         foreach (var e in history)
         {
             aggregate.Apply(e);

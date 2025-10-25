@@ -7,7 +7,7 @@ $imageName = "failed-view-rebuilder"
 $imageTag = "dev"
 $imageNameWithTag = "${imageName}:${imageTag}"
 $chartPath = "."
-$releaseName = "commands-api-release"
+$releaseName = "$imageName-release"
 $namespace = "default"
 
 # 1. Ensure local registry

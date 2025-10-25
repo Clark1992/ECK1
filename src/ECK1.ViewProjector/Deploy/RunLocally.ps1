@@ -6,7 +6,7 @@ $imageName = "view-projector"
 $imageTag = "dev"
 $imageNameWithTag = "${imageName}:${imageTag}"
 $chartPath = "."
-$releaseName = "view-projector-release"
+$releaseName = "$imageName-release"
 $namespace = "default"
 
 $mongoPort = 32017 # container port 27017 mapped to host port 32017

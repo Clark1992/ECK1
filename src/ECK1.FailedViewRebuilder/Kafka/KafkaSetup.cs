@@ -30,8 +30,6 @@ public static class ServiceCollectionExtensions
             SerializerType.JSON,
             c => c.WithAuth(kafkaSettings.User, kafkaSettings.Secret));
 
-        services.AddHostedService<KafkaTopicConsumerService>();
-
         services
             .AddKafkaRootProducer(kafkaSettings.BootstrapServers,
             c =>

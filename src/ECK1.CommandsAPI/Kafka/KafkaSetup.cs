@@ -1,6 +1,7 @@
 ﻿using Confluent.Kafka;
 using ECK1.CommandsAPI.Commands;
 using ECK1.Contracts.Kafka.BusinessEvents.Sample;
+using ECK1.Kafka;
 using ECK1.Kafka.Extensions;
 
 namespace ECK1.CommandsAPI.Kafka;
@@ -30,14 +31,13 @@ public static class KafkaSetup
 
         #region Rebuild view
 
-        services.AddScoped<SampleRebuildHandler>();
-
         services
             .ConfigSimpleTopicConsumer<Guid, SampleRebuildHandler>(
                 kafkaSettings.BootstrapServers,
                 kafkaSettings.SampleEventsRebuildRequestTopic,
                 kafkaSettings.GroupId,
-                Guid.Parse);
+                Guid.Parse,
+                c => c.WithAuth(kafkaSettings.User, kafkaSettings.Secret));
 
         #endregion
 

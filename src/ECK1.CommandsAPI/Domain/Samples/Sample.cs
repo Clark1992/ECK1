@@ -2,6 +2,7 @@
 
 public class Sample : AggregateRoot<ISampleEvent>
 {
+    public Guid SampleId => Id;
     public string Name { get; private set; } = default;
     public string Description { get; private set; } = default;
     public SampleAddress Address { get; private set; }
@@ -13,8 +14,8 @@ public class Sample : AggregateRoot<ISampleEvent>
 
     public static Sample Create(string name, string description, SampleAddress address = null)
     {
-        ArgumentNullException.ThrowIfNull(name);
-        ArgumentNullException.ThrowIfNull(description);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentException.ThrowIfNullOrEmpty(description);
 
         var sample = new Sample();
         sample.ApplyChange(new SampleCreatedEvent(sample.Id, name, description, address));
@@ -23,14 +24,14 @@ public class Sample : AggregateRoot<ISampleEvent>
 
     public void ChangeName(string name)
     {
-        ArgumentNullException.ThrowIfNull(name);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
         ApplyChange(new SampleNameChangedEvent(Id, name));
     }
 
     public void ChangeDescription(string description)
     {
-        ArgumentNullException.ThrowIfNull(description);
+        ArgumentException.ThrowIfNullOrEmpty(description);
 
         ApplyChange(new SampleDescriptionChangedEvent(Id, description));
     }

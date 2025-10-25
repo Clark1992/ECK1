@@ -15,7 +15,6 @@
   <ItemGroup>
     <PackageReference Include="Confluent.Kafka" />
     <PackageReference Include="Confluent.SchemaRegistry" />
-    <PackageReference Include="ECK1.Contracts" />
     <PackageReference Include="AutoMapper" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" />
     <PackageReference Include="MediatR" />
@@ -28,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Nuget\ECK1.CommonUtils\ECK1.CommonUtils.csproj" />
+    <ProjectReference Include="..\Nuget\ECK1.Contracts\ECK1.Contracts.csproj" />
     <ProjectReference Include="..\Nuget\ECK1.Kafka\ECK1.Kafka.csproj" />
   </ItemGroup>
 

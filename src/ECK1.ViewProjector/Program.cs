@@ -1,8 +1,11 @@
-﻿using ECK1.CommonUtils.Doppler.ConfigurationExtensions;
+﻿using ECK1.CommonUtils.AspNet;
+using ECK1.CommonUtils.Secrets.Doppler;
+using ECK1.CommonUtils.Secrets.K8s;
 using ECK1.Orleans.Extensions;
 using ECK1.ViewProjector.Data;
 using ECK1.ViewProjector.Kafka;
 using ECK1.ViewProjector.Startup;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
@@ -10,7 +13,7 @@ using MongoDB.Bson.Serialization.Serializers;
 
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Configuration.AddKeyPerFile("/etc/secrets", true);
+builder.Configuration.AddK8sSecrets();
 
 #if DEBUG
 builder.Configuration.AddUserSecrets<Program>();
@@ -23,7 +26,8 @@ var environment = builder.Environment;
 
 builder.Host.SetupOrleansHosting();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+    options.Conventions.Add(new RouteTokenTransformerConvention(new SlugifyParameterTransformer())));
 
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
@@ -33,6 +37,7 @@ var conventionPack = new ConventionPack {
 
 ConventionRegistry.Register("CamelCase", conventionPack, t => true);
 
+BsonDefaults.GuidRepresentationMode = GuidRepresentationMode.V3;
 BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 
 builder.Services.AddSingleton(sp =>

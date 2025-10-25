@@ -1,6 +1,7 @@
 ﻿using Confluent.Kafka;
 using Confluent.SchemaRegistry;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace ECK1.Kafka.Extensions;
@@ -36,18 +37,16 @@ public static class KafkaServiceCollectionExtensions
     {
 #if DEBUG
         config.SecurityProtocol = SecurityProtocol.SaslSsl;
+
+        config.AllowAutoCreateTopics = true;
+        config.SslEndpointIdentificationAlgorithm = SslEndpointIdentificationAlgorithm.None;
+        config.EnableSslCertificateVerification = false;
 #else
         config.SecurityProtocol = SecurityProtocol.SaslPlaintext;
 #endif
         config.SaslMechanism = SaslMechanism.ScramSha512;
         config.SaslUsername = user;
         config.SaslPassword = secret;
-
-#if DEBUG
-        config.AllowAutoCreateTopics = true;
-        config.SslEndpointIdentificationAlgorithm = SslEndpointIdentificationAlgorithm.None;
-        config.EnableSslCertificateVerification = false;
-#endif
 
         return config;
     }
@@ -172,8 +171,19 @@ public static class KafkaServiceCollectionExtensions
 
             return consumer;
         });
+        
+        AddListenerService(services);
 
         return services;
+    }
+
+    private static void AddListenerService(IServiceCollection services)
+    {
+        if (!services.Any(sd => sd.ServiceType == typeof(IHostedService) &&
+                                sd.ImplementationType == typeof(KafkaTopicConsumerService)))
+        {
+            services.AddHostedService<KafkaTopicConsumerService>();
+        }
     }
 
     public static IServiceCollection WithSchemaRegistry(this IServiceCollection services, string schemaRegistryUrl, Action<SchemaRegistryConfig> configAction)
@@ -196,9 +206,11 @@ public static class KafkaServiceCollectionExtensions
         string bootstrapServers,
         string topic,
         string groupId,
-        Func<string, TValue> parser)
-        where THandler: IKafkaMessageHandler<TValue>
+        Func<string, TValue> parser,
+        Action<ConsumerConfig> configAction = null)
+        where THandler: class, IKafkaMessageHandler<TValue>
     {
+        services.AddScoped<THandler>();
         services.AddSingleton<IKafkaTopicConsumer>(sp =>
         {
             var sr = sp.GetRequiredService<ISchemaRegistryClient>();
@@ -213,13 +225,16 @@ public static class KafkaServiceCollectionExtensions
                 AutoOffsetReset = AutoOffsetReset.Earliest,
             };
 
+            configAction?.Invoke(consumerConfig);
+
             KafkaSimpleTopicConsumer<TValue> consumer = new(consumerConfig, topic, parser, logger, scopeFactory);
 
-            var handler = sp.GetRequiredService<THandler>();
             consumer.WithHandler<THandler>();
 
             return consumer;
         });
+
+        AddListenerService(services);
 
         return services;
     }

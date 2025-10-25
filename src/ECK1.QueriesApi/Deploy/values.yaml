@@ -10,14 +10,8 @@ service:
   port: 80
   nodePort: 30180
 
-# If runMongo is true, helm will deploy a MongoDB statefulset/deployment inside the chart
-runMongo: false
-
 mongo:
-  image: mongo:6.0
-  port: 27017
-  persistence: false
-  # pvcSize: 1Gi
-
+  connectionString: mongodb://eck1-viewprojector-mongo:27017
+  
 env:
   ASPNETCORE_ENVIRONMENT: Development

@@ -1,4 +1,6 @@
-﻿using ECK1.QueriesApi.Data;
+﻿using ECK1.CommonUtils.AspNet;
+using ECK1.QueriesApi.Data;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
@@ -9,13 +11,15 @@ var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 var environment = builder.Environment;
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+    options.Conventions.Add(new RouteTokenTransformerConvention(new SlugifyParameterTransformer())));
 
 var conventionPack = new ConventionPack { 
     new CamelCaseElementNameConvention(), 
 };
 ConventionRegistry.Register("CamelCase", conventionPack, t => true);
 
+BsonDefaults.GuidRepresentationMode = GuidRepresentationMode.V3;
 BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 
 builder.Services.AddSingleton(sp =>

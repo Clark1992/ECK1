@@ -7,7 +7,7 @@ $imageName = "commands-api"
 $imageTag = "dev"
 $imageNameWithTag = "${imageName}:${imageTag}"
 $chartPath = "."
-$releaseName = "commands-api-release"
+$releaseName = "$imageName-release"
 $namespace = "default"
 
 # 1. Ensure local registry

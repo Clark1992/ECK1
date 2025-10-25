@@ -1,4 +1,5 @@
 using ECK1.FailedViewRebuilder.Data.Models;
+using ECK1.FailedViewRebuilder.Models;
 using ECK1.FailedViewRebuilder.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -6,7 +7,7 @@ using Microsoft.Extensions.Options;
 namespace ECK1.FailedViewRebuilder.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/jobs/[controller]")]
 public class RebuildFailedController(
     IRebuildRequestService<SampleEventFailure, Guid> sampleService,
     IOptionsSnapshot<KafkaSettings> config) : ControllerBase
@@ -18,25 +19,45 @@ public class RebuildFailedController(
     {
         var result = await sampleService.StartJob(
             config.Value.SampleEventsRebuildRequestTopic,
-            e => e.FailureOccurredAt,
-            true,
-            count, 
+            new QueryParams<SampleEventFailure, DateTimeOffset> 
+            { 
+                OrderBy = e => e.FailureOccurredAt,
+                IsAsc = true,
+                Count = count,
+            },
             e => e.SampleId);
 
-        return Accepted(result);
+        return Accepted((object)result);
     }
 
     [HttpDelete("samples")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     public async Task<IActionResult> StopRebuildSample()
     {
-        var result = await sampleService.StopJob(config.Value.SampleEventsRebuildRequestTopic);
+        var topic = config.Value.SampleEventsRebuildRequestTopic;
+        var result = await sampleService.StopJob(topic);
 
-        return Ok(result);
+        return Ok(result == 0 ? $"No {topic} job(s) in progress" : $"{topic}: stopped {result} job(s).");
     }
 
     [HttpGet("samples")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetRebuildSampleStatus()
+    {
+        var topic = config.Value.SampleEventsRebuildRequestTopic;
+        var result = await sampleService.GetStatus(topic);
+
+        return Ok($"{result} job(s) in progress");
+    }
+
+    [HttpGet("/api/failed/samples")]
     [ProducesResponseType(typeof(FailedViewsResponse<Guid>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetSampleOverview() => 
-        Ok(await sampleService.GetFailedViewsOverview(x => x.SampleId, x => x.FailureOccurredAt, true));
+        Ok(await sampleService.GetFailedViewsOverview(
+            x => x.SampleId, 
+            new QueryParams<SampleEventFailure, DateTimeOffset>
+            {
+                OrderBy = e => e.FailureOccurredAt,
+                IsAsc = true,
+            }));
 }

@@ -79,7 +79,7 @@ public class SampleRepo : ISampleRepo
             .ToListAsync(ct);
 
         var domainEvents = events.Select(e => e.ToDomainEvent()).ToList();
-        var latestSample = sample?.ReplayHistory<Sample>(domainEvents) ?? Sample.FromHistory<Sample>(domainEvents);
+        var latestSample = sample?.ReplayHistory<Sample>(domainEvents) ?? Sample.FromHistory<Sample>(domainEvents, sampleId);
 
         return latestSample;
     }

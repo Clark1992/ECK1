@@ -3,10 +3,11 @@ using Confluent.SchemaRegistry;
 using ECK1.Kafka;
 using ECK1.Kafka.Extensions;
 using ECK1.Orleans.Extensions;
-using Contract = ECK1.Contracts.Kafka.BusinessEvents;
 using ECK1.ViewProjector.Kafka.Orleans;
 using ECK1.ViewProjector.Views;
 using ECK1.ViewProjector.Events;
+
+using Contract = ECK1.Contracts.Kafka.BusinessEvents;
 
 namespace ECK1.ViewProjector.Kafka;
 
@@ -22,7 +23,7 @@ public static class KafkaSetup
             ISampleEvent,
             SampleEventKafkaMetadata,
             SampleView,
-            KafkaMessageHandler<ISampleEvent, SampleView>>(
+            KafkaGrainHandler<ISampleEvent, SampleView>>(
             ev => ev.SampleId.ToString())
             .AddDupChecker<SampleEventKafkaMetadata>()
             .AddMetadataUpdater<SampleEventKafkaMetadata>()
@@ -43,8 +44,6 @@ public static class KafkaSetup
             SubjectNameStrategy.Topic,
             SerializerType.JSON,
             c => c.WithAuth(kafkaSettings.User, kafkaSettings.Secret));
-
-        services.AddHostedService<KafkaTopicConsumerService>();
 
         #region Events Failure producer
 

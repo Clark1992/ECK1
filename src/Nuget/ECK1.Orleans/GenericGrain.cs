@@ -112,9 +112,6 @@ public abstract class StatefulGrain<TEntity, TMetadata, TState> :
 
     public virtual async Task Process(TEntity entity, CancellationToken ct)
     {
-        //if (state.State is null)
-        //    await state.ReadStateAsync();
-
         inMemoryState = await handler.Handle(entity, inMemoryState,ct);
 
         MetadataUpdater(entity, metadata.State);

@@ -18,25 +18,6 @@ public class SampleController : ControllerBase
         _mediator = mediator;
     }
 
-    //[HttpGet]
-    //public async Task<ActionResult<IEnumerable<SampleModel>>> GetSamples()
-    //{
-    //    var samples = await _sampleService.GetAllSamplesAsync();
-    //    return Ok(samples);
-    //}
-
-    //[HttpGet("{id}")]
-    //public async Task<ActionResult<SampleModel>> GetSample(int id)
-    //{
-    //    _logger.LogInformation($"Fetching sample with id {id}");
-    //    var sample = await _sampleService.GetSampleByIdAsync(id);
-    //    if (sample == null)
-    //    {
-    //        return NotFound();
-    //    }
-    //    return Ok(sample);
-    //}
-
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateSampleCommand command)
     {

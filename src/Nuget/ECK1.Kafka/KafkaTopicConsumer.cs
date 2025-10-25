@@ -60,13 +60,13 @@ public abstract class KafkaConsumerBase<TValue, TParsedValue> : IKafkaTopicConsu
         string topic,
         ILogger logger,
         IServiceScopeFactory scopeFactory,
-        Func<ConsumerBuilder<string, TValue>, ConsumerBuilder<string, TValue>> configBuilder = null)
+        Action<ConsumerBuilder<string, TValue>> configBuilder = null)
     {
         this.logger = logger;
         this.scopeFactory = scopeFactory;
 
         var builder = new ConsumerBuilder<string, TValue>(consumerConfig);
-        builder = configBuilder?.Invoke(builder);
+        configBuilder?.Invoke(builder);
         consumer = builder
             .SetErrorHandler((_, e) => logger.LogError("Kafka Error: {Error}", e))
             .Build();
@@ -141,7 +141,7 @@ public abstract class KafkaConsumerBase<TValue>(
     string topic,
     ILogger logger,
     IServiceScopeFactory scopeFactory,
-    Func<ConsumerBuilder<string, TValue>, ConsumerBuilder<string, TValue>> configBuilder = null)
+    Action<ConsumerBuilder<string, TValue>> configBuilder = null)
     : KafkaConsumerBase<TValue, TValue>(
         consumerConfig,
         topic,
@@ -176,7 +176,7 @@ public class KafkaJsonTopicConsumer<TValue>(
                 new("json.deserializer.subject.name.strategy", strategy.ToString())
             };
             var jsonDeserializer = new JsonDeserializer<TValue>(schemaRegistry, deserializerConfig).AsSyncOverAsync();
-            return builder.SetValueDeserializer(jsonDeserializer);
+            builder.SetValueDeserializer(jsonDeserializer);
         })
     where TValue : class
 { }

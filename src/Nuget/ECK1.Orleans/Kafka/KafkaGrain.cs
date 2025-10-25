@@ -30,6 +30,7 @@ public class KafkaGrain<TEntity, TMetadata, TState>(
 
         if (metadata.State.IsFaulted && !faultedStateReset.ShouldReset(e))
         {
+            logger.LogInformation("Shortcutting faulted: {input}", e);
             return;
         }
 
@@ -72,11 +73,11 @@ public class KafkaGrainRouter<TEntity, TMetadata, TState>(IClusterClient cluster
 {
     private Func<TEntity, string> keySelector;
 
-    public Task RouteToGrain(TEntity evt, CancellationToken ct)
+    public async Task RouteToGrain(TEntity evt, CancellationToken ct)
     {
         var grain = clusterClient.GetGrain<IStatefulGrain<TEntity, TMetadata, TState>>(keySelector(evt));
 
-        return grain.Process(evt, ct);
+        await grain.Process(evt, ct);
     }
 
     public void WithGrainKey(Func<TEntity, string> selector) => keySelector = selector;
