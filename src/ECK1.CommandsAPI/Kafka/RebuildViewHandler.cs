@@ -1,7 +1,8 @@
-﻿using ECK1.Kafka;
+﻿using ECK1.CommandsAPI.Commands;
+using ECK1.Kafka;
 using MediatR;
 
-namespace ECK1.CommandsAPI.Commands;
+namespace ECK1.CommandsAPI.Kafka;
 
 public interface ISampleRebuildHandler: IKafkaMessageHandler<Guid>;
 

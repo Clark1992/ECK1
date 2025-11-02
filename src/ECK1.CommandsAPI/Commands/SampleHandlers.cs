@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ECK1.CommandsAPI.Data;
 using ECK1.CommandsAPI.Domain.Samples;
+using ECK1.CommandsAPI.Kafka;
 using MediatR;
 
 namespace ECK1.CommandsAPI.Commands;

@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="AutoFixture.Xunit2" Version="4.18.1" />
+    <PackageVersion Include="AvroSourceGenerator" Version="0.3.0" />
     <PackageVersion Include="ECK1.Contracts" Version="0.1.11" />
     <PackageVersion Include="ECK1.CommonUtils" Version="0.1.9" />
     <PackageVersion Include="ECK1.Kafka" Version="0.1.7" />

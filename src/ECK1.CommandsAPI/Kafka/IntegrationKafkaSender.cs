@@ -5,7 +5,7 @@ using ECK1.Kafka;
 using MediatR;
 using EventContracts = ECK1.Contracts.Kafka.BusinessEvents.Sample;
 
-namespace ECK1.CommandsAPI.Commands;
+namespace ECK1.CommandsAPI.Kafka;
 
 public record EventNotification<TEvent>(TEvent Event) : INotification;
 

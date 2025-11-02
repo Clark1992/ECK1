@@ -1,4 +1,4 @@
-﻿using ECK1.CommandsAPI.Commands;
+﻿using ECK1.CommandsAPI.Kafka;
 using ECK1.CommonUtils.Mapping;
 using System.Reflection;
 using System.Runtime.CompilerServices;

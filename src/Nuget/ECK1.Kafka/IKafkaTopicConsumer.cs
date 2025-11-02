@@ -5,8 +5,13 @@ public interface IKafkaTopicConsumer
     Task StartConsumingAsync(CancellationToken ct);
 }
 
-internal interface IHandlerConfigurator<TValue>
+public interface IHandlerConfigurator<TValue>: IKafkaTopicConsumer
 {
-    IKafkaTopicConsumer WithHandler<THandler>() where THandler: IKafkaMessageHandler<TValue>;
-    IKafkaTopicConsumer WithHandler(Func<string, TValue, KafkaMessageId, CancellationToken, Task> handler);
+    IHandlerConfigurator<TValue> WithHandler<THandler>() where THandler: IKafkaMessageHandler<TValue>;
+    IHandlerConfigurator<TValue> WithHandler(Func<string, TValue, KafkaMessageId, CancellationToken, Task> handler);
+}
+
+public interface IParserConfigurator<TValue> : IKafkaTopicConsumer
+{
+    IParserConfigurator<TValue> WithParser(Func<string, TValue> parser);
 }

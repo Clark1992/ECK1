@@ -147,7 +147,6 @@ public static class KafkaServiceCollectionExtensions
         services.AddSingleton<IKafkaTopicConsumer>(sp =>
         {
             var sr = sp.GetRequiredService<ISchemaRegistryClient>();
-            var logger = sp.GetRequiredService<ILogger<KafkaJsonTopicConsumer<T>>>();
             var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
 
             var consumerConfig = new ConsumerConfig
@@ -160,10 +159,10 @@ public static class KafkaServiceCollectionExtensions
 
             configAction?.Invoke(consumerConfig);
 
-            var consumer = serializer switch
+            KafkaConsumerBase<T> consumer = serializer switch
             {
-                SerializerType.JSON => new KafkaJsonTopicConsumer<T>(consumerConfig, topic, sr, strategy, logger, scopeFactory),
-                //SerializerType.AVRO => new KafkaAvroTopicProducer<T>(root.Handle, topic, sr, strategy),
+                SerializerType.JSON => new KafkaJsonTopicConsumer<T>(consumerConfig, topic, sr, strategy, sp.GetRequiredService<ILogger<KafkaJsonTopicConsumer<T>>>(), scopeFactory),
+                SerializerType.AVRO => new KafkaAvroTopicConsumer<T>(consumerConfig, topic, sr, strategy, sp.GetRequiredService<ILogger<KafkaAvroTopicConsumer<T>>>(), scopeFactory),
                 _ => throw new InvalidOperationException("Unknown serializer format")
             };
 
@@ -206,7 +205,7 @@ public static class KafkaServiceCollectionExtensions
         string bootstrapServers,
         string topic,
         string groupId,
-        Func<string, TValue> parser,
+        Func<string, TValue> parser = null,
         Action<ConsumerConfig> configAction = null)
         where THandler: class, IKafkaMessageHandler<TValue>
     {
@@ -227,9 +226,10 @@ public static class KafkaServiceCollectionExtensions
 
             configAction?.Invoke(consumerConfig);
 
-            KafkaSimpleTopicConsumer<TValue> consumer = new(consumerConfig, topic, parser, logger, scopeFactory);
+            KafkaSimpleTopicConsumer<TValue> consumer = new(consumerConfig, topic, logger, scopeFactory);
 
             consumer.WithHandler<THandler>();
+            consumer.WithParser(parser);
 
             return consumer;
         });

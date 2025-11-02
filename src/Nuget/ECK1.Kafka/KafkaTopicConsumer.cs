@@ -14,142 +14,95 @@ public class KafkaMessageId(TopicPartitionOffset o)
     public long Offset { get; set; } = o.Offset;
 }
 
-public interface IKafkaMessageHandler<TValue>
-{
-    Task Handle(string key, TValue message, KafkaMessageId messageId, CancellationToken ct);
-}
-
-#region Handler resolvers
-
-public interface IKafkaHandlerResolver<TParsedValue>
-{
-    Func<string, TParsedValue, KafkaMessageId, CancellationToken, Task> Resolve(IServiceScope scope);
-}
-
-public class DelegateKafkaHandlerResolver<TParsedValue>(
-    Func<string, TParsedValue, KafkaMessageId, CancellationToken, Task> func)
-    : IKafkaHandlerResolver<TParsedValue>
-{
-    public Func<string, TParsedValue, KafkaMessageId, CancellationToken, Task> Resolve(IServiceScope _) => func;
-}
-
-public class TypeKafkaHandlerResolver<THandler, TParsedValue>()
-    : IKafkaHandlerResolver<TParsedValue>
-    where THandler : IKafkaMessageHandler<TParsedValue>
-{
-    public Func<string, TParsedValue, KafkaMessageId, CancellationToken, Task> Resolve(IServiceScope scope)
-    {
-        var handler = scope.ServiceProvider.GetRequiredService<THandler>();
-        return handler.Handle;
-    }
-}
-
-#endregion
-
 #region Consumers
-
-public abstract class KafkaConsumerBase<TValue, TParsedValue> : IKafkaTopicConsumer, IHandlerConfigurator<TParsedValue>
-{
-    private readonly IConsumer<string, TValue> consumer;
-    private readonly ILogger logger;
-    private readonly IServiceScopeFactory scopeFactory;
-    private IKafkaHandlerResolver<TParsedValue> handlerResolver;
-
-    protected KafkaConsumerBase(
-        ConsumerConfig consumerConfig,
-        string topic,
-        ILogger logger,
-        IServiceScopeFactory scopeFactory,
-        Action<ConsumerBuilder<string, TValue>> configBuilder = null)
-    {
-        this.logger = logger;
-        this.scopeFactory = scopeFactory;
-
-        var builder = new ConsumerBuilder<string, TValue>(consumerConfig);
-        configBuilder?.Invoke(builder);
-        consumer = builder
-            .SetErrorHandler((_, e) => logger.LogError("Kafka Error: {Error}", e))
-            .Build();
-
-        consumer.Subscribe(topic);
-    }
-
-    protected abstract TParsedValue GetValue(TValue value);
-
-    public IKafkaTopicConsumer WithHandler(Func<string, TParsedValue, KafkaMessageId, CancellationToken, Task> handler)
-    {
-        handlerResolver = new DelegateKafkaHandlerResolver<TParsedValue>(handler);
-        return this;
-    }
-
-    public IKafkaTopicConsumer WithHandler<THandler>()
-        where THandler : IKafkaMessageHandler<TParsedValue>
-    {
-        handlerResolver = new TypeKafkaHandlerResolver<THandler, TParsedValue>();
-        return this;
-    }
-
-    public Task StartConsumingAsync(CancellationToken ct) =>
-        Task.Run(async () =>
-        {
-            try
-            {
-                while (!ct.IsCancellationRequested)
-                {
-                    try
-                    {
-                        var result = consumer.Consume(ct);
-                        if (result?.Message == null)
-                            continue;
-
-                        using var scope = scopeFactory.CreateScope();
-                        var handler = handlerResolver.Resolve(scope);
-                        try
-                        {
-                            await handler(
-                                result.Message.Key,
-                                GetValue(result.Message.Value),
-                                new KafkaMessageId(result.TopicPartitionOffset),
-                                ct);
-
-                            consumer.Commit(result);
-                        }
-                        catch (Exception e)
-                        {
-                            logger.LogError(e, "Error during handling {type}", result.Message.Value.GetType().Name);
-                        }
-                    }
-                    catch (ConsumeException ex)
-                    {
-                        logger.LogError(ex, "Consume error: {Reason}", ex.Error.Reason);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        break;
-                    }
-                }
-            }
-            finally
-            {
-                consumer.Close();
-            }
-        }, ct);
-}
 
 public abstract class KafkaConsumerBase<TValue>(
     ConsumerConfig consumerConfig,
     string topic,
     ILogger logger,
     IServiceScopeFactory scopeFactory,
-    Action<ConsumerBuilder<string, TValue>> configBuilder = null)
-    : KafkaConsumerBase<TValue, TValue>(
-        consumerConfig,
-        topic,
-        logger,
-        scopeFactory,
-        configBuilder)
+    Action<ConsumerBuilder<string, TValue>> configBuilder = null) : ConsumerLoop<TValue>(
+        consumerConfig, topic, logger, configBuilder), IHandlerConfigurator<TValue>
 {
-    protected override TValue GetValue(TValue value) => value;
+    private IKafkaHandlerResolver<TValue> handlerResolver;
+
+    public Task StartConsumingAsync(CancellationToken ct) =>
+        base.StartConsumingAsync(async result =>
+        {
+            using var scope = scopeFactory.CreateScope();
+            var handler = handlerResolver.Resolve(scope);
+
+            await handler(
+                result.Message.Key,
+                result.Message.Value,
+                new KafkaMessageId(result.TopicPartitionOffset),
+                ct);
+
+        }, ct);
+
+    public IHandlerConfigurator<TValue> WithHandler(Func<string, TValue, KafkaMessageId, CancellationToken, Task> handler)
+    {
+        handlerResolver = new DelegateKafkaHandlerResolver<TValue>(handler);
+        return this;
+    }
+
+    public IHandlerConfigurator<TValue> WithHandler<THandler>()
+        where THandler : IKafkaMessageHandler<TValue>
+    {
+        handlerResolver = new TypeKafkaHandlerResolver<THandler, TValue>();
+        return this;
+    }
+}
+
+
+public abstract class KafkaSimpleConsumerBase<TValue>(
+    ConsumerConfig consumerConfig,
+    string topic,
+    ILogger logger,
+    IServiceScopeFactory scopeFactory,
+    Action<ConsumerBuilder<string, string>> configBuilder = null) : ConsumerLoop<string>(
+        consumerConfig, topic, logger, configBuilder), IHandlerConfigurator<TValue>, IParserConfigurator<TValue>
+{
+    private IKafkaHandlerResolver<TValue> handlerResolver;
+    private Func<string, TValue> parser;
+
+    public Task StartConsumingAsync(CancellationToken ct) =>
+        base.StartConsumingAsync(async result =>
+        {
+            using var scope = scopeFactory.CreateScope();
+            var handler = handlerResolver.Resolve(scope);
+
+            if (parser is null)
+            {
+                throw new InvalidOperationException("Parser not specified for simple string consumer");
+            }
+
+            await handler(
+                result.Message.Key,
+                parser(result.Message.Value),
+                new KafkaMessageId(result.TopicPartitionOffset),
+                ct);
+
+        }, ct);
+
+    public IHandlerConfigurator<TValue> WithHandler(Func<string, TValue, KafkaMessageId, CancellationToken, Task> handler)
+    {
+        handlerResolver = new DelegateKafkaHandlerResolver<TValue>(handler);
+        return this;
+    }
+
+    public IHandlerConfigurator<TValue> WithHandler<THandler>()
+        where THandler : IKafkaMessageHandler<TValue>
+    {
+        handlerResolver = new TypeKafkaHandlerResolver<THandler, TValue>();
+        return this;
+    }
+
+    public IParserConfigurator<TValue> WithParser(Func<string, TValue> parser)
+    {
+        this.parser = parser;
+        return this;
+    }
 }
 
 #endregion
@@ -184,12 +137,35 @@ public class KafkaJsonTopicConsumer<TValue>(
 public class KafkaSimpleTopicConsumer<TValue>(
     ConsumerConfig consumerConfig,
     string topic,
-    Func<string, TValue> parser,
     ILogger<KafkaSimpleTopicConsumer<TValue>> logger,
     IServiceScopeFactory scopeFactory) :
-    KafkaConsumerBase<string, TValue>(consumerConfig, topic, logger, scopeFactory)
+    KafkaSimpleConsumerBase<TValue>(consumerConfig, topic, logger, scopeFactory)
 {
-    protected override TValue GetValue(string value) => parser(value);
 }
+
+public class KafkaAvroTopicConsumer<TValue>(
+    ConsumerConfig consumerConfig,
+    string topic,
+    ISchemaRegistryClient schemaRegistry,
+    SubjectNameStrategy strategy,
+    ILogger<KafkaAvroTopicConsumer<TValue>> logger,
+    IServiceScopeFactory scopeFactory)
+    : KafkaConsumerBase<TValue>(
+        consumerConfig,
+        topic,
+        logger,
+        scopeFactory,
+        builder =>
+        {
+            var deserializerConfig = new AvroDeserializerConfig
+            {
+                UseLatestVersion = true,
+                SubjectNameStrategy = strategy
+            };
+            var jsonDeserializer = new AvroDeserializer<TValue>(schemaRegistry, deserializerConfig).AsSyncOverAsync();
+            builder.SetValueDeserializer(jsonDeserializer);
+        })
+    where TValue : class
+{ }
 
 #endregion
