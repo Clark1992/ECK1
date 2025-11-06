@@ -1,0 +1,1 @@
+﻿{"namespace":"ECK1.Contracts.Kafka.IntegrationRecords.Sample","name":"SampleThinEvent","type":"record","fields":[{"name":"SampleId","type":{"type":"string","logicalType":"uuid"}},{"name":"Version","type":"int"},{"name":"OccuredAt","type":{"type":"long","logicalType":"timestamp-millis"}},{"name":"EventType","type":"string"}]}
