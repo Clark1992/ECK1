@@ -14,5 +14,21 @@
     "format": "json",
     "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.ViewProjector/sample-business-events.dlq",
     "topic": "sample-business-events.dlq"
+  },
+  {
+    "assemblyPath": "__ASSEMBLY_PATH__",
+    "typeName": "ECK1.Contracts.Kafka.IntegrationRecords.Sample.SampleThinEvent",
+    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.ViewProjector/sample-thin-events",
+    "format": "avro",
+    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.ViewProjector/sample-thin-events",
+    "topic": "sample-thin-events"
+  },
+  {
+    "assemblyPath": "__ASSEMBLY_PATH__",
+    "typeName": "ECK1.Contracts.Kafka.IntegrationRecords.Sample.SampleFullRecord",
+    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.ViewProjector/sample-full-records",
+    "format": "proto",
+    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.ViewProjector/sample-full-records",
+    "topic": "sample-full-records"
   }
 ]
