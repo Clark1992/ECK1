@@ -1,0 +1,6 @@
+image:
+  repositoryPrefix: localhost:5000/plugin
+  tag: dev
+  pullPolicy: IfNotPresent
+
+

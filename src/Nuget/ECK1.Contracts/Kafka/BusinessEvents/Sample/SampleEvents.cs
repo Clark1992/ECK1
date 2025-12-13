@@ -17,22 +17,63 @@ namespace ECK1.Contracts.Kafka.BusinessEvents.Sample;
 public interface ISampleEvent
 {
     Guid SampleId { get; }
-    DateTimeOffset OccurredAt { get; set; }
+    DateTimeOffset OccurredAt { get; }
+    int Version { get; set; }
 }
 
-public record SampleEvent(Guid SampleId) : ISampleEvent
+public abstract class SampleEvent : ISampleEvent
 {
+    public Guid SampleId { get; set; }
+    public int Version { get; set; }
     public DateTimeOffset OccurredAt { get; set; }
 }
 
-public record SampleCreatedEvent(Guid SampleId, string Name, string Description, SampleAddress Address) : SampleEvent(SampleId);
-public record SampleNameChangedEvent(Guid SampleId, string NewName) : SampleEvent(SampleId);
-public record SampleDescriptionChangedEvent(Guid SampleId, string NewDescription) : SampleEvent(SampleId);
-public record SampleAddressChangedEvent(Guid SampleId, SampleAddress NewAddress) : SampleEvent(SampleId);
-public record SampleAttachmentAddedEvent(Guid SampleId, SampleAttachment Attachment) : SampleEvent(SampleId);
-public record SampleAttachmentRemovedEvent(Guid SampleId, Guid AttachmentId) : SampleEvent(SampleId);
-public record SampleAttachmentUpdatedEvent(Guid SampleId, Guid AttachmentId, string NewFileName, string NewUrl) : SampleEvent(SampleId);
-public record SampleRebuiltEvent(Guid SampleId, string Name, string Description, SampleAddress Address, List<SampleAttachment> Attachments) : SampleEvent(SampleId);
+public class SampleCreatedEvent : SampleEvent
+{
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public SampleAddress Address { get; set; }
+}
+
+public class SampleNameChangedEvent : SampleEvent
+{
+    public string NewName { get; set; }
+}
+
+public class SampleDescriptionChangedEvent : SampleEvent
+{
+    public string NewDescription { get; set; }
+}
+
+public class SampleAddressChangedEvent : SampleEvent
+{
+    public SampleAddress NewAddress { get; set; }
+}
+
+public class SampleAttachmentAddedEvent : SampleEvent
+{
+    public SampleAttachment Attachment { get; set; }
+}
+
+public class SampleAttachmentRemovedEvent : SampleEvent
+{
+    public Guid AttachmentId { get; set; }
+}
+
+public class SampleAttachmentUpdatedEvent : SampleEvent
+{
+    public Guid AttachmentId { get; set; }
+    public string NewFileName { get; set; }
+    public string NewUrl { get; set; }
+}
+
+public class SampleRebuiltEvent : SampleEvent
+{
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public SampleAddress Address { get; set; }
+    public List<SampleAttachment> Attachments { get; set; }
+}
 
 public class SampleAddress
 {

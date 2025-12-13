@@ -1,9 +1,35 @@
+function Get-Platform {
+    if ($IsWindows) {
+        $platform = "windows"
+    } elseif ($IsLinux) {
+        $platform = "linux"
+    } elseif ($IsMacOS) {
+        $platform = "darwin"
+    } else {
+        throw "Unsupported OS"
+    }
+
+    return $platform
+}
+
+function Get-Arch {
+
+    switch ($arch = $env:PROCESSOR_ARCHITECTURE.ToLower()) {
+        "amd64" { $cpu = "amd64" }
+        "x86_64" { $cpu = "amd64" }
+        "arm64" { $cpu = "arm64" }
+        default  { throw "Unsupported architecture: $arch" }
+    }
+
+    return $cpu
+}
+
 function Ensure-Executable {
     param (
         [string]$exeName,          # Executable name (w/o .exe)
         [string]$version,          # Version
         [string]$urlTemplate,      # URL с {0} as version placeholder
-        [string]$archiveSubPath = ""  # path inside ZIP (is needed)
+        [string]$archiveSubPathTemplate = ""  # path inside ZIP (is needed)
     )
 
     if (Get-Command $exeName -ErrorAction SilentlyContinue) {
@@ -18,7 +44,10 @@ function Ensure-Executable {
         New-Item -ItemType Directory -Path $installDir | Out-Null
     }
 
-    $url = $urlTemplate -f $version
+    $platform = Get-Platform
+    $arch = Get-Arch
+
+    $url = $urlTemplate -f $platform, $arch, $version
     $lowerUrl = $url.ToLower()
 
     $isZip     = $lowerUrl.EndsWith(".zip")
@@ -33,12 +62,12 @@ function Ensure-Executable {
     $downloadFileName = "$exeName-$version$extension"
     $downloadPath = Join-Path $env:TEMP $downloadFileName
 
+    $archiveSubPath = $archiveSubPathTemplate -f $platform, $arch
+
     $exePath = if ($archiveSubPath) {
         Join-Path $installDir "$archiveSubPath\$exeName.exe"
-        Write-Host Here1
     } else {
         Join-Path $installDir "$exeName.exe"
-        Write-Host Here2
     }
 
     # Download and unzip
@@ -99,8 +128,8 @@ function Ensure-Helm {
     param([string]$helmVersion = "v3.12.0")
     Ensure-Executable -exeName "helm" `
                       -version $helmVersion `
-                      -urlTemplate "https://get.helm.sh/helm-{0}-windows-amd64.zip" `
-                      -archiveSubPath "windows-amd64"
+                      -urlTemplate "https://get.helm.sh/helm-{2}-{0}-{1}.zip" `
+                      -archiveSubPathTemplate "{0}-{1}"
 }
 
 # ===========================================
@@ -110,27 +139,36 @@ function Ensure-Helmfile {
     param([string]$helmfileVersion = "1.1.7")
     Ensure-Executable -exeName "helmfile" `
                       -version $helmfileVersion `
-                      -urlTemplate "https://github.com/helmfile/helmfile/releases/download/v{0}/helmfile_{0}_windows_amd64.tar.gz"
+                      -urlTemplate "https://github.com/helmfile/helmfile/releases/download/v{2}/helmfile_{2}_{0}_{1}.tar.gz"
 }
 
 # ===========================================
 # Ensure Kubectl
 # ===========================================
 function Ensure-Kubectl {
-    try {
-        $version = "v1.31.0"
-    } catch {
-        Write-Error "❌ Failed to fetch latest kubectl version. $_"
-        throw
-    }
-
-    $urlTemplate = "https://dl.k8s.io/release/{0}/bin/windows/amd64/kubectl.exe"
+    $version = "v1.31.0"
+    $urlTemplate = "https://dl.k8s.io/release/{2}/bin/{0}/{1}/kubectl.exe"
 
     Ensure-Executable -exeName "kubectl" `
                       -version $version `
                       -urlTemplate $urlTemplate
 }
 
+# ===========================================
+# Ensure Kubectl
+# ===========================================
+function Ensure-Gomplate {
+    $version = "v4.3.3"
+    $urlTemplate = "https://github.com/hairyhenderson/gomplate/releases/download/{2}/gomplate_{0}-{1}.exe"
+
+    Ensure-Executable -exeName "gomplate" `
+                      -version $version `
+                      -urlTemplate $urlTemplate
+}
+
+# ===========================================
+# Ensure HelmDiff
+# ===========================================
 function Ensure-HelmDiff {
     param([string]$helmVersion = "v3.12.0")
     # Check if helm is installed
@@ -159,7 +197,9 @@ function Ensure-HelmDiff {
     #this is workaround
     # https://github.com/databus23/helm-diff/issues/316#issuecomment-1814806292
 
-    $helmDiffUrl = "https://github.com/databus23/helm-diff/releases/download/$helmVersion/helm-diff-windows-amd64.tgz"
+    $platform = Get-Platform
+    $arch = Get-Arch
+    $helmDiffUrl = "https://github.com/databus23/helm-diff/releases/download/$helmVersion/helm-diff-$platform-$arch.tgz"
     $pluginDir = Join-Path $env:APPDATA "helm\plugins\helm-diff"
     $binDir = Join-Path $pluginDir "bin"
 
@@ -168,25 +208,28 @@ function Ensure-HelmDiff {
         New-Item -ItemType Directory -Path $binDir | Out-Null
     }
 
-    $tgzPath = Join-Path $env:TEMP "helm-diff-windows.tgz"
-    Write-Host "Downloading helm-diff Windows release..."
+    $tgzPath = Join-Path $env:TEMP "helm-diff-$platform.tgz"
+    Write-Host "Downloading helm-diff $platform release..."
     Invoke-WebRequest -Uri $helmDiffUrl -OutFile $tgzPath
 
-    $extractDir = Join-Path $env:TEMP "helm-diff-windows"
+    $extractDir = Join-Path $env:TEMP "helm-diff-$platform"
     if (Test-Path $extractDir) { Remove-Item $extractDir -Recurse -Force }
     New-Item -ItemType Directory -Path $extractDir | Out-Null
 
-    Write-Host "Extracting diff.exe..."
+    Write-Host "Extracting diff binary..."
     tar -xzf $tgzPath -C $extractDir
 
-    $diffExe = Get-ChildItem -Path $extractDir -Recurse -Filter "diff.exe" | Select-Object -First 1
-    if (-not $diffExe) {
-        Write-Error "❌ diff.exe not found in the downloaded archive"
+    $diffBinary = Get-ChildItem -Path $extractDir -Recurse |
+        Where-Object { $_.Name -like "diff*" -and -not $_.PSIsContainer } |
+        Select-Object -First 1
+
+    if (-not $diffBinary) {
+        Write-Error "❌ diff binary not found in the downloaded archive"
         return
     }
 
-    Copy-Item $diffExe.FullName -Destination $binDir -Force
-    Write-Host "✅ diff.exe copied to $binDir"
+    Copy-Item $diffBinary.FullName -Destination $binDir -Force
+    Write-Host "✅ diff binary copied to $binDir"
 
     Write-Host "✅ Helm plugin 'diff' installed successfully."
 }

@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Confluent.Kafka" />
+        <PackageReference Include="Confluent.SchemaRegistry" />
+        <PackageReference Include="protobuf-net.Reflection" Aliases="ProtobufNetReflection" />
+        <PackageReference Include="protobuf-net.Core" />
+        <PackageReference Include="protobuf-net" />
+    </ItemGroup>
+
+</Project>

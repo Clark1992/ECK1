@@ -1,7 +1,6 @@
 ﻿using Confluent.Kafka;
-using ECK1.CommandsAPI.Commands;
+using Confluent.SchemaRegistry;
 using ECK1.Contracts.Kafka.BusinessEvents.Sample;
-using ECK1.Kafka;
 using ECK1.Kafka.Extensions;
 
 namespace ECK1.CommandsAPI.Kafka;
@@ -26,7 +25,7 @@ public static class KafkaSetup
 
         services.ConfigTopicProducer<ISampleEvent>(
             kafkaSettings.SampleBusinessEventsTopic,
-            Confluent.SchemaRegistry.SubjectNameStrategy.Topic,
+            SubjectNameStrategy.Topic,
             SerializerType.JSON);
 
         #region Rebuild view

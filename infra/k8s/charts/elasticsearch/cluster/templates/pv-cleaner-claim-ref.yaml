@@ -1,0 +1,110 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pv-cleaner
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: pv-cleaner
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+rules:
+  - apiGroups: [""]
+    resources: ["persistentvolumes"]
+    verbs: ["get", "patch", "list"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: pv-cleaner
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+roleRef:
+  kind: ClusterRole
+  name: pv-cleaner
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: pv-cleaner
+    namespace: {{ .Release.Namespace }}
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pv-cleaner
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+    #,hook-succeeded
+    "helm.sh/hook-weight": "10"
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: pv-cleaner
+      containers:
+        - name: pv-cleaner
+          image: bitnami/kubectl:latest
+          command:
+            - bash
+            - -c
+            - |
+              set -e
+
+              echo "=== Building PV list ==="
+
+              PV_LIST=()
+
+              {{- /* MASTER PVs */}}
+              {{- $m := .Values.master.replicas | int }}
+              {{- range $i, $ := until $m }}
+              PV_LIST+=("es-master-pv-{{ $i }}")
+              {{- end }}
+
+              {{- /* DATA PVs */}}
+              {{- $d := .Values.data.replicas | int }}
+              {{- range $i, $ := until $d }}
+              PV_LIST+=("es-data-pv-{{ $i }}")
+              {{- end }}
+
+              echo "PV list: ${PV_LIST[@]}"
+
+              for pv in "${PV_LIST[@]}"; do
+                echo
+                echo "Checking PV: $pv"
+
+                # check PV exists
+                if ! kubectl get pv "$pv" >/dev/null 2>&1; then
+                  echo "  PV does not exist — skip"
+                  continue
+                fi
+
+                pvc_name=$(kubectl get pv "$pv" -o jsonpath='{.spec.claimRef.name}' 2>/dev/null || echo "")
+                pvc_ns=$(kubectl get pv "$pv" -o jsonpath='{.spec.claimRef.namespace}' 2>/dev/null || echo "")
+                pvc_uid=$(kubectl get pv "$pv" -o jsonpath='{.spec.claimRef.uid}' 2>/dev/null || echo "")
+
+                if [[ -z "$pvc_uid" ]]; then
+                  echo "  No claimRef uid — skip"
+                  continue
+                fi
+
+                echo "  PV refers to PVC $pvc_ns/$pvc_name — checking if PVC exists..."
+
+                if ! kubectl get pvc -n "$pvc_ns" "$pvc_name" >/dev/null 2>&1; then
+                  echo "  PVC not found — removing claimRef uid"
+                  kubectl patch pv "$pv" --type=json -p='[{"op": "remove", "path": "/spec/claimRef/uid"}]'
+                  echo "  claimRef uid removed"
+                else
+                  echo "  PVC exists — keep claimRef"
+                fi
+              done

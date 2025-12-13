@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cert-renew-script
+data:
+  cert-renew.sh: |-
+{{ .Files.Get "scripts/cert-renew.sh" | indent 4 }}

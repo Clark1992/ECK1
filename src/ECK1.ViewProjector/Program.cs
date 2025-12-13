@@ -1,10 +1,13 @@
 ﻿using ECK1.CommonUtils.AspNet;
 using ECK1.CommonUtils.Secrets.Doppler;
 using ECK1.CommonUtils.Secrets.K8s;
+using ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample;
 using ECK1.Orleans.Extensions;
 using ECK1.ViewProjector.Data;
+using ECK1.ViewProjector.Handlers.Services;
 using ECK1.ViewProjector.Kafka;
 using ECK1.ViewProjector.Startup;
+using ECK1.ViewProjector.Views;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -37,7 +40,9 @@ var conventionPack = new ConventionPack {
 
 ConventionRegistry.Register("CamelCase", conventionPack, t => true);
 
+#pragma warning disable CS0618 // Type or member is obsolete
 BsonDefaults.GuidRepresentationMode = GuidRepresentationMode.V3;
+#pragma warning restore CS0618 // Type or member is obsolete
 BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 
 builder.Services.AddSingleton(sp =>
@@ -55,10 +60,12 @@ builder.Services.AddCors(options =>
         policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
 
-builder.Services.AddLogging();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddLogging()
+    .AddEndpointsApiExplorer()
+    .AddSwaggerGen()
+    .AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+
+builder.Services.AddSingleton<IFullRecordBuilder<SampleView, SampleThinEvent, SampleFullRecord>, SampleFullRecordBuilder>();
 
 var app = builder.Build();
 
@@ -81,7 +88,7 @@ app.UseAuthorization();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ViewProjector API V1");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "View Projector API V1");
     c.RoutePrefix = string.Empty;
 });
 

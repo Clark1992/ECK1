@@ -1,0 +1,71 @@
+{{- if .Values.nfsServer.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nfs-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nfs-server
+  template:
+    metadata:
+      labels:
+        app: nfs-server
+    spec:
+      containers:
+        - name: nfs-server
+          image: {{ .Values.nfsServer.image }}
+          securityContext:
+            privileged: true
+          ports:
+            - name: nfs
+              containerPort: 2049
+            - name: mountd
+              containerPort: 20048
+            - name: rpcbind
+              containerPort: 111
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              rpcbind || true
+              echo "/exports *(rw,sync,no_subtree_check,no_root_squash,fsid=0)" > /etc/exports
+              exportfs -r
+              /usr/sbin/rpc.nfsd 8
+              /usr/sbin/rpc.mountd -F -V 4 -N 2 -p 20048
+              tail -f /dev/null
+          volumeMounts:
+            - name: nfs-data
+              mountPath: /exports
+      volumes:
+        - name: nfs-data
+          persistentVolumeClaim:
+            claimName: nfs-backend-storage
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-backend-storage
+spec:
+  accessModes: [ "ReadWriteOnce" ]
+  resources:
+    requests:
+      storage: {{ .Values.nfsServer.storageSize }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.nfsServer.serviceName }}
+spec:
+  type: ClusterIP
+  clusterIP: 10.101.213.185
+  selector:
+    app: nfs-server
+  ports:
+    - name: nfs
+      port: 2049
+    - name: mountd
+      port: 20048
+    - name: rpcbind
+      port: 111
+{{- end }}

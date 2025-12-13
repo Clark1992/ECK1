@@ -1,0 +1,45 @@
+{{- if eq .Values.environment "local" }}
+{{/* Master PVs */}}
+{{- range $i := until (int .Values.master.replicas) }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-master-pv-{{ $i }}
+spec:
+  capacity:
+    storage: {{ $.Values.master.persistence.size }}
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: {{ printf "%s/master/%d" $.Values.elasticsearch.storage.hostPath $i }}
+    type: DirectoryOrCreate
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: hostpath
+  claimRef:
+    namespace: {{ $.Release.Namespace }}
+    name: data-{{ $.Values.elasticsearch.resourcePrefix }}-master-{{ $i }}
+{{- end }}
+
+{{/* Data PVs */}}
+{{- range $i := until (int .Values.data.replicas) }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-data-pv-{{ $i }}
+spec:
+  capacity:
+    storage: {{ $.Values.data.persistence.size  }}
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: {{ printf "%s/data/%d" $.Values.elasticsearch.storage.hostPath $i }}
+    type: DirectoryOrCreate
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: hostpath
+  claimRef:
+    namespace: {{ $.Release.Namespace }}
+    name: data-{{ $.Values.elasticsearch.resourcePrefix }}-data-{{ $i }}
+{{- end }}
+{{- end }}

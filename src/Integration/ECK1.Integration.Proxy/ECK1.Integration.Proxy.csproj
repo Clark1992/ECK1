@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>75d84802-b13b-42b3-bfaf-68801d8f3ba4</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\IntegrationProxyPlugins\ECK1.Integration.Plugin.Abstractions\ECK1.Integration.Plugin.Abstractions.csproj" />
+        <ProjectReference Include="..\..\Nuget\ECK1.CommonUtils\ECK1.CommonUtils.csproj" />
+        <ProjectReference Include="..\..\Nuget\ECK1.IntegrationContracts\ECK1.IntegrationContracts.csproj" />
+        <ProjectReference Include="..\..\Nuget\ECK1.Kafka\ECK1.Kafka.csproj" />
+		<ProjectReference Include="..\CodeGen\ECK1.GrpcService.Client.CodeGen\ECK1.GrpcService.Client.CodeGen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\CodeGen\ECK1.GrpcService.Abstractions.CodeGen\ECK1.GrpcService.Abstractions.CodeGen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Confluent.Kafka" />
+        <PackageReference Include="Confluent.SchemaRegistry" />
+        <PackageReference Include="AutoMapper" />
+        <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+        <PackageReference Include="protobuf-net" />
+        <PackageReference Include="protobuf-net.Core" />
+        <PackageReference Include="protobuf-net.Grpc.ClientFactory" />
+        <PackageReference Include="Swashbuckle.AspNetCore" />
+    </ItemGroup>
+</Project>

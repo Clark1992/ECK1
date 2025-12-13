@@ -1,7 +1,7 @@
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaUser
 metadata:
-  name: {{ .Values.kafkaUserSecretName }}
+  name: {{ .Values.kafka.userSecretName }}
   labels:
     strimzi.io/cluster: {{ .Values.environment }}-cluster
 spec:

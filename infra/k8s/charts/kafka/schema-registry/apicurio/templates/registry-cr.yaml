@@ -14,8 +14,8 @@ spec:
       security:
         scram:
           mechanism: SCRAM-SHA-512
-          user: {{ .Values.kafka.userSecret.name }}
-          passwordSecretName: {{ .Values.kafka.userSecret.name }}
+          user: {{ .Values.kafka.userSecretName }}
+          passwordSecretName: {{ .Values.kafka.userSecretName }}
           truststoreSecretName: {{ .Values.kafka.clusterCaSecret }}
     env:
       - name: REGISTRY_UI_CONFIG_APIURL

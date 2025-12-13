@@ -8,13 +8,12 @@
     <Version>0.1.0</Version>
     <Authors>Random</Authors>
     <Company>Random</Company>
-    <Description>ECK1 Events</Description>
+    <Description>ECK1 Business Contracts</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" />
-    <PackageReference Include="protobuf-net.Core" />
   </ItemGroup>
 
   <ItemGroup>

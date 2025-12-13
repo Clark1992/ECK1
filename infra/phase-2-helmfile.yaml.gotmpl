@@ -1,0 +1,196 @@
+environments:
+  local: {}
+
+repositories:
+  - name: ingress-nginx
+    url: https://kubernetes.github.io/ingress-nginx
+  - name: kafka-ui 
+    url: https://provectus.github.io/kafka-ui-charts
+  - name: nfs-subdir-external-provisioner
+    url: https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner
+  - name: elastic
+    url: https://helm.elastic.co
+  # cert-manager repo
+  - name: jetstack
+    url: https://charts.jetstack.io
+
+---
+
+{{- $common := (readFile "./phase-all-values.default.yaml" | fromYaml) }}
+{{- $phase := (readFile "./phase-2-values.default.yaml" | fromYaml) }}
+{{- $default := merge $common $phase }}
+
+releases:
+  - name: ingress-nginx
+    namespace: {{ $default.ingress.namespace }}
+    chart: ingress-nginx/ingress-nginx
+    version: {{ $default.ingress.ingressChartVersion }}
+    values:
+      - k8s/charts/ingress-nginx/values.{{ .Environment.Name }}.yaml
+    set:
+      - name: controller.service.nodePorts.http
+        value: {{ $default.ingress.ingressHttpPort }}
+      - name: controller.service.nodePorts.https
+        value: {{ $default.ingress.ingressHttpsPort }}
+
+  - name: apicurio
+    needs:
+      - {{ $default.ingress.namespace }}/ingress-nginx
+    namespace: {{ requiredEnv "APICURIO_NS" }}
+    chart: k8s/charts/kafka/schema-registry/apicurio
+    values:
+      - /k8s/charts/kafka/schema-registry/apicurio/values.{{ .Environment.Name }}.yaml
+      - kafka:
+          userSecretName: {{ $default.kafka.userSecretName }}
+      - ingress:
+          httpPort: {{ $default.ingress.ingressHttpPort }}
+
+    set:
+      - name: kafka.bootstrapServers
+        value: {{ requiredEnv "KAFKA_TLS_BOOTSTRAP_WITH_NAMESPACE" }}
+      - name: kafka.clusterCaSecret
+        value: {{ requiredEnv "KAFKA_CLUSTER" }}-cluster-ca-cert
+    hooks:
+      - name: "apicurio basic auth"
+        events: ["postsync"]
+        showlogs: true
+        command: "pwsh"
+        args:
+          - "-NoProfile"
+          - "-ExecutionPolicy"
+          - "Bypass"
+          - "-File"
+          - "hooks/helmfile.posthook.apicurio.ps1"
+          - "-KafkaNamespace"
+          - '{{ $default.kafka.namespace }}'
+          - "-Namespace"
+          - '{{ requiredEnv "APICURIO_NS" }}'
+          - "-KafkaClusterName"
+          - '{{ .Environment.Name }}-cluster'
+          - "-KafkaUserSecretName"
+          - '{{ requiredEnv "KAFKA_USERNAME" }}'
+          - "-Password"
+          - '{{ requiredEnv "KAFKA_PASSWORD" }}'
+
+  - name: kafka-ui
+    needs:
+      - {{ $default.ingress.namespace }}/ingress-nginx
+    namespace: {{ $default.kafka.namespace }}
+    chart: kafka-ui/kafka-ui
+    version: {{ $default.kafkaUi.version }}
+    values:
+      - /k8s/charts/kafka/ui/values.{{ .Environment.Name }}.yaml
+    set:
+      - name: yamlApplicationConfig.kafka.clusters[0].name
+        value: {{ .Environment.Name }}
+      - name: yamlApplicationConfig.kafka.clusters[0].bootstrapServers
+        value: {{ requiredEnv "KAFKA_BOOTSTRAP_WITH_NAMESPACE" }}
+      - name: yamlApplicationConfig.kafka.clusters[0].properties.security.protocol
+        value: SASL_PLAINTEXT
+      - name: yamlApplicationConfig.kafka.clusters[0].properties.sasl.mechanism
+        value: SCRAM-SHA-512
+      - name: yamlApplicationConfig.kafka.clusters[0].properties.sasl.jaas.config
+        value: '{{ requiredEnv "KAFKA_JAAS_CONFIG" }}'
+
+  - name: secrets
+    namespace: {{ requiredEnv "AppServiceNamespace" }}
+    chart: k8s/charts/secrets
+    set:
+      - name: secretName
+        value: kafka-client-secret
+      - name: kafkaBootstrapServers
+        value: {{ requiredEnv "KAFKA_BOOTSTRAP_WITH_NAMESPACE" }}
+      - name: kafkaSchemaRegistryUrl
+        value: {{ requiredEnv "SCHEMAREGISTRYURL_INTERNAL" }}
+      - name: kafkaUser
+        value: {{ requiredEnv "KAFKA_USERNAME" }}
+      - name: kafkaSecret
+        value: {{ requiredEnv "KAFKA_PASSWORD" }}
+
+  - name: nfs
+    namespace: nfs
+    chart: k8s/charts/nfs
+    values:
+      - pluginsPvcNamespace: {{ requiredEnv "AppServiceNamespace" }}
+
+  - name: nfs-provisioner
+    namespace: nfs
+    chart: nfs-subdir-external-provisioner/nfs-subdir-external-provisioner
+    version: "4.0.18"
+    values:
+      - nfs:
+          server: 10.101.213.185
+          path: /exports
+          mountOptions:
+            - nolock
+      - storageClass:
+          name: nfs-client
+
+  - name: elasticsearch
+    namespace: {{ $default.elasticsearch.namespace }}
+    chart: k8s/charts/elasticsearch/cluster
+    values:
+      - environment: {{ .Environment.Name }}
+      - k8s/charts/elasticsearch/cluster/values.common.yaml
+      - k8s/charts/elasticsearch/cluster/values.{{ .Environment.Name }}.yaml
+      {{- if and (isFile "k8s/charts/elasticsearch/cluster/values.secrets.yaml") (eq .Environment.Name "local") }}
+      - k8s/charts/elasticsearch/cluster/values.secrets.yaml
+      {{- end }}
+      - elasticsearch:
+          resourcePrefix: {{ $default.elasticsearch.resourcePrefix }}
+          security:
+            password: '{{ requiredEnv "ELASTICSEARCH_PASSWORD" }}'
+          image: {{ $default.elasticsearch.image }}
+          port: {{ $default.elasticsearch.port }}
+
+
+  - name: elasticsearch-internal-access
+    namespace: {{ $default.elasticsearch.namespace }}
+    needs:
+      - elasticsearch
+    chart: k8s/charts/elasticsearch/internal-access
+    values:
+      - k8s/charts/elasticsearch/cluster/values.common.yaml
+      - k8s/charts/elasticsearch/cluster/values.{{ .Environment.Name }}.yaml
+      - elasticsearch:
+          resourcePrefix: {{ $default.elasticsearch.resourcePrefix }}
+          security:
+            password: '{{ requiredEnv "ELASTICSEARCH_PASSWORD" }}'
+          port: {{ $default.elasticsearch.port }}
+        apiKeyGenJob:
+          secretName: {{ requiredEnv "ElasticSearchConfig__ApiKeySecretName" }}
+
+  # - name: elasticsearch-mappings-update
+  #   namespace: {{ $default.elasticsearch.namespace }}
+  #   needs:
+  #     - elasticsearch-internal-access
+  #   chart: k8s/charts/elasticsearch/index-mappings
+  #   values:
+  #     - elasticsearch:
+  #         resourcePrefix: {{ $default.elasticsearch.resourcePrefix }}
+  #         security:
+  #           password: '{{ requiredEnv "ELASTICSEARCH_PASSWORD" }}'
+  #         port: {{ $default.elasticsearch.port }}
+
+  {{- if eq .Environment.Name "local" }}
+
+  - name: cert-manager
+    namespace: cert-manager
+    chart: jetstack/cert-manager
+    version: v1.19.1
+    values:
+      - installCRDs: true
+
+  - name: elasticsearch-external-access
+    namespace: {{ $default.elasticsearch.namespace }}
+    needs:
+      - cert-manager/cert-manager
+      - elasticsearch-internal-access
+    chart: k8s/charts/elasticsearch/external-access
+    values:
+      - k8s/charts/elasticsearch/external-access/values.yaml
+      - k8s/charts/elasticsearch/external-access/values.{{ .Environment.Name }}.yaml
+      - elasticsearch:
+          resourcePrefix: {{ $default.elasticsearch.resourcePrefix }}
+          port: {{ $default.elasticsearch.port }}
+  {{- end }}

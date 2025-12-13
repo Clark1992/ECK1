@@ -12,7 +12,7 @@ public class MapByInterface<TSourceInterface, TDestinationInterface> : Profile
 
         foreach (var (sourceType, destinationType) in typeMapping)
         {
-             CreateMap(sourceType, destinationType, MemberList.Destination);
+            CreateMap(sourceType, destinationType);
         }
     }
 }

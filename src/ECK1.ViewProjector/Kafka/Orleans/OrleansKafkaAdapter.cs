@@ -42,7 +42,7 @@ public class KafkaGrainHandler<TEvent, TState>(IMediator mediator, ILogger<Kafka
         var type = ev.GetType();
         logger.LogInformation("Handling {messageType}", type);
 
-        var newState = await mediator.Send(new EventWithStateNotification<TEvent, TState>(ev, view), ct);
+        var newState = await mediator.Send(new EventMessage<TEvent, TState>(ev, view), ct);
 
         logger.LogInformation("Handled {messageType}", type);
 

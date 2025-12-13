@@ -21,4 +21,8 @@
         <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\ECK1.Kafka.ProtoBuf\ECK1.Kafka.ProtoBuf.csproj" />
+    </ItemGroup>
+
 </Project>

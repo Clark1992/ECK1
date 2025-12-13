@@ -1,0 +1,7 @@
+ingress:
+  enabled: true
+  host: elasticsearch.localhost
+  className: nginx
+  tls:
+    enabled: true
+    secretName: "external-es-public-tls"

@@ -1,23 +1,12 @@
 # RunLocally.OnlyMongo.ps1
 # Checks if local Mongo port (32017) is in use. If not, builds and runs a mongo container from Dockerfile.RunMongo.
 
+. ".github\scripts\common.ps1"
+
 $mongoPort = 32017 #on host
 $mongoContainerName = "mongo-local"
 # Use the public mongo image (change if you need a custom build)
 $mongoImage = "mongo:6.0"
-
-function Test-PortInUse {
-    param([int]$port)
-    try {
-        $tcp = New-Object System.Net.Sockets.TcpClient
-        $async = $tcp.BeginConnect('127.0.0.1', $port, $null, $null)
-        $wait = $async.AsyncWaitHandle.WaitOne(500)
-        if ($wait -and $tcp.Connected) { $tcp.Close(); return $true }
-        return $false
-    } catch {
-        return $false
-    }
-}
 
 if (Test-PortInUse -port $mongoPort) {
     Write-Host "Mongo port $mongoPort appears in use. Doing nothing."

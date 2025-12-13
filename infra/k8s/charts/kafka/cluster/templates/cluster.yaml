@@ -8,9 +8,10 @@ spec:
     replicas: {{ .Values.replicaCount }}
     authorization:
       type: simple
-    {{- if eq .Values.environment "local" }}
     template:
       pod:
+        priorityClassName: system-cluster-critical
+    {{- if eq .Values.environment "local" }}
         securityContext:
           runAsUser: 0
           fsGroup: 0
@@ -59,9 +60,16 @@ spec:
     {{- end }}
   zookeeper:
     replicas: 1
-{{- if eq .Values.environment "local" }}
     template:
+      terminationGracePeriodSeconds: 120
+      readinessProbe:
+        initialDelaySeconds: 120
+      livenessProbe:
+        initialDelaySeconds: 120
       pod:
+        priorityClassName: system-cluster-critical
+        hostnameAsFQDN: false
+{{- if eq .Values.environment "local" }}
         securityContext:
           runAsUser: 0
           fsGroup: 0
@@ -71,6 +79,9 @@ spec:
       class: hostpath
       deleteClaim: false
       size: {{ .Values.kafka.storage.sizeZookeeper }}
+    config:
+      standaloneEnabled: true
+      quorumListenOnAllIPs: true
     
   entityOperator:
     topicOperator: {}

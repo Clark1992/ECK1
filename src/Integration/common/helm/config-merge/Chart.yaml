@@ -1,0 +1,5 @@
+apiVersion: v2
+name: config-merge
+version: 0.1.0
+description: Merge integration configs into a single config
+type: library

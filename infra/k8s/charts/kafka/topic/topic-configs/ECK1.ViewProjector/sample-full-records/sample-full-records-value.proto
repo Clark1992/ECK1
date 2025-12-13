@@ -1,24 +1,26 @@
 ﻿syntax = "proto3";
-package ECK1.Contracts.Kafka.IntegrationRecords.Sample.Generated;
+package ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample.Generated;
 import "protobuf-net/bcl.proto"; // schema for protobuf-net's handling of core .NET types
 
 message SampleAddress {
-   .bcl.Guid Id = 1; // default value could not be applied: 00000000-0000-0000-0000-000000000000
-   string Street = 2;
-   string City = 3;
-   string Country = 4;
+    .bcl.Guid Id = 1;
+    string Street = 2;
+    string City = 3;
+    string Country = 4;
 }
+
 message SampleAttachment {
-   .bcl.Guid Id = 1; // default value could not be applied: 00000000-0000-0000-0000-000000000000
-   string FileName = 2;
-   string Url = 3;
+    .bcl.Guid Id = 1;
+    string FileName = 2;
+    string Url = 3;
 }
+
 message SampleFullRecord {
-   .bcl.Guid SampleId = 1; // default value could not be applied: 00000000-0000-0000-0000-000000000000
-   string Name = 2;
-   string Description = 3;
-   SampleAddress Address = 4;
-   repeated SampleAttachment Attachments = 5;
-   int32 Version = 6;
-   .bcl.DateTime OccuredAt = 7;
+    .bcl.Guid SampleId = 1;
+    string Name = 2;
+    string Description = 3;
+    SampleAddress Address = 4;
+    repeated SampleAttachment Attachments = 5;
+    int32 Version = 6;
+    .bcl.DateTime OccuredAt = 7;
 }

@@ -1,0 +1,77 @@
+{{- range .Values.plugins }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $.Chart.Name }}-{{ .name | lower }}
+spec:
+  replicas: {{ .replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ $.Chart.Name }}-{{ .name | lower }}
+  template:
+    metadata:
+      annotations:
+        rollme: {{ now | quote }}
+      labels:
+        app: {{ $.Chart.Name }}-{{ .name | lower }}
+    spec:
+
+      {{- include "config-merge.initConfigAggregator" $ | nindent 6 }}
+
+      containers:
+        - name: integration-proxy-{{ .name | lower }}
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          ports:
+            - containerPort: 80
+          env:
+            - name: Proxy__Plugin
+              value: "{{ .name }}"
+
+            - name: CacheService__ShortTerm__Url
+              value: http://{{ include "common-values.cacheShortTermServiceName" . }}
+
+            {{- range $key, $value := $.Values.env }}
+            - name: {{ $key }}
+              value: "{{ $value }}"
+            {{- end }}
+            
+            {{- include "render.env" (list .spec.config.plain "") | nindent 12 }}
+
+            {{- include "render.env.secret" (list .spec.config.secret "") | nindent 12 }}
+
+          volumeMounts:
+            - name: kafka-client-secret
+              mountPath: /etc/secrets
+              readOnly: true
+
+            - name: plugins-lib
+              mountPath: {{ $.Values.env.Proxy__PluginsDir }}
+              readOnly: true
+
+            {{- toYaml .spec.volumeMounts | nindent 12 }}
+
+            {{- include "config-merge.initConfigVolumeMounts" $ | nindent 12 }}
+
+      volumes:
+        - name: kafka-client-secret
+          secret:
+            secretName: kafka-client-secret
+            
+        {{- if $.Values.hostPath }}
+        - name: plugins-lib
+          hostPath:
+            path: "{{ $.Values.hostPath }}"
+            type: DirectoryOrCreate
+        {{- else }}
+        - name: plugins-lib
+          persistentVolumeClaim:
+            claimName: plugins-pvc
+        {{- end }}
+
+        {{- toYaml .spec.volumes | nindent 8 }}
+
+        {{- include "config-merge.initConfigVolumes" $ | nindent 8 }}
+---
+{{- end }}
+{{- include "config-merge.initConfigRbac" . }}

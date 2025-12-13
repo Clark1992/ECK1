@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <PackageId>ECK1.IntegrationContracts</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Random</Authors>
+    <Company>Random</Company>
+    <Description>ECK1 IntegrationContracts</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Apache.Avro" />
+    <PackageReference Include="protobuf-net.Core" />
+    <PackageReference Include="System.ServiceModel.Primitives" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ECK1.Contracts.Shared\**\*.cs">
+      <Link>Shared\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="..\ECK1.Contracts.Shared\Json\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ECK1.IntegrationAbstractions\ECK1.IntegrationAbstractions.csproj" />
+  </ItemGroup>
+
+</Project>

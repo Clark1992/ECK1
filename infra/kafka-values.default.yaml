@@ -1,3 +1,0 @@
-namespace: kafka
-operatorVersion: "0.45.0"
-kafkaUserSecretName: "kafka-user"

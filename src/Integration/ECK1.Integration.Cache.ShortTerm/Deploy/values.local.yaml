@@ -1,0 +1,12 @@
+replicaCount: 1
+
+image:
+  repository: localhost:5000/cache-short-term
+  tag: dev
+  pullPolicy: IfNotPresent
+
+env:
+  ASPNETCORE_ENVIRONMENT: Development
+
+service:
+  type: NodePort

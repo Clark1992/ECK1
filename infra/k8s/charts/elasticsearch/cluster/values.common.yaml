@@ -1,0 +1,19 @@
+clusterName: "es-cluster"
+
+master:
+  replicas: 1
+  esJavaOpts: "-Xms512m -Xmx512m"
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+
+data:
+  replicas: 1
+  esJavaOpts: "-Xms512m -Xmx512m"
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+
+resources: {}

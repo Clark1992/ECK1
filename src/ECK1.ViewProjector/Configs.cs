@@ -9,5 +9,7 @@ public class KafkaSettings
     public string Secret { get; set; }
     public string SampleBusinessEventsTopic { get; set; }
     public string SampleFailureEventsTopic { get; set; }
+    public string SampleFullRecordsTopic { get; set; }
+    public string SampleThinEventsTopic { get; set; }
     public string GroupId { get; set; }
 }

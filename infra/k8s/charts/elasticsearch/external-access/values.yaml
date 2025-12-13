@@ -1,0 +1,5 @@
+cert:
+  issuer: es-ca-issuer
+  caSecret: external-es-ca-secret
+  clusterIssuer: selfsigned-cluster-issuer
+  caCertName: external-es-ca

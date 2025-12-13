@@ -1,0 +1,11 @@
+replicaCount: 1
+
+image:
+  repository: myregistry.azurecr.io/integration-proxy
+  tag: latest
+  pullPolicy: IfNotPresent
+
+env:
+  ASPNETCORE_ENVIRONMENT: Development
+  Proxy__PluginsDir: "/mnt/plugins"
+

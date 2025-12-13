@@ -1,0 +1,14 @@
+apiVersion: v2
+name: eck1-integration-proxy
+description: A Helm chart for ECK1 Integration Proxy
+version: 0.1.0
+appVersion: "1.0"
+
+dependencies:
+  - name: config-merge
+    version: 0.1.0
+    repository: "file://../../common/helm/config-merge"
+
+  - name: common-values
+    version: 0.1.0
+    repository: "file://../../common/helm/common-values"

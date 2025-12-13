@@ -8,12 +8,7 @@ image:
   registry: quay.io/apicurio/apicurio-registry-kafkasql
   registryVersion: 2.6.4.Final
 
-kafka:
-  userSecret:
-    name: kafka-user
-
 ingress:
-  httpPort: 30200
   enabled: true
   host: registry.localhost
   className: nginx

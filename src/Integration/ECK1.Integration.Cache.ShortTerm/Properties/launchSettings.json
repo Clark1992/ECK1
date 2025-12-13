@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "ECK1.Integration.Cache.ShortTerm": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:65235;http://localhost:65236"
+    }
+  }
+}

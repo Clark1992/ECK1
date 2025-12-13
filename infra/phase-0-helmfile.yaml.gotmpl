@@ -1,0 +1,24 @@
+environments:
+  local: {}
+
+repositories:
+  - name: appscode-charts
+    url: https://charts.appscode.com/stable
+
+---
+
+releases:
+  - name: global-vars
+    namespace: global
+    chart: k8s/charts/global-vars
+    values:
+      - k8s/charts/global-vars/values.{{ .Environment.Name }}.yaml
+
+  - name: kubed
+    namespace: kubed
+    chart: appscode/kubed
+    needs: 
+      - "global/global-vars"
+    version: "0.13.2"
+    values:
+      - k8s/charts/kubed/values.yaml

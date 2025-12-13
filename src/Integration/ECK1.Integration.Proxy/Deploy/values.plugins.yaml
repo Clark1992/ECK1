@@ -1,0 +1,21 @@
+plugins:
+  - name: ElasticSearch
+    replicaCount: 1
+    spec:
+      volumeMounts:
+        - name: {{ .Env.ElasticSearchConfig__CaSecretName }}
+          mountPath: /etc/elasticsearch/certs
+          readOnly: true
+      volumes:
+        - name: {{ .Env.ElasticSearchConfig__CaSecretName }}
+          secret:
+            secretName: {{ .Env.ElasticSearchConfig__CaSecretName }}
+      config:
+        plain:
+          ElasticSearchConfig:
+            ClusterUrl: {{ .Env.ElasticSearchConfig__ClusterUrl }}
+        secret:
+          ElasticSearchConfig:
+            ApiKey: 
+              name: {{ .Env.ElasticSearchConfig__ApiKeySecretName }}
+              key: api_key

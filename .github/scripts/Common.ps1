@@ -43,7 +43,9 @@ function Build-DockerImage {
         [Parameter(Mandatory)]
         [string]$dockerfilePath,
 
-        [int]$registryPort = 5000
+        [int]$registryPort = 5000,
+
+        [hashtable]$BuildArgs
     )
 
     Write-Host "Setup global NuGet data as secret for Docker build..."
@@ -58,11 +60,29 @@ function Build-DockerImage {
     
     if (-not $imageNameWithTag.StartsWith("localhost:", [System.StringComparison]::OrdinalIgnoreCase)) {
         $fullImageName = "localhost:${registryPort}/${imageNameWithTag}"
+    } else {
+        $fullImageName = $imageNameWithTag
+    }
+
+    $buildArgParams = @()
+    if ($BuildArgs) {
+        foreach ($key in $BuildArgs.Keys) {
+            $value = $BuildArgs[$key]
+            $buildArgParams += "--build-arg"
+            $buildArgParams += "$key=$value"
+        }
     }
 
     Write-Host "Building API image $fullImageName..."
+    Write-Host "Build args: $($buildArgParams -join ' ')"
 
-    docker build -t $fullImageName -f $dockerfilePath --secret "id=nugetconfig,src=$globalNugetConfig" ./ --progress=plain
+    docker build `
+        -t $fullImageName `
+        -f $dockerfilePath `
+        --secret "id=nugetconfig,src=$globalNugetConfig" `
+        @buildArgParams `
+        ./ `
+        --progress=plain
 
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Docker build failed"

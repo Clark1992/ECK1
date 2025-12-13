@@ -1,0 +1,13 @@
+replicaCount: 1
+
+image:
+  repository: myregistry.azurecr.io/cache-short-term
+  tag: latest
+  pullPolicy: IfNotPresent
+
+env:
+  ASPNETCORE_ENVIRONMENT: Development
+
+service:
+  type: ClusterIP
+  port: 80

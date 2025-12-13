@@ -14,7 +14,7 @@ public static class DopplerConfigurationExtensions
         var token = tempConfig["Doppler:Token"];
         var projects = tempConfig["Doppler:Projects"]
                ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-               ?? Array.Empty<string>();
+               ?? [];
         var config = tempConfig["Doppler:Config"];
         var apiHost = tempConfig["Doppler:ApiHost"] ?? "https://api.doppler.com";
 
@@ -46,7 +46,7 @@ public static class DopplerConfigurationExtensions
 
             var dopplerSecrets =
                 JsonSerializer.Deserialize<Dictionary<string, string>>(response)
-                ?? new Dictionary<string, string>();
+                ?? [];
 
             var transformed = dopplerSecrets.ToDictionary(
                             kv => kv.Key.Replace("__", ":"), // __ → :

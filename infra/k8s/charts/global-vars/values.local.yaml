@@ -1,0 +1,4 @@
+ElasticSearchConfig__ClusterUrl: https://elasticsearch-svc.elasticsearch.svc.cluster.local:9200
+
+envSpecific:
+  ELASTICSEARCH_PASSWORD: "local"

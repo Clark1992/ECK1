@@ -1,0 +1,4 @@
+apiVersion: v2
+name: eck1-plugin
+description: A Helm chart for Generic Integration Proxy Plugins (copy to nfs folder)
+version: 0.1.0

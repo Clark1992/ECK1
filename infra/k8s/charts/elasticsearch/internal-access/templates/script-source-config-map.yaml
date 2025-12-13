@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gen-api-key-script
+data:
+  generate-api-key.sh: |-
+{{ .Files.Get "scripts/generate-api-key.sh" | indent 4 }}

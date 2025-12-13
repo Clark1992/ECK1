@@ -1,0 +1,9 @@
+elasticsearch:
+  namespace: elasticsearch
+  image: docker.elastic.co/elasticsearch/elasticsearch:9.2.1
+  resourcePrefix: elasticsearch
+  port: 9200
+
+kafka:
+  namespace: kafka
+  userSecretName: "kafka-user"

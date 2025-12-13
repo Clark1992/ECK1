@@ -22,8 +22,10 @@ Get-ChildItem -Path $Root -Recurse -Filter *.csproj | ForEach-Object {
 
     try {
         [xml]$projXml = Get-Content $projPath
+
         $secretId = $projXml.Project.PropertyGroup.UserSecretsId
-        if (-not $secretId) {
+
+        if ([string]::IsNullOrEmpty($secretId)) {
             Write-Host "   ⚪ No UserSecretsId found, skipping."
             return
         }

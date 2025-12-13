@@ -1,0 +1,9 @@
+ingress:
+  namespace: ingress-nginx
+  ingressChartVersion: 4.13.3
+  ingressHttpPort: 30200
+  ingressHttpsPort: 30443
+
+kafkaUi:
+  version: 0.7.6
+  

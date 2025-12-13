@@ -1,0 +1,101 @@
+environments:
+  local: {}
+
+repositories:
+  - name: strimzi
+    url: https://strimzi.io/charts
+  - name: elastic
+    url: https://helm.elastic.co
+
+---
+{{- $common := (readFile "./phase-all-values.default.yaml" | fromYaml) }}
+{{- $phase := (readFile "./phase-1-values.default.yaml" | fromYaml) }}
+{{- $default := merge $common $phase }}
+
+releases:
+  - name: namespaces
+    namespace: ""
+    chart: k8s/charts/namespace
+    values:
+      - namespaceName: {{ requiredEnv "AppServiceNamespace" }}
+      - elasticsearch: 
+          caSecretName: {{ requiredEnv "ElasticSearchConfig__CaSecretName" }}
+          apiKeySecretName: {{ requiredEnv "ElasticSearchConfig__ApiKeySecretName" }}
+
+  - name: strimzi
+    namespace: {{ $default.kafka.namespace }}
+    chart: strimzi/strimzi-kafka-operator
+    version: {{ $default.kafka.operatorVersion }}
+    
+  - name: kafka
+    needs:
+      - strimzi
+    namespace: {{ $default.kafka.namespace }}
+    chart: k8s/charts/kafka/cluster
+    values:
+      - k8s/charts/kafka/cluster/values.{{ .Environment.Name }}.yaml
+      {{- if isFile "k8s/charts/kafka/cluster/values.secrets.yaml" }}
+      - k8s/charts/kafka/cluster/values.secrets.yaml
+      {{- end }}
+      - kafka:
+          userSecretName: {{ $default.kafka.userSecretName }}
+      - namespace: {{ $default.kafka.namespace }}
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "powershell"
+        args:
+          - "-Command"
+          - |
+            Get-Content "../.github/scripts/wait.ps1" -Raw | Invoke-Expression
+
+            $secretName = "{{ $default.kafka.userSecretName }}"
+            $Namespace = "{{ $default.kafka.namespace }}"
+
+            try {
+              $cmd = "kubectl get secret $secretName -n $Namespace --ignore-not-found"
+              WaitFor-Command -Command $cmd -MaxAttempts 90
+              Write-Host "✅ === Kafka secret ready! ==="
+            } catch {
+              Write-Host $_
+              Write-Host "❌ Kafka secret not created!"
+              throw
+            }
+
+  - name: kafka-topics
+    needs:
+      - strimzi
+    namespace: {{ $default.kafka.namespace }}
+    chart: k8s/charts/kafka/topic
+    values:
+      - environment: {{ .Environment.Name }}
+      {{- $topics := list }}
+      {{- $base := "k8s/charts/kafka/topic/topic-configs" }}
+      {{- range $serviceDir := readDirEntries $base }}
+        {{- $servicePath := printf "%s/%s" $base $serviceDir.Name }}
+        {{- range $subDir := readDirEntries $servicePath }}
+          {{- $topicPath := printf "%s/%s/topic.yaml" $servicePath $subDir.Name }}
+          {{- $topic := readFile $topicPath | fromYaml }}
+          {{- $topics = append $topics $topic }}
+        {{- end }}
+      {{- end }}
+      - kafkaTopics: 
+      {{- toYaml $topics | nindent 8 }}
+
+  - name: elasticsearch-certs-renew-job
+    namespace: {{ $default.elasticsearch.namespace }}
+    chart: k8s/charts/elasticsearch/cert
+    values:
+      - k8s/charts/elasticsearch/cert/values.yaml
+      - elasticsearch:
+          image: {{ $default.elasticsearch.image }}
+          caSecretName: {{ requiredEnv "ElasticSearchConfig__CaSecretName" }}
+
+
+      
+      
+
+          
+
+
+

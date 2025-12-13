@@ -1,0 +1,4 @@
+apiVersion: v2
+name: elasticsearch-internal-access
+version: 0.1.0
+description: Elasticsearch cluster internal access (mostly for service pods)

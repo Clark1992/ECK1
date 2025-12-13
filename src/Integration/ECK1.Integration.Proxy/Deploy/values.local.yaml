@@ -1,0 +1,9 @@
+replicaCount: 1
+
+image:
+  repository: localhost:5000/integration-proxy
+  tag: dev
+  pullPolicy: IfNotPresent
+
+env:
+  ASPNETCORE_ENVIRONMENT: Development

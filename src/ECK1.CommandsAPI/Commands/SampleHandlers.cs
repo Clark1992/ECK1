@@ -100,7 +100,7 @@ public class SampleCommandHandlers :
 
         if (sample is null) return new NotFound();
 
-        await mediator.Publish(new EventNotification<ISampleEvent>(mapper.Map<SampleRebuiltEvent>(sample)), ct);
+        await mediator.Publish(new EventNotification<ISampleEvent>(mapper.Map<SampleRebuiltEvent>(sample), sample.Version), ct);
 
         return new Success(sample.Id, []);
     }
@@ -112,7 +112,7 @@ public class SampleCommandHandlers :
 
         foreach (var e in events)
         {
-            await mediator.Publish(new EventNotification<ISampleEvent>(e), ct);
+            await mediator.Publish(new EventNotification<ISampleEvent>(e, sample.Version), ct);
         }
 
         return new Success(sample.Id, eventIds);

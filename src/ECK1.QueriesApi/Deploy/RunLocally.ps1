@@ -7,7 +7,6 @@ $imageTag = "dev"
 $imageNameWithTag = "${imageName}:${imageTag}"
 $chartPath = "."
 $releaseName = "$imageName-release"
-$namespace = "default"
 
 # 1. Ensure local registry
 Start-LocalDockerRegistry
@@ -18,8 +17,11 @@ Build-DockerImage -imageNameWithTag $imageNameWithTag -dockerfilePath $dockerfil
 # 4. Check if Helm is installed
 Ensure-Helm
 
+# 5. Deploy using Helm
+. ".github\scripts\prepare.global.vars.ps1"
+
 helm upgrade --install $releaseName $baseDir\Deploy\$chartPath `
-    --namespace $namespace `
+    --namespace $env:AppServiceNamespace `
     -f $baseDir\Deploy\values.local.yaml
 
 if ($LASTEXITCODE -ne 0) {

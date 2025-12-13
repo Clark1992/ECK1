@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eck1-integration-manifest
+  labels:
+    config-type: integration-config
+data:
+  ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample.SampleFullRecord: |
+    EventsTopic: sample-thin-events
+    RecordTopic: sample-full-records
+    Plugins: 
+      Elasticsearch: 
+        Indexes: 
+          - sample-full-records
+        Fields:
+          - "sampleId"
+          - "name"
+          - "description"
+          - "address.street"
+          - "address.city"
+          - "address.country"
+          - "attachments.id"
+          - "attachments.fileName"
+          - "attachments.url"
+ 

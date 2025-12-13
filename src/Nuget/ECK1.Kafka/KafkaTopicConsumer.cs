@@ -1,7 +1,5 @@
 ﻿using Confluent.Kafka;
 using Confluent.Kafka.SyncOverAsync;
-using Confluent.SchemaRegistry;
-using Confluent.SchemaRegistry.Serdes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -46,6 +44,12 @@ public abstract class KafkaConsumerBase<TValue>(
         return this;
     }
 
+    public IHandlerConfigurator<TValue> WithHandler(Func<IServiceProvider, Func<string, TValue, KafkaMessageId, CancellationToken, Task>> handler)
+    {
+        handlerResolver = new DelegateKafkaHandlerWithSpResolver<TValue>(handler);
+        return this;
+    }
+
     public IHandlerConfigurator<TValue> WithHandler<THandler>()
         where THandler : IKafkaMessageHandler<TValue>
     {
@@ -61,7 +65,7 @@ public abstract class KafkaSimpleConsumerBase<TValue>(
     ILogger logger,
     IServiceScopeFactory scopeFactory,
     Action<ConsumerBuilder<string, string>> configBuilder = null) : ConsumerLoop<string>(
-        consumerConfig, topic, logger, configBuilder), IHandlerConfigurator<TValue>, IParserConfigurator<TValue>
+        consumerConfig, topic, logger, configBuilder), IHandlerConfigurator<TValue>, IParserConfigurator<string, TValue>
 {
     private IKafkaHandlerResolver<TValue> handlerResolver;
     private Func<string, TValue> parser;
@@ -91,6 +95,12 @@ public abstract class KafkaSimpleConsumerBase<TValue>(
         return this;
     }
 
+    public IHandlerConfigurator<TValue> WithHandler(Func<IServiceProvider, Func<string, TValue, KafkaMessageId, CancellationToken, Task>> handler)
+    {
+        handlerResolver = new DelegateKafkaHandlerWithSpResolver<TValue>(handler);
+        return this;
+    }
+
     public IHandlerConfigurator<TValue> WithHandler<THandler>()
         where THandler : IKafkaMessageHandler<TValue>
     {
@@ -98,7 +108,63 @@ public abstract class KafkaSimpleConsumerBase<TValue>(
         return this;
     }
 
-    public IParserConfigurator<TValue> WithParser(Func<string, TValue> parser)
+    public IParserConfigurator<string, TValue> WithParser(Func<string, TValue> parser)
+    {
+        this.parser = parser;
+        return this;
+    }
+}
+
+public abstract class KafkaRawByteConsumerBase<TValue>(
+    ConsumerConfig consumerConfig,
+    string topic,
+    ILogger logger,
+    IServiceScopeFactory scopeFactory,
+    Action<ConsumerBuilder<string, byte[]>> configBuilder = null) : ConsumerLoop<byte[]>(
+        consumerConfig, topic, logger, configBuilder), IHandlerConfigurator<TValue>, IParserConfigurator<byte[], TValue>
+{
+    private IKafkaHandlerResolver<TValue> handlerResolver;
+    private Func<byte[], TValue> parser;
+
+    public Task StartConsumingAsync(CancellationToken ct) =>
+        base.StartConsumingAsync(async result =>
+        {
+            using var scope = scopeFactory.CreateScope();
+            var handler = handlerResolver.Resolve(scope);
+
+            if (parser is null)
+            {
+                throw new InvalidOperationException("Parser not specified for simple string consumer");
+            }
+
+            await handler(
+                result.Message.Key,
+                parser(result.Message.Value),
+                new KafkaMessageId(result.TopicPartitionOffset),
+                ct);
+
+        }, ct);
+
+    public IHandlerConfigurator<TValue> WithHandler(Func<string, TValue, KafkaMessageId, CancellationToken, Task> handler)
+    {
+        handlerResolver = new DelegateKafkaHandlerResolver<TValue>(handler);
+        return this;
+    }
+
+    public IHandlerConfigurator<TValue> WithHandler(Func<IServiceProvider, Func<string, TValue, KafkaMessageId, CancellationToken, Task>> handler)
+    {
+        handlerResolver = new DelegateKafkaHandlerWithSpResolver<TValue>(handler);
+        return this;
+    }
+
+    public IHandlerConfigurator<TValue> WithHandler<THandler>()
+        where THandler : IKafkaMessageHandler<TValue>
+    {
+        handlerResolver = new TypeKafkaHandlerResolver<THandler, TValue>();
+        return this;
+    }
+
+    public IParserConfigurator<byte[], TValue> WithParser(Func<byte[], TValue> parser)
     {
         this.parser = parser;
         return this;
@@ -112,8 +178,7 @@ public abstract class KafkaSimpleConsumerBase<TValue>(
 public class KafkaJsonTopicConsumer<TValue>(
     ConsumerConfig consumerConfig,
     string topic,
-    ISchemaRegistryClient schemaRegistry,
-    SubjectNameStrategy strategy,
+    IAsyncDeserializer<TValue> deserializer,
     ILogger<KafkaJsonTopicConsumer<TValue>> logger,
     IServiceScopeFactory scopeFactory)
     : KafkaConsumerBase<TValue>(
@@ -121,16 +186,7 @@ public class KafkaJsonTopicConsumer<TValue>(
         topic,
         logger,
         scopeFactory,
-        builder =>
-        {
-            var deserializerConfig = new List<KeyValuePair<string, string>>
-            {
-                new("json.deserializer.use.latest.version", "true"),
-                new("json.deserializer.subject.name.strategy", strategy.ToString())
-            };
-            var jsonDeserializer = new JsonDeserializer<TValue>(schemaRegistry, deserializerConfig).AsSyncOverAsync();
-            builder.SetValueDeserializer(jsonDeserializer);
-        })
+        builder => builder.SetValueDeserializer(deserializer.AsSyncOverAsync()))
     where TValue : class
 { }
 
@@ -146,8 +202,7 @@ public class KafkaSimpleTopicConsumer<TValue>(
 public class KafkaAvroTopicConsumer<TValue>(
     ConsumerConfig consumerConfig,
     string topic,
-    ISchemaRegistryClient schemaRegistry,
-    SubjectNameStrategy strategy,
+    IAsyncDeserializer<TValue> deserializer,
     ILogger<KafkaAvroTopicConsumer<TValue>> logger,
     IServiceScopeFactory scopeFactory)
     : KafkaConsumerBase<TValue>(
@@ -155,16 +210,35 @@ public class KafkaAvroTopicConsumer<TValue>(
         topic,
         logger,
         scopeFactory,
-        builder =>
-        {
-            var deserializerConfig = new AvroDeserializerConfig
-            {
-                UseLatestVersion = true,
-                SubjectNameStrategy = strategy
-            };
-            var jsonDeserializer = new AvroDeserializer<TValue>(schemaRegistry, deserializerConfig).AsSyncOverAsync();
-            builder.SetValueDeserializer(jsonDeserializer);
-        })
+        builder => builder.SetValueDeserializer(deserializer.AsSyncOverAsync()))
+    where TValue : class
+{ }
+
+public class KafkaProtoTopicConsumer<TValue>(
+    ConsumerConfig consumerConfig,
+    string topic,
+    IAsyncDeserializer<TValue> deserializer,
+    ILogger<KafkaProtoTopicConsumer<TValue>> logger,
+    IServiceScopeFactory scopeFactory)
+    : KafkaConsumerBase<TValue>(
+        consumerConfig,
+        topic,
+        logger,
+        scopeFactory,
+        builder => builder.SetValueDeserializer(deserializer.AsSyncOverAsync()))
+    where TValue : class
+{ }
+
+public class KafkaRawBytesTopicConsumer<TValue>(
+    ConsumerConfig consumerConfig,
+    string topic,
+    ILogger<KafkaRawBytesTopicConsumer<TValue>> logger,
+    IServiceScopeFactory scopeFactory)
+    : KafkaRawByteConsumerBase<TValue>(
+        consumerConfig,
+        topic,
+        logger,
+        scopeFactory)
     where TValue : class
 { }
 

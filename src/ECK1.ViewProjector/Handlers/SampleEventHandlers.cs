@@ -1,12 +1,14 @@
 using AutoMapper;
 using ECK1.CommonUtils.Handler;
+using ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample;
+using ECK1.Kafka;
 using ECK1.ViewProjector.Data;
 using ECK1.ViewProjector.Events;
+using ECK1.ViewProjector.Handlers.Services;
 using ECK1.ViewProjector.Notifications;
 using ECK1.ViewProjector.Views;
 using MediatR;
 using MongoDB.Driver;
-using System.Threading;
 
 namespace ECK1.ViewProjector.Handlers;
 
@@ -17,7 +19,7 @@ public class SampleEventHandlers(
     MongoDbContext db,
     ILogger<SampleEventHandlers> logger) : 
     GenericAsyncHandler<ISampleEvent, SampleView>,
-    IRequestHandler<EventWithStateNotification<ISampleEvent, SampleView>, SampleView>
+    IRequestHandler<EventMessage<ISampleEvent, SampleView>, SampleView>
 {
     public async Task<SampleView> Handle(SampleCreatedEvent @event, SampleView state, CancellationToken cancellationToken)
     {
@@ -155,7 +157,7 @@ public class SampleEventHandlers(
         return view;
     }
 
-    public async Task<SampleView> Handle(EventWithStateNotification<ISampleEvent, SampleView> data, CancellationToken ct)
+    public async Task<SampleView> Handle(EventMessage<ISampleEvent, SampleView> data, CancellationToken ct)
     {
         try
         {
@@ -170,11 +172,22 @@ public class SampleEventHandlers(
             {
                 throw new InvalidOperationException($"Can't retrieve state for {data.Event.SampleId}");
             }
-            
-            return await Handle(data.Event, state, ct);
+
+            var newState = await Handle(data.Event, state, ct);
+
+            await mediator.Publish(new EventNotification<SampleThinEvent, SampleView>(new SampleThinEvent
+            {
+                EventType = data.Event.GetType().FullName,
+                Id = data.Event.SampleId,
+                OccuredAt = data.Event.OccurredAt.UtcDateTime,
+                Version = data.Event.Version
+            }, newState), default);
+
+            return newState;
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Error during handling of: {eventType}", data.Event.GetType().FullName);
             await mediator.Publish(new SampleEventFailure
             {
                 FailedEventType = data.Event.GetType().Name,

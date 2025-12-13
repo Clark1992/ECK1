@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $.Chart.Name }}
+spec:
+  replicas: {{ $.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ $.Chart.Name }}
+  template:
+    metadata:
+      annotations:
+        rollme: {{ now | quote }}
+      labels:
+        app: {{ $.Chart.Name }}
+    spec:
+
+      {{- include "config-merge.initConfigAggregator" $ | nindent 6 }}
+
+      containers:
+        - name: cache-short-term
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          ports:
+            - containerPort: 80
+          env:
+            {{- range $key, $value := $.Values.env }}
+            - name: {{ $key }}
+              value: "{{ $value }}"
+            {{- end }}
+            
+          volumeMounts:
+            - name: kafka-client-secret
+              mountPath: /etc/secrets
+              readOnly: true
+
+            {{- include "config-merge.initConfigVolumeMounts" $ | nindent 12 }}
+
+      volumes:
+        - name: kafka-client-secret
+          secret:
+            secretName: kafka-client-secret
+            
+        {{- include "config-merge.initConfigVolumes" $ | nindent 8 }}
+---
+{{- include "config-merge.initConfigRbac" . }}

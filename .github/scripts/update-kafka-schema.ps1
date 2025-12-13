@@ -2,16 +2,16 @@ param(
     [string]$SchemaDir
 )
 
-$schemaRegistryUrl = $env:KAFKA__SCHEMAREGISTRYURL
-$srApiKey          = $env:KAFKA__USER
-$srApiSecret       = $env:KAFKA__SECRET
+$schemaRegistryUrl = $env:KAFKA_SCHEMAREGISTRY_URL
+$srApiKey          = $env:KAFKA_USERNAME
+$srApiSecret       = $env:KAFKA_PASSWORD
 
 if (-not $schemaRegistryUrl -or -not $srApiKey -or -not $srApiSecret) {
     Write-Error "❌ Required environment variables (SCHEMA_REGISTRY_URL, SR_API_KEY, SR_API_SECRET) are not set."
     exit 1
 }
 
-$files = Get-ChildItem -Path $SchemaDir -Recurse -Include *.json, *.avsc
+$files = Get-ChildItem -Path $SchemaDir -Recurse -Include *.json, *.avsc, *.proto
 
 if (-not $files) {
     Write-Error "❌ No schema files found in $SchemaDir"
@@ -32,13 +32,29 @@ foreach ($file in $files) {
 
     $subject = [System.IO.Path]::GetFileNameWithoutExtension($file.Name)
 
+    $extension = [System.IO.Path]::GetExtension($file.FullName).ToLower()
+
+    switch ($extension) {
+        ".json" { $schemaType = "JSON" }
+        ".avsc" { $schemaType = "AVRO" }
+        ".proto" { $schemaType = "PROTOBUF" }
+        default { throw "Unexpected: $extension." }
+    }
+
     $body = @{
-      schemaType = "JSON"
+      schemaType = $schemaType
       schema     = $schemaRaw
     } | ConvertTo-Json -Compress
 
     Write-Host "➡️ Registering schema from '$($file.FullName)' as subject '$subject' ..."
 
+    # TODO: wait for service activation if it spinnign up
+
+    # Write-Host " Invoke-RestMethod $schemaRegistryUrl/subjects/$subject/versions `
+    #         -Uri "$schemaRegistryUrl/subjects/$subject/versions" `
+    #         -Method Post `
+    #         -Headers $headers `
+    #         -Body $body"
     try {
         $response = Invoke-RestMethod `
             -Uri "$schemaRegistryUrl/subjects/$subject/versions" `

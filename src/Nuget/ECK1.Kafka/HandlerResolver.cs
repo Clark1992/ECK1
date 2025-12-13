@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace ECK1.Kafka;
 
@@ -16,7 +17,14 @@ public class DelegateKafkaHandlerResolver<TValue>(
     Func<string, TValue, KafkaMessageId, CancellationToken, Task> func)
     : IKafkaHandlerResolver<TValue>
 {
-    public Func<string, TValue, KafkaMessageId, CancellationToken, Task> Resolve(IServiceScope _) => func;
+    public Func<string, TValue, KafkaMessageId, CancellationToken, Task> Resolve(IServiceScope sc) => func;
+}
+
+public class DelegateKafkaHandlerWithSpResolver<TValue>(
+    Func<IServiceProvider, Func<string, TValue, KafkaMessageId, CancellationToken, Task>> func)
+    : IKafkaHandlerResolver<TValue>
+{
+    public Func<string, TValue, KafkaMessageId, CancellationToken, Task> Resolve(IServiceScope sc) => func(sc.ServiceProvider);
 }
 
 public class TypeKafkaHandlerResolver<THandler, TValue>()

@@ -1,0 +1,4 @@
+apiVersion: v2
+name: elasticsearch-external-access
+version: 0.1.0
+description: Elasticsearch cluster external access (mostly for GUI)

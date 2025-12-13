@@ -1,0 +1,17 @@
+operator:
+  repository: mirrored-appscode-kubed
+  registry: rancher
+
+enableConfigSyncer: true
+
+configSyncer:
+  sync:
+    namespaces: ["*"]
+    
+  syncSecret:
+    enabled: true
+
+  syncConfigMap:
+    enabled: true
+
+

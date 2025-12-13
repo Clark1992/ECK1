@@ -1,0 +1,111 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.elasticsearch.resourcePrefix }}-master
+  labels:
+    app: {{ .Values.elasticsearch.resourcePrefix }}
+spec:
+  serviceName: {{ .Values.elasticsearch.resourcePrefix }}-master
+  replicas: {{ .Values.master.replicas }}
+  selector:
+    matchLabels:
+      role: master
+      app: {{ .Values.elasticsearch.resourcePrefix }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.elasticsearch.resourcePrefix }}
+        role: master
+    spec:
+      initContainers:
+        - name: fix-permissions
+          image: busybox:1.36
+          command: ["sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data"]
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/elasticsearch/data
+      containers:
+        - name: elasticsearch
+          image: {{ .Values.elasticsearch.image }}
+          env:
+            - name: ES_JAVA_OPTS
+              value: {{ .Values.master.esJavaOpts | quote }}
+
+            - name: ES_TRANSPORT_P12_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: es-transport
+                  key: password
+
+            - name: ES_HTTP_P12_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: es-http
+                  key: password
+
+            - name: ELASTIC_PASSWORD
+              value: {{ .Values.elasticsearch.security.password | quote }}
+
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/elasticsearch/data
+            - name: config
+              mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+              subPath: elasticsearch.yml
+            
+            - name: es-ca
+              mountPath: /usr/share/elasticsearch/config/certs/ca.crt
+              subPath: ca.crt
+
+            - name: es-transport
+              mountPath: /usr/share/elasticsearch/config/certs/transport.p12
+              subPath: transport.p12
+
+            - name: es-http
+              mountPath: /usr/share/elasticsearch/config/certs/http.p12
+              subPath: http.p12
+
+        # - name: debug
+        #   image: busybox
+        #   command: ["sh", "-c", "sleep 99999999"]
+        #   volumeMounts:
+        #     - name: config
+        #       mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+        #       subPath: elasticsearch.yml
+            
+        #     - name: es-ca
+        #       mountPath: /usr/share/elasticsearch/config/certs/ca.crt
+        #       subPath: ca.crt
+
+        #     - name: es-transport
+        #       mountPath: /usr/share/elasticsearch/config/certs/transport.p12
+        #       subPath: transport.p12
+
+        #     - name: es-http
+        #       mountPath: /usr/share/elasticsearch/config/certs/http.p12
+        #       subPath: http.p12
+
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Values.elasticsearch.resourcePrefix }}-config
+        - name: es-ca
+          secret:
+            secretName: es-ca
+        - name: es-transport
+          secret:
+            secretName: es-transport
+        - name: es-http
+          secret:
+            secretName: es-http
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.master.persistence.size }}
+        storageClassName: {{ .Values.master.persistence.storageClass | quote }}

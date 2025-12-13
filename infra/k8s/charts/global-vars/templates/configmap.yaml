@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: global-vars
+  annotations:
+    kubed.appscode.com/sync: "true"
+    kubed.appscode.com/sync.pattern: ".*"
+data:
+  ElasticSearchConfig__ClusterUrl: {{ .Values.ElasticSearchConfig__ClusterUrl | quote }}
+  ElasticSearchConfig__CaSecretName: "es-ca"
+  ElasticSearchConfig__ApiKeySecretName: "es-api-key"
+  AppServiceNamespace: "app-services"
+  {{- if .Values.envSpecific }}
+  {{- range $key, $value := .Values.envSpecific }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+  {{- end }}

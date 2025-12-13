@@ -5,33 +5,34 @@ namespace ECK1.ViewProjector.Events;
 public interface ISampleEvent
 {
     Guid SampleId { get; }
-    DateTimeOffset OccurredAt { get; set; }
+    DateTimeOffset OccurredAt { get; }
+    int Version { get; }
 }
 
 [GenerateSerializer]
-public record SampleEvent(Guid SampleId) : ISampleEvent
+public record SampleEvent(Guid SampleId, int Version) : ISampleEvent
 {
     [Id(0)]
     public DateTimeOffset OccurredAt { get; set; }
 }
 
 [GenerateSerializer]
-public record SampleCreatedEvent(Guid SampleId, string Name, string Description, SampleAddress Address) : SampleEvent(SampleId);
+public record SampleCreatedEvent(Guid SampleId, string Name, string Description, SampleAddress Address, int Version) : SampleEvent(SampleId, Version);
 [GenerateSerializer]
-public record SampleNameChangedEvent(Guid SampleId, string NewName) : SampleEvent(SampleId);
+public record SampleNameChangedEvent(Guid SampleId, string NewName, int Version) : SampleEvent(SampleId, Version);
 [GenerateSerializer]
-public record SampleDescriptionChangedEvent(Guid SampleId, string NewDescription) : SampleEvent(SampleId);
+public record SampleDescriptionChangedEvent(Guid SampleId, string NewDescription, int Version) : SampleEvent(SampleId, Version);
 [GenerateSerializer]
-public record SampleAddressChangedEvent(Guid SampleId, SampleAddress NewAddress) : SampleEvent(SampleId);
+public record SampleAddressChangedEvent(Guid SampleId, SampleAddress NewAddress, int Version) : SampleEvent(SampleId, Version);
 [GenerateSerializer]
-public record SampleAttachmentAddedEvent(Guid SampleId, SampleAttachment Attachment) : SampleEvent(SampleId);
+public record SampleAttachmentAddedEvent(Guid SampleId, SampleAttachment Attachment, int Version) : SampleEvent(SampleId, Version);
 [GenerateSerializer]
-public record SampleAttachmentRemovedEvent(Guid SampleId, Guid AttachmentId) : SampleEvent(SampleId);
+public record SampleAttachmentRemovedEvent(Guid SampleId, Guid AttachmentId, int Version) : SampleEvent(SampleId, Version);
 [GenerateSerializer]
-public record SampleAttachmentUpdatedEvent(Guid SampleId, Guid AttachmentId, string NewFileName, string NewUrl) : SampleEvent(SampleId);
+public record SampleAttachmentUpdatedEvent(Guid SampleId, Guid AttachmentId, string NewFileName, string NewUrl, int Version) : SampleEvent(SampleId, Version);
 
 [GenerateSerializer]
-public record SampleRebuiltEvent(Guid SampleId, string Name, string Description, SampleAddress Address, List<SampleAttachment> attachments) : SampleEvent(SampleId);
+public record SampleRebuiltEvent(Guid SampleId, string Name, string Description, SampleAddress Address, List<SampleAttachment> attachments, int Version) : SampleEvent(SampleId, Version);
 
 [GenerateSerializer]
 public class SampleAddress

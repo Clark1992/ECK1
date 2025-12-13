@@ -1,0 +1,40 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ .Values.cert.clusterIssuer }}
+spec:
+  selfSigned: {}
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Values.cert.caCertName }}
+spec:
+  isCA: true
+  commonName: {{ .Values.cert.caCertName }}
+  secretName: {{ .Values.cert.caSecret }}
+  issuerRef:
+    name: {{ .Values.cert.clusterIssuer }}
+    kind: ClusterIssuer
+
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ .Values.cert.issuer }}
+spec:
+  ca:
+    secretName: {{ .Values.cert.caSecret }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: es-public-cert
+spec:
+  secretName: {{ .Values.ingress.tls.secretName }}
+  dnsNames:
+    - {{ .Values.ingress.host }}
+  issuerRef:
+    name: {{ .Values.cert.issuer }}
+    kind: Issuer

@@ -1,0 +1,4 @@
+apiVersion: v2
+name: elasticsearch-certs
+version: 0.1.0
+description: Elasticsearch cluster certs (CA, Transport, HTTP)

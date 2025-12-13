@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: plugin-{{ .Values.plugin.name | lower }}
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: plugin
+          image: "{{ .Values.image.repositoryPrefix }}-{{ .Values.plugin.name }}:{{ .Values.image.tag }}"
+          volumeMounts:
+            - name: plugins
+              mountPath: /mnt/plugins
+      volumes:
+        - name: plugins
+          persistentVolumeClaim:
+            claimName: plugins-pvc

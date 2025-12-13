@@ -1,0 +1,4 @@
+apiVersion: v2
+name: eck1-integration-manifests
+version: 0.1.0
+description: ECK1 - Integration manifests (config + Elasticsearch mappings etc)

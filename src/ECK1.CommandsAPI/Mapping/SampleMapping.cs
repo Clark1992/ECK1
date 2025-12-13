@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
 using ECK1.CommandsAPI.Domain.Samples;
 using ECK1.CommonUtils.Mapping;
-using BusinessEvents = ECK1.Contracts.Kafka.BusinessEvents;
+using ContractEvents = ECK1.Contracts.Kafka.BusinessEvents;
 
 namespace ECK1.CommandsAPI.Mapping;
 
-public class SampleMapping: MapByInterface<ISampleEvent, BusinessEvents.Sample.ISampleEvent>
+public class SampleMapping: MapByInterface<ISampleEvent, ContractEvents.Sample.ISampleEvent>
 {
     public SampleMapping(): base()
     {

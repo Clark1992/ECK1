@@ -34,7 +34,11 @@ public abstract class AggregateRoot<TEvent> : GenericHandler<TEvent>
         return this as TAggregate;
     }
 
-    public void MarkEventsAsCommitted() => _uncommittedEvents.Clear();
+    public void MarkEventsAsCommitted(int version)
+    {
+        _uncommittedEvents.Clear();
+        Version = version;
+    }
 
     public static TAggregate FromHistory<TAggregate>(IEnumerable<TEvent> history, Guid id)
         where TAggregate : AggregateRoot<TEvent>

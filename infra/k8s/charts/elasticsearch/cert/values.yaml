@@ -1,0 +1,3 @@
+certRenewDays: 30
+serviceAccountName: elastic-certs-renew
+jobName: elastic-certs-renew

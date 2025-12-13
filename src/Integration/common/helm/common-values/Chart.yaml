@@ -1,0 +1,5 @@
+apiVersion: v2
+name: common-values
+version: 0.1.0
+description: Common values for integration
+type: library

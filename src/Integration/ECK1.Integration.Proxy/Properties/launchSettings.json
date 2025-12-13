@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "ECK1.Integration.Proxy": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:57194;http://localhost:57195"
+    }
+  }
+}

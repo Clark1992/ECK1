@@ -36,16 +36,16 @@ public class SampleRepo : ISampleRepo
         foreach (var ev in aggregate.UncommittedEvents)
         {
             version++;
-            var entity = SampleEventEntity.FromDomainEvent(ev, version);
-            _db.SampleEvents.Add(entity);
-            newEvents.Add(entity);
+            var eventEntity = SampleEventEntity.FromDomainEvent(ev, version);
+            _db.SampleEvents.Add(eventEntity);
+            newEvents.Add(eventEntity);
         }
 
         await _db.SaveChangesAsync(ct);
 
         var newEventIds = newEvents.Select(e => e.EventId).ToList();
 
-        aggregate.MarkEventsAsCommitted();
+        aggregate.MarkEventsAsCommitted(version);
 
         // Auto snapshot creation
         if (_snapshotInterval > 0 && version % _snapshotInterval == 0)

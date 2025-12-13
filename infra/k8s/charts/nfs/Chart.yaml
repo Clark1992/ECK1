@@ -1,0 +1,4 @@
+apiVersion: v2
+name: K8s plugin library infra
+description: Deploys NFS server for plugin library to be available throughout the cluster
+version: 0.1.0

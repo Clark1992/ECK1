@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.apiKeyGenJob.name }}-cron
+spec:
+  schedule: "0 2 * * *"
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          ttlSecondsAfterFinished: 3600
+          serviceAccountName: {{ .Values.apiKeyGenJob.rbac.serviceAccountName }}
+          restartPolicy: Never
+          containers:
+            - name: refresh
+              image: {{ .Values.apiKeyGenJob.image }}
+              env:
+                - name: ES_HOST
+                  value: {{ .Values.elasticsearch.resourcePrefix }}-svc:{{ .Values.elasticsearch.port }}
+                - name: ES_USER
+                  value: elastic
+                - name: ES_PASSWORD
+                  value: {{ .Values.elasticsearch.security.password }}
+                - name: SECRET_NAME
+                  value: {{ .Values.apiKeyGenJob.secretName }}
+                - name: DAYS_LEFT
+                  value: '{{ .Values.apiKeyGenJob.daysBeforeRenew }}'
+                - name: MAX_CREATE_API_KEY_RETRIES
+                  value: '3'
+              command: ["sh", "-c", "/scripts/generate-api-key.sh"]
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+          volumes:
+            - name: scripts
+              configMap:
+                name: gen-api-key-script
+                defaultMode: 0755
