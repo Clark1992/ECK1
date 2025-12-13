@@ -42,64 +42,78 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Download latest NuGet package
+      - name: Download NuGet packages
         shell: bash
         run: |
-          PACKAGE_NAME="ECK1.Contracts"
+          set -e
+
           OWNER="${GITHUB_REPOSITORY_OWNER}"
+
+          declare -A PACKAGES=(
+            [ECK1.Contracts]=BUSINESS_CONTRACTS_ASSEMBLY_PATH
+            [ECK1.IntegrationContracts]=INTEGRATION_CONTRACTS_ASSEMBLY_PATH
+          )
 
           SERVICE_INDEX=$(curl -s \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/json" \
             "https://nuget.pkg.github.com/${OWNER}/index.json")
 
-          PACKAGE_BASE_URL=$(echo "$SERVICE_INDEX" | jq -r '.resources[] | select(.["@type"]=="PackageBaseAddress/3.0.0") | .["@id"]')
+          PACKAGE_BASE_URL=$(echo "$SERVICE_INDEX" | jq -r \
+            '.resources[] | select(.["@type"]=="PackageBaseAddress/3.0.0") | .["@id"]')
 
           if [ -z "$PACKAGE_BASE_URL" ]; then
             echo "Cannot find PackageBaseAddress in feed"
             exit 1
           fi
 
-          VERSIONS_JSON=$(curl -s \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/json" \
-            "$PACKAGE_BASE_URL/$PACKAGE_NAME/index.json")
+          for PACKAGE_NAME in "${!PACKAGES[@]}"; do
+            ENV_NAME="${PACKAGES[$PACKAGE_NAME]}"
 
-          if [ -z "$VERSIONS_JSON" ]; then
-            echo "Cannot get versions for package $PACKAGE_NAME"
-            exit 1
-          fi
+            echo "Processing $PACKAGE_NAME → $ENV_NAME"
 
-          echo "Versions JSON: $VERSIONS_JSON"
+            VERSIONS_JSON=$(curl -s \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/json" \
+              "$PACKAGE_BASE_URL/$PACKAGE_NAME/index.json")
 
-          PACKAGE_VERSION=$(echo "$VERSIONS_JSON" | jq -r '.versions[]' | sort -V | tail -n1)
-          echo "Latest version: $PACKAGE_VERSION"
+            if [ -z "$VERSIONS_JSON" ]; then
+              echo "Cannot get versions for package $PACKAGE_NAME"
+              exit 1
+            fi
 
-          NUPKG_PATH="/tmp/${PACKAGE_NAME}.nupkg"
-          curl -L \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/octet-stream" \
-            -o "$NUPKG_PATH" \
-            "$PACKAGE_BASE_URL/$PACKAGE_NAME/$PACKAGE_VERSION/$PACKAGE_NAME.$PACKAGE_VERSION.nupkg"
+            echo "Versions JSON: $VERSIONS_JSON"
 
-          echo "$PACKAGE_BASE_URL/$PACKAGE_NAME/$PACKAGE_VERSION/$PACKAGE_NAME.$PACKAGE_VERSION.nupkg"
+            PACKAGE_VERSION=$(echo "$VERSIONS_JSON" | jq -r '.versions[]' | sort -V | tail -n1)
+            echo "Latest version: $PACKAGE_VERSION"
 
-          echo "Downloaded package to $NUPKG_PATH"
+            NUPKG_PATH="/tmp/${PACKAGE_NAME}.nupkg"
+            curl -L \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/octet-stream" \
+              -o "$NUPKG_PATH" \
+              "$PACKAGE_BASE_URL/$PACKAGE_NAME/$PACKAGE_VERSION/$PACKAGE_NAME.$PACKAGE_VERSION.nupkg"
 
-          DLL_DIR="/tmp/${PACKAGE_NAME}_dll"
-          mkdir -p "$DLL_DIR"
-          unzip -o "$NUPKG_PATH" "lib/net8.0/*.dll" -d "$DLL_DIR"
+            echo "$PACKAGE_BASE_URL/$PACKAGE_NAME/$PACKAGE_VERSION/$PACKAGE_NAME.$PACKAGE_VERSION.nupkg"
 
-          ##########################
-          DLL_PATH=$(find /tmp/${PACKAGE_NAME}_dll -type f -name "${PACKAGE_NAME}.dll" | sort -r | head -n 1)
-          echo "Found DLL at $DLL_PATH"
+            echo "Downloaded package to $NUPKG_PATH"
 
-          echo "ASSEMBLY_PATH=$DLL_PATH" >> $GITHUB_ENV
+            DLL_DIR="/tmp/${PACKAGE_NAME}_dll"
+            mkdir -p "$DLL_DIR"
+            unzip -o "$NUPKG_PATH" "lib/net8.0/*.dll" -d "$DLL_DIR"
+
+            ##########################
+            DLL_PATH=$(find "$DLL_DIR" -type f -name "${PACKAGE_NAME}.dll" | sort -r | head -n 1)
+            echo "Found DLL at $DLL_PATH"
+
+            echo "$ENV_NAME=$DLL_PATH" >> $GITHUB_ENV
+          done
 
       - name: Run generator
         uses: ./.github/workflows/actions/run-generator
         with:
-          assembly-path: ${{ env.ASSEMBLY_PATH }}
+          business-contracts-assembly-path: ${{ env.BUSINESS_CONTRACTS_ASSEMBLY_PATH }}
+          integration-contracts-assembly-path: ${{ env.INTEGRATION_CONTRACTS_ASSEMBLY_PATH }}
           solution-dir: ${{ env.SOLUTION_DIR }}
           solution-file: ECK1.sln
 

@@ -36,7 +36,7 @@ releases:
   - name: apicurio
     needs:
       - {{ $default.ingress.namespace }}/ingress-nginx
-    namespace: {{ requiredEnv "APICURIO_NS" }}
+    namespace: {{ $default.apicurio.namespace }}
     chart: k8s/charts/kafka/schema-registry/apicurio
     values:
       - /k8s/charts/kafka/schema-registry/apicurio/values.{{ .Environment.Name }}.yaml
@@ -64,7 +64,7 @@ releases:
           - "-KafkaNamespace"
           - '{{ $default.kafka.namespace }}'
           - "-Namespace"
-          - '{{ requiredEnv "APICURIO_NS" }}'
+          - '{{ $default.apicurio.namespace }}'
           - "-KafkaClusterName"
           - '{{ .Environment.Name }}-cluster'
           - "-KafkaUserSecretName"
@@ -101,7 +101,7 @@ releases:
       - name: kafkaBootstrapServers
         value: {{ requiredEnv "KAFKA_BOOTSTRAP_WITH_NAMESPACE" }}
       - name: kafkaSchemaRegistryUrl
-        value: {{ requiredEnv "SCHEMAREGISTRYURL_INTERNAL" }}
+        value: {{ $default.apicurio.schemaRegistryUrlInternal }}
       - name: kafkaUser
         value: {{ requiredEnv "KAFKA_USERNAME" }}
       - name: kafkaSecret

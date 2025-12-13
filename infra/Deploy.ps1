@@ -14,19 +14,38 @@ try {
     Ensure-HelmDiff
     Ensure-HelmFile
 
-    & ${PSScriptRoot}\Deploy.prepare.context.ps1
+    # 2 - Deploy Phase 0 (Prepare global config)
 
-    # 2 - Deploy Kafka first
-    helmfile -f infra\kafka-helmfile.yaml.gotmpl -e $Environment apply --skip-diff-on-install
-    # helmfile -f infra\kafka-helmfile.yaml.gotmpl -e $Environment build
+    helmfile -f infra\phase-0-helmfile.yaml.gotmpl -e $Environment apply --skip-diff-on-install
 
-    # 3 - Setup kafka creds for further steps
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "helmfile (Phase 0) deploy failed"
+        throw
+    }
+
+    . ".github\scripts\prepare.global.vars.ps1"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Prepare global vars failed"
+        throw
+    }
+
+    # 3 - Deploy Phase 1 (mostly kafka and other prereqs for further deployment)
+    helmfile -f infra\phase-1-helmfile.yaml.gotmpl -e $Environment apply --skip-diff-on-install
+    # helmfile -f infra\phase-1-helmfile.yaml.gotmpl -e $Environment build
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "helmfile (Phase 1) deploy failed"
+        throw
+    }
+
+    # 4 - Setup kafka creds for further steps
     # --- Extract credentials ---
     Write-Host "Extracting KafkaUser credentials..."
 
-    $KafkaDefaultsYamlPath = "./infra/kafka-values.default.yaml"
-    $KafkaNamespace = Get-YamlValue -YamlPath $KafkaDefaultsYamlPath -PropPath "namespace"
-    $KafkaUserSecretName = Get-YamlValue -YamlPath $KafkaDefaultsYamlPath -PropPath "kafkaUserSecretName"
+    $DeployAllPhaseDefaultsYamlPath = "./infra/phase-all-values.default.yaml"
+    $KafkaNamespace = Get-YamlValue -YamlPath $DeployAllPhaseDefaultsYamlPath -PropPath "kafka.namespace"
+    $KafkaUserSecretName = Get-YamlValue -YamlPath $DeployAllPhaseDefaultsYamlPath -PropPath "kafka.userSecretName"
 
     $KafkaClusterEnvYamlPath = "./infra/k8s/charts/kafka/cluster/values.$Environment.yaml"
     $K8sHost = Get-YamlValue -YamlPath $KafkaClusterEnvYamlPath -PropPath "k8sHost"
@@ -43,7 +62,6 @@ try {
     # --- Set environment variables for subsequent scripts ---
     Write-Host "Setting environment variables for Kafka credentials..."
 
-    $env:KAFKA_NS = $KafkaNamespace
     $KafkaClusterName = "$Environment-cluster"
     $env:KAFKA_CLUSTER = $KafkaClusterName
     $env:KAFKA_USERNAME = $KafkaUserSecretName
@@ -65,15 +83,17 @@ try {
 
     Write-Host "✅ === Kafka cluster deployed successfully! ==="
 
-    # 4 - Deploy other stuff
-    # APICURIO PREP
+    # 5 - Deploy Phase 2
 
-    $env:APICURIO_NS = 'apicurio'
+    helmfile -f infra\phase-2-helmfile.yaml.gotmpl -e $Environment apply --skip-diff-on-install
 
-    helmfile -f infra\helmfile.yaml.gotmpl -e $Environment apply --skip-diff-on-install
-    # helmfile -f infra\helmfile.yaml.gotmpl -e $Environment build
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "helmfile deploy failed"
+        throw
+    }
+    # helmfile -f infra\phase-2-helmfile.yaml.gotmpl -e $Environment build
 
-    # 5 - UPDATE Kafka Schemas
+    # 6 - UPDATE Kafka Schemas
     if ($Environment -eq "local") {
         $ingressName = "apicurio-registry-local-dns"
     } else {
@@ -81,14 +101,15 @@ try {
     }
 
     # Wait for ingress rule to create
-    $cmd = "kubectl get ingress $ingressName -n $env:APICURIO_NS --ignore-not-found"
+    $ApicurioNamespace = Get-YamlValue -YamlPath $DeployAllPhaseDefaultsYamlPath -PropPath "apicurio.namespace"
+    $cmd = "kubectl get ingress $ingressName -n $ApicurioNamespace --ignore-not-found"
     WaitFor-Command -Command $cmd -MaxAttempts 30
-    $ingressData = kubectl get ingress $ingressName -n $env:APICURIO_NS -o json | ConvertFrom-Json
+    $ingressData = kubectl get ingress $ingressName -n $ApicurioNamespace -o json | ConvertFrom-Json
     $ingressRuleSchemaRegistryHost = $ingressData.spec.rules.host
 
     # Wait for ingress rule to create
     $ingressControllerName = "ingress-nginx-controller"
-    $ingressNS = Get-YamlValue -YamlPath ".\infra\values.default.yaml" -PropPath "ingress.namespace"
+    $ingressNS = Get-YamlValue -YamlPath ".\infra\phase-2-values.default.yaml" -PropPath "ingress.namespace"
 
     $cmd = "kubectl get service $ingressControllerName -n $ingressNS --ignore-not-found"
     WaitFor-Command -Command $cmd -MaxAttempts 30

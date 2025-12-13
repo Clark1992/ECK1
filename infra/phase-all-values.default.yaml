@@ -7,3 +7,7 @@ elasticsearch:
 kafka:
   namespace: kafka
   userSecretName: "kafka-user"
+
+apicurio:
+  namespace: apicurio
+  schemaRegistryUrlInternal: "http://apicurio-registry-service.apicurio.svc.cluster.local:8080/apis/ccompat/v7"
