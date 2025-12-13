@@ -1,7 +1,5 @@
-﻿using ECK1.IntegrationContracts.Kafka.IntegrationRecords.Generated;
+﻿namespace ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample;
 
-namespace ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample;
-
-public class SampleThinEvent : ThinEvent
+public class SampleThinEvent : Generated.ThinEvent
 {
 }

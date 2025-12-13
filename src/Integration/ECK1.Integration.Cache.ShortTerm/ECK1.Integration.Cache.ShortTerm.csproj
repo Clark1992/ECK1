@@ -9,7 +9,6 @@
     <ItemGroup>
         <ProjectReference Include="..\..\Nuget\ECK1.CommonUtils\ECK1.CommonUtils.csproj" />
         <ProjectReference Include="..\..\Nuget\ECK1.Contracts\ECK1.Contracts.csproj" />
-        <ProjectReference Include="..\..\Nuget\ECK1.IntegrationAbstractions\ECK1.IntegrationAbstractions.csproj" />
         <ProjectReference Include="..\CodeGen\ECK1.GrpcService.FieldMask.CodeGen\ECK1.GrpcService.FieldMask.CodeGen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
         <ProjectReference Include="..\CodeGen\ECK1.GrpcService.Service.CodeGen\ECK1.GrpcService.Service.CodeGen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
         <ProjectReference Include="..\CodeGen\ECK1.GrpcService.Abstractions.CodeGen\ECK1.GrpcService.Abstractions.CodeGen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />

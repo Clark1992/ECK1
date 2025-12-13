@@ -7,7 +7,7 @@ permissions:
 on:
   workflow_dispatch: {}
   workflow_run:
-    workflows: ["Publish ECK1.Contracts"] 
+    workflows: ["Publish ECK1.Contracts", "Publish ECK1.IntegrationContracts"] 
     types:
       - completed
   push:

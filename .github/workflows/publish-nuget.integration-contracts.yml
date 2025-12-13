@@ -1,0 +1,23 @@
+name: Publish ECK1.IntegrationContracts
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'src/Nuget/ECK1.IntegrationContracts/**'
+      - 'src/Nuget/ECK1.Contracts.Shared/**'
+      - '.github/workflows/publish-nuget.contracts.yml'
+      - '.github/workflows/publish-nuget-shared.yml'
+      - '.github/scripts/update-version.sh'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    uses: ./.github/workflows/publish-nuget-shared.yml
+    with:
+      project_path: 'src/Nuget/ECK1.IntegrationContracts'
+      csproj_file: 'ECK1.IntegrationContracts.csproj'
