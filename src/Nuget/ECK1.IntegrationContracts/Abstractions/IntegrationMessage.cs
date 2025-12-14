@@ -1,4 +1,4 @@
-﻿namespace ECK1.IntegrationAbstractions;
+﻿namespace ECK1.IntegrationContracts.Abstractions;
 
 public interface IIntegrationEntity
 {

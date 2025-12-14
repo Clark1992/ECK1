@@ -1,4 +1,4 @@
-﻿using ECK1.IntegrationAbstractions;
+﻿using ECK1.IntegrationContracts.Abstractions;
 using ProtoBuf;
 
 namespace ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample;

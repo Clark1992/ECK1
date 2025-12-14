@@ -1,5 +1,5 @@
 ﻿using ECK1.Integration.EntityStore.Generated;
-using ECK1.IntegrationAbstractions;
+using ECK1.IntegrationContracts.Abstractions;
 using ECK1.Kafka;
 
 namespace ECK1.Integration.Cache.ShortTerm.Kafka;

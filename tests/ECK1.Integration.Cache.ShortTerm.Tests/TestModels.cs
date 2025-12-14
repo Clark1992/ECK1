@@ -1,4 +1,4 @@
-﻿using ECK1.IntegrationAbstractions;
+﻿using ECK1.IntegrationContracts.Abstractions;
 
 namespace ECK1.Integration.Cache.ShortTerm.Tests;
 

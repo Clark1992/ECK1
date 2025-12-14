@@ -5,7 +5,7 @@ namespace ECK1.GrpcService.CodeGen.Common
 {
     internal static class Common
     {
-        internal static readonly string InterfaceName = "ECK1.IntegrationAbstractions.IIntegrationEntity";
+        internal static readonly string InterfaceName = "ECK1.IntegrationContracts.Abstractions.IIntegrationEntity";
         internal static readonly string NsPrefix = "ECK1.Integration.EntityStore";
 
         internal static string MakeSafeFileName(string prefix, INamedTypeSymbol symbol) => $"{prefix}_{MakeSafeIdentifier(symbol)}.g.cs";

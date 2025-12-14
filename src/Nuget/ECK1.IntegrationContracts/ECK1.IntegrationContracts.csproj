@@ -28,8 +28,4 @@
     <Compile Remove="..\ECK1.Contracts.Shared\Json\**" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\ECK1.IntegrationAbstractions\ECK1.IntegrationAbstractions.csproj" />
-  </ItemGroup>
-
 </Project>
