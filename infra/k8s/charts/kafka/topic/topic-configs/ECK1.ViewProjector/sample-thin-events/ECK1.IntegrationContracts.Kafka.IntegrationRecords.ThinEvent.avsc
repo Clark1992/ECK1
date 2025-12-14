@@ -1,5 +1,5 @@
 ﻿{
-  "namespace": "ECK1.IntegrationContracts.Kafka.IntegrationRecords.Generated",
+  "namespace": "ECK1.IntegrationContracts.Kafka.IntegrationRecords",
   "name": "ThinEvent",
   "type": "record",
   "fields": [
