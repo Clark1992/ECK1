@@ -6,13 +6,14 @@
   "properties": {
     "SampleId": {
       "type": "string",
-      "format": "guid"
+      "format": "uuid"
     },
     "FailedEventType": {
       "type": [
         "null",
         "string"
-      ]
+      ],
+      "default": null
     },
     "FailureOccurredAt": {
       "type": "string",
@@ -22,13 +23,15 @@
       "type": [
         "null",
         "string"
-      ]
+      ],
+      "default": null
     },
     "StackTrace": {
       "type": [
         "null",
         "string"
-      ]
+      ],
+      "default": null
     }
   }
 }

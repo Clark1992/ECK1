@@ -30,15 +30,18 @@
           "type": [
             "null",
             "string"
-          ]
+          ],
+          "default": null
         },
         "Description": {
           "type": [
             "null",
             "string"
-          ]
+          ],
+          "default": null
         },
         "Address": {
+          "default": null,
           "oneOf": [
             {
               "type": "null"
@@ -111,7 +114,8 @@
           "type": [
             "null",
             "string"
-          ]
+          ],
+          "default": null
         },
         "$type": {
           "type": "string",
@@ -148,7 +152,8 @@
           "type": [
             "null",
             "string"
-          ]
+          ],
+          "default": null
         },
         "$type": {
           "type": "string",
@@ -182,6 +187,7 @@
           "format": "date-time"
         },
         "NewAddress": {
+          "default": null,
           "oneOf": [
             {
               "type": "null"
@@ -223,6 +229,7 @@
           "format": "date-time"
         },
         "Attachment": {
+          "default": null,
           "oneOf": [
             {
               "type": "null"
@@ -328,13 +335,15 @@
           "type": [
             "null",
             "string"
-          ]
+          ],
+          "default": null
         },
         "NewUrl": {
           "type": [
             "null",
             "string"
-          ]
+          ],
+          "default": null
         },
         "$type": {
           "type": "string",
@@ -371,15 +380,18 @@
           "type": [
             "null",
             "string"
-          ]
+          ],
+          "default": null
         },
         "Description": {
           "type": [
             "null",
             "string"
-          ]
+          ],
+          "default": null
         },
         "Address": {
+          "default": null,
           "oneOf": [
             {
               "type": "null"
@@ -394,6 +406,7 @@
             "array",
             "null"
           ],
+          "default": null,
           "items": {
             "$ref": "#/definitions/SampleAttachment"
           }
