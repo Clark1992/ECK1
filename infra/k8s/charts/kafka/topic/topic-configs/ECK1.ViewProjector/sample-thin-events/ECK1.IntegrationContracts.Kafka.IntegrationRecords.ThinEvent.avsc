@@ -1,1 +1,36 @@
-﻿{"namespace":"ECK1.IntegrationContracts.Kafka.IntegrationRecords","name":"ThinEvent","type":"record","fields":[{"name":"EventId","type":{"type":"string","logicalType":"uuid"}},{"name":"EntityId","type":{"type":"string","logicalType":"uuid"}},{"name":"Version","type":"int"},{"name":"OccuredAt","type":{"type":"long","logicalType":"timestamp-millis"}},{"name":"EventType","type":"string"}]}
+﻿{
+  "namespace": "ECK1.IntegrationContracts.Kafka.IntegrationRecords",
+  "name": "ThinEvent",
+  "type": "record",
+  "fields": [
+    {
+      "name": "EventId",
+      "type": {
+        "type": "string",
+        "logicalType": "uuid"
+      }
+    },
+    {
+      "name": "EntityId",
+      "type": {
+        "type": "string",
+        "logicalType": "uuid"
+      }
+    },
+    {
+      "name": "Version",
+      "type": "int"
+    },
+    {
+      "name": "OccuredAt",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    {
+      "name": "EventType",
+      "type": "string"
+    }
+  ]
+}
