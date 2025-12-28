@@ -14,6 +14,7 @@ namespace ECK1.CommandsAPI.Domain.Samples;
 public interface ISampleEvent
 {
     Guid SampleId { get; }
+    Guid EventId { get; }
     DateTimeOffset OccurredAt { get; set; }
 }
 
@@ -21,6 +22,8 @@ public record SampleEvent(Guid SampleId) : ISampleEvent
 {
     [JsonIgnore]
     public DateTimeOffset OccurredAt { get; set; } = DateTimeOffset.UtcNow;
+
+    public Guid EventId { get; set; } = Guid.NewGuid();
 }
 
 public record SampleCreatedEvent(Guid SampleId, string Name, string Description, SampleAddress Address) : SampleEvent(SampleId);

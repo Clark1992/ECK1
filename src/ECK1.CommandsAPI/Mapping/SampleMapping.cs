@@ -11,6 +11,7 @@ public class SampleMapping: MapByInterface<ISampleEvent, ContractEvents.Sample.I
     {
         // domain entity -> domain event (which will be then mapped to contract event by interface)
         this.CreateMap<Sample, SampleRebuiltEvent>(MemberList.Destination)
-            .ForMember(s => s.OccurredAt, o => o.Ignore());
+            .ForMember(s => s.OccurredAt, o => o.Ignore())
+            .ForMember(s => s.EventId, o => o.Ignore());
     }
 }

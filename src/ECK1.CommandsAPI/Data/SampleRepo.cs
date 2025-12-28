@@ -45,7 +45,7 @@ public class SampleRepo : ISampleRepo
 
         var newEventIds = newEvents.Select(e => e.EventId).ToList();
 
-        aggregate.MarkEventsAsCommitted(version);
+        aggregate.CommitEvents(version);
 
         // Auto snapshot creation
         if (_snapshotInterval > 0 && version % _snapshotInterval == 0)

@@ -45,3 +45,4 @@ HiddenREADME.md
 **/values.secrets.yaml
 *.env
 .devtests/**
+copilot-instructions.md

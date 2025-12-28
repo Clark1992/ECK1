@@ -5,6 +5,7 @@ namespace ECK1.ViewProjector.Events;
 public interface ISampleEvent
 {
     Guid SampleId { get; }
+    Guid EventId { get; }
     DateTimeOffset OccurredAt { get; }
     int Version { get; }
 }
@@ -14,6 +15,9 @@ public record SampleEvent(Guid SampleId, int Version) : ISampleEvent
 {
     [Id(0)]
     public DateTimeOffset OccurredAt { get; set; }
+
+    [Id(1)]
+    public Guid EventId { get; set; }
 }
 
 [GenerateSerializer]

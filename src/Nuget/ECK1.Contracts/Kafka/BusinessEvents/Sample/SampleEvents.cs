@@ -17,6 +17,7 @@ namespace ECK1.Contracts.Kafka.BusinessEvents.Sample;
 public interface ISampleEvent
 {
     Guid SampleId { get; }
+    Guid EventId { get; }
     DateTimeOffset OccurredAt { get; }
     int Version { get; set; }
 }
@@ -24,6 +25,7 @@ public interface ISampleEvent
 public abstract class SampleEvent : ISampleEvent
 {
     public Guid SampleId { get; set; }
+    public Guid EventId { get; set; }
     public int Version { get; set; }
     public DateTimeOffset OccurredAt { get; set; }
 }

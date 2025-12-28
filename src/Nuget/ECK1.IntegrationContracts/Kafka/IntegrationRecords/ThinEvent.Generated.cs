@@ -5,96 +5,109 @@
 //    is regenerated
 // </auto-generated>
 // ------------------------------------------------------------------------------
-namespace ECK1.IntegrationContracts.Kafka.IntegrationRecords.Generated
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-    using global::Avro;
-    using global::Avro.Specific;
+namespace ECK1.IntegrationContracts.Kafka.IntegrationRecords.Generated;
 
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("avrogen", "1.12.1+9110c693767c1dde2665b2b57939333478b12036")]
-    public partial class ThinEvent : global::Avro.Specific.ISpecificRecord
+using System;
+using System.Collections.Generic;
+using System.Text;
+using global::Avro;
+using global::Avro.Specific;
+
+[global::System.CodeDom.Compiler.GeneratedCodeAttribute("avrogen", "1.12.1+9110c693767c1dde2665b2b57939333478b12036")]
+public partial class ThinEvent : global::Avro.Specific.ISpecificRecord
+{
+    public static global::Avro.Schema _SCHEMA = global::Avro.Schema.Parse(@"{""type"":""record"",""name"":""ThinEvent"",""namespace"":""ECK1.IntegrationContracts.Kafka.IntegrationRecords"",""fields"":[{""name"":""EventId"",""default"":null,""type"":[""null"",{""type"":""string"",""logicalType"":""uuid""}]},{""name"":""EntityId"",""default"":null,""type"":[""null"",{""type"":""string"",""logicalType"":""uuid""}]},{""name"":""Version"",""type"":""int""},{""name"":""OccuredAt"",""type"":{""type"":""long"",""logicalType"":""timestamp-millis""}},{""name"":""EventType"",""type"":""string""}]}");
+    private System.Nullable<System.Guid> _EventId;
+    private System.Nullable<System.Guid> _EntityId;
+    private int _Version;
+    private System.DateTime _OccuredAt;
+    private string _EventType;
+    public virtual global::Avro.Schema Schema
     {
-        public static global::Avro.Schema _SCHEMA = global::Avro.Schema.Parse(@"{""type"":""record"",""name"":""ThinEvent"",""namespace"":""ECK1.IntegrationContracts.Kafka.IntegrationRecords.Generated"",""fields"":[{""name"":""Id"",""default"":null,""type"":[""null"",{""type"":""string"",""logicalType"":""uuid""}]},{""name"":""Version"",""type"":""int""},{""name"":""OccuredAt"",""type"":{""type"":""long"",""logicalType"":""timestamp-millis""}},{""name"":""EventType"",""type"":""string""}]}");
-        private System.Nullable<System.Guid> _Id;
-        private int _Version;
-        private System.DateTime _OccuredAt;
-        private string _EventType;
-        public virtual global::Avro.Schema Schema
+        get
         {
-            get
-            {
-                return ThinEvent._SCHEMA;
-            }
+            return ThinEvent._SCHEMA;
         }
-        public System.Nullable<System.Guid> Id
+    }
+    public System.Nullable<System.Guid> EventId
+    {
+        get
         {
-            get
-            {
-                return this._Id;
-            }
-            set
-            {
-                this._Id = value;
-            }
+            return this._EventId;
         }
-        public int Version
+        set
         {
-            get
-            {
-                return this._Version;
-            }
-            set
-            {
-                this._Version = value;
-            }
+            this._EventId = value;
         }
-        public System.DateTime OccuredAt
+    }
+    public System.Nullable<System.Guid> EntityId
+    {
+        get
         {
-            get
-            {
-                return this._OccuredAt;
-            }
-            set
-            {
-                this._OccuredAt = value;
-            }
+            return this._EntityId;
         }
-        public string EventType
+        set
         {
-            get
-            {
-                return this._EventType;
-            }
-            set
-            {
-                this._EventType = value;
-            }
+            this._EntityId = value;
         }
-        public virtual object Get(int fieldPos)
+    }
+    public int Version
+    {
+        get
         {
-            switch (fieldPos)
-            {
-                case 0: return this.Id;
-                case 1: return this.Version;
-                case 2: return this.OccuredAt;
-                case 3: return this.EventType;
-                default: throw new global::Avro.AvroRuntimeException("Bad index " + fieldPos + " in Get()");
-            }
-            ;
+            return this._Version;
         }
-        public virtual void Put(int fieldPos, object fieldValue)
+        set
         {
-            switch (fieldPos)
-            {
-                case 0: this.Id = (System.Nullable<System.Guid>)fieldValue; break;
-                case 1: this.Version = (System.Int32)fieldValue; break;
-                case 2: this.OccuredAt = (System.DateTime)fieldValue; break;
-                case 3: this.EventType = (System.String)fieldValue; break;
-                default: throw new global::Avro.AvroRuntimeException("Bad index " + fieldPos + " in Put()");
-            }
-            ;
+            this._Version = value;
         }
+    }
+    public System.DateTime OccuredAt
+    {
+        get
+        {
+            return this._OccuredAt;
+        }
+        set
+        {
+            this._OccuredAt = value;
+        }
+    }
+    public string EventType
+    {
+        get
+        {
+            return this._EventType;
+        }
+        set
+        {
+            this._EventType = value;
+        }
+    }
+    public virtual object Get(int fieldPos)
+    {
+        switch (fieldPos)
+        {
+            case 0: return this.EventId;
+            case 1: return this.EntityId;
+            case 2: return this.Version;
+            case 3: return this.OccuredAt;
+            case 4: return this.EventType;
+            default: throw new global::Avro.AvroRuntimeException("Bad index " + fieldPos + " in Get()");
+        }
+        ;
+    }
+    public virtual void Put(int fieldPos, object fieldValue)
+    {
+        switch (fieldPos)
+        {
+            case 0: this.EventId = (System.Nullable<System.Guid>)fieldValue; break;
+            case 1: this.EntityId = (System.Nullable<System.Guid>)fieldValue; break;
+            case 2: this.Version = (System.Int32)fieldValue; break;
+            case 3: this.OccuredAt = (System.DateTime)fieldValue; break;
+            case 4: this.EventType = (System.String)fieldValue; break;
+            default: throw new global::Avro.AvroRuntimeException("Bad index " + fieldPos + " in Put()");
+        }
+        ;
     }
 }

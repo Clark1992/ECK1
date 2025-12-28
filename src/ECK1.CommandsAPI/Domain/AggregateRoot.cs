@@ -34,7 +34,7 @@ public abstract class AggregateRoot<TEvent> : GenericHandler<TEvent>
         return this as TAggregate;
     }
 
-    public void MarkEventsAsCommitted(int version)
+    public void CommitEvents(int version)
     {
         _uncommittedEvents.Clear();
         Version = version;

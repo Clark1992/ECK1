@@ -5,7 +5,9 @@ namespace ECK1.IntegrationContracts.Kafka.IntegrationRecords;
 public class ThinEvent
 {
     [Required]
-    public Guid Id { get; set; }
+    public Guid EventId { get; set; }
+    [Required]
+    public Guid EntityId { get; set; }
     [Required]
     public int Version { get; set; }
     [Required]

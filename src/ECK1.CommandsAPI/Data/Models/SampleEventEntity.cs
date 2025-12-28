@@ -21,7 +21,7 @@ public class SampleEventEntity
 
     public static SampleEventEntity FromDomainEvent(ISampleEvent ev, int version) => new()
     {
-        EventId = Guid.NewGuid(),
+        EventId = ev.EventId,
         SampleId = ev.SampleId,
         EventType = ev.GetType().Name,
         EventData = JsonSerializer.Serialize(ev),
