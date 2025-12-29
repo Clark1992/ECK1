@@ -1,0 +1,25 @@
+{{- if eq .Values.environment "local" }}
+{{- range $i := until (int .Values.clickhouse.replicas) }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ $.Values.clickhouse.resourcePrefix }}-pv-{{ $i }}
+  annotations:
+    rollme: {{ now | quote }}
+spec:
+  capacity:
+    storage: {{ $.Values.clickhouse.persistence.size }}
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: {{ printf "%s/%d" $.Values.clickhouse.storage.hostPath $i }}
+    type: DirectoryOrCreate
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: {{ $.Values.clickhouse.persistence.storageClass }}
+  claimRef:
+    namespace: {{ $.Release.Namespace }}
+    name: data-{{ $.Values.clickhouse.resourcePrefix }}-{{ $i }}
+{{- end }}
+
+{{- end }}

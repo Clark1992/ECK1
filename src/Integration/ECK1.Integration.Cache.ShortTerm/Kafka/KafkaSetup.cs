@@ -1,6 +1,5 @@
 ﻿using Confluent.Kafka;
 using ECK1.Integration.EntityStore.Configuration.Generated;
-using ECK1.Integration.Plugin.Abstractions;
 using ECK1.Kafka;
 using ECK1.Kafka.Extensions;
 

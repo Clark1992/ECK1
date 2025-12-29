@@ -3,9 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ECK1.Integration.Plugin.Abstractions;
 
-public interface IIntergationPlugin<T>
+public interface IIntergationPlugin<TEvent, TMessage>
 {
-    Task PushAsync(T message);
+    Task PushAsync(TEvent @event, TMessage message);
 }
 
 public interface IIntergationPluginLoader

@@ -51,3 +51,39 @@
 
 {{- end }}
 
+
+
+{{- define "render.env.configMap" -}}
+{{- $root := index . 0 -}}
+{{- $prefix := index . 1 -}}
+
+{{- range $key, $value := $root }}
+  {{- if eq $prefix "" }}
+    {{- $envName := $key }}
+  {{- else }}
+    {{- $envName := printf "%s__%s" $prefix $key }}
+  {{- end }}
+
+  {{- $envName := (eq $prefix "" | ternary $key (printf "%s__%s" $prefix $key)) }}
+
+  {{- if and (kindIs "map" $value) (hasKey $value "name") (hasKey $value "key") }}
+
+- name: {{ $envName }}
+  valueFrom:
+    configMapKeyRef:
+      name: {{ $value.name }}
+      key: {{ $value.key }}
+
+  {{- else if kindIs "map" $value }}
+
+    {{- include "render.env.configMap" (list $value $envName) }}
+
+  {{- else }}
+
+    {{- fail (printf "Invalid configMap spec: expected map {name,key} for %s" $envName) }}
+
+  {{- end }}
+{{- end }}
+
+{{- end }}
+

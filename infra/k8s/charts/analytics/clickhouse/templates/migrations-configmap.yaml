@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.clickhouse.resourcePrefix }}-migrations
+data:
+{{- $files := .Files.Glob "files/migrations/*.sql" }}
+{{- if not $files }}
+  000-empty.sql: |
+    -- No migrations found.
+{{- else }}
+{{- range $path, $_ := $files }}
+  {{ base $path }}: |
+{{ $.Files.Get $path | indent 4 }}
+{{- end }}
+{{- end }}

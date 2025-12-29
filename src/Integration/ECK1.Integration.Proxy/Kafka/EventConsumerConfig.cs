@@ -27,30 +27,34 @@ public class EventConsumerConfig(
         services.ConfigTopicConsumer<ThinEvent>(
                 kafkaSettings.BootstrapServers,
                 topic,
+#if DEBUG
+                $"{kafkaSettings.GroupIdPrefix}-{plugin}-{Guid.NewGuid()}",
+#else
                 $"{kafkaSettings.GroupIdPrefix}-{plugin}",
+#endif
                 SubjectNameStrategy.Record,
                 SerializerType.AVRO,
                 sp =>
                 {
                     var logger = sp.GetRequiredService<ILogger<EventConsumerConfig>>();
-                    var plugin = sp.GetRequiredService<IIntergationPlugin<TMessage>>();
+                    var plugin = sp.GetRequiredService<IIntergationPlugin<ThinEvent, TMessage>>();
                     int? fieldMaskHash = null;
 
-                    return async (key, value, _, ct) =>
+                    return async (key, @event, _, ct) =>
                     {
-                        var occuredAt = value.OccuredAt;
-                        logger.LogInformation("{Topic}: Start handle '{message}:{id} (OccureAt: {occuredAt})'", topic, value.EventType, value.Id, occuredAt);
+                        var occuredAt = @event.OccuredAt;
+                        logger.LogInformation("{Topic}: Start handle '{message}:{id} (OccureAt: {occuredAt})'", topic, @event.EventType, @event.EntityId, occuredAt);
 
-                        if (!value.Id.HasValue)
+                        if (@event.EntityId == default)
                             return;
 
                         // TODO: dont send mask every time
                         var resp = await getter(new GetEntityRequest<TMessage>
                         {
                             FieldMaskHash = fieldMaskHash,
-                            Id = value.Id.Value.ToString(),
+                            Id = @event.EntityId.ToString(),
                             Mask = mask,
-                            MinVersion = value.Version
+                            MinVersion = @event.Version
                         });
 
                         // TODO: error handling if mask hash cache missed => resend with full mask
@@ -63,9 +67,9 @@ public class EventConsumerConfig(
 
                         fieldMaskHash = resp.FieldMaskHash;
 
-                        await plugin.PushAsync(resp.Item);
+                        await plugin.PushAsync(@event, resp.Item);
 
-                        logger.LogInformation("{Topic}: Handled '{message}:{id}'", topic, value.EventType, value.Id);
+                        logger.LogInformation("{Topic}: Handled '{message}:{id}'", topic, @event.EventType, @event.EntityId);
                     };
                 },
                 c =>

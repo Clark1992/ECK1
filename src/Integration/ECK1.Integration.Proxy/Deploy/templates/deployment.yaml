@@ -36,9 +36,17 @@ spec:
               value: "{{ $value }}"
             {{- end }}
             
-            {{- include "render.env" (list .spec.config.plain "") | nindent 12 }}
+            {{- with .spec.config.plain }}
+            {{- include "render.env" (list . "") | nindent 12 }}
+            {{- end }}
 
-            {{- include "render.env.secret" (list .spec.config.secret "") | nindent 12 }}
+            {{- with .spec.config.configMap }}
+            {{- include "render.env.configMap" (list . "") | nindent 12 }}
+            {{- end }}
+
+            {{- with .spec.config.secret }}
+            {{- include "render.env.secret" (list . "") | nindent 12 }}
+            {{- end }}
 
           volumeMounts:
             - name: kafka-client-secret
@@ -49,7 +57,9 @@ spec:
               mountPath: {{ $.Values.env.Proxy__PluginsDir }}
               readOnly: true
 
-            {{- toYaml .spec.volumeMounts | nindent 12 }}
+            {{- with .spec.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
 
             {{- include "config-merge.initConfigVolumeMounts" $ | nindent 12 }}
 
@@ -69,7 +79,9 @@ spec:
             claimName: plugins-pvc
         {{- end }}
 
-        {{- toYaml .spec.volumes | nindent 8 }}
+        {{- with .spec.volumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
 
         {{- include "config-merge.initConfigVolumes" $ | nindent 8 }}
 ---

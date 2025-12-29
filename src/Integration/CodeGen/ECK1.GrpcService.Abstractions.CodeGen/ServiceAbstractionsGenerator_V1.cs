@@ -1,7 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 using System.Text;
 
-using static ECK1.GrpcService.CodeGen.Common.Common;
+using static ECK1.CodeGen.Shared.Common.Common;
+using static ECK1.CodeGen.Shared.Grpc.GrpcCommon;
 
 namespace ECK1.GrpcService.Abstractions.CodeGen;
 

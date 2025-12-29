@@ -5,7 +5,7 @@ using ECK1.Kafka;
 namespace ECK1.Integration.Cache.ShortTerm.Kafka;
 
 public class CachePopulator<TRecord>(IEntityStore store, ILogger<CachePopulator<TRecord>> logger) : IKafkaMessageHandler<TRecord>
-    where TRecord: class, IIntegrationEntity
+    where TRecord: class, IIntegrationMessage
 {
     public async Task Handle(string key, TRecord message, KafkaMessageId messageId, CancellationToken ct)
     {

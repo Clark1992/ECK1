@@ -1,0 +1,11 @@
+clickhouse:
+  replicas: 1
+  persistence:
+    storageClass: "hostpath"
+    size: 10Gi
+
+service:
+  type: NodePort
+  nodePort:
+    http: 30400
+    tcp: 30410

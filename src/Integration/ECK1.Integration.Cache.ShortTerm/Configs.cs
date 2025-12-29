@@ -36,3 +36,13 @@ public class CacheConfig
 
     public RocksDbConfig RocksDb {  get; set; } = new();
 }
+
+public class IntegrationConfig : Dictionary<string, IntegrationConfigEntry>
+{
+    public static string Section => nameof(IntegrationConfig);
+}
+
+public class IntegrationConfigEntry
+{
+    public string RecordTopic { get; set; }
+}

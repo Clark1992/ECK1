@@ -1,7 +1,5 @@
 ﻿using ECK1.CommonUtils.Secrets.Doppler;
 using ECK1.CommonUtils.Secrets.K8s;
-using ECK1.Integration.Plugin.Abstractions;
-using static ECK1.Integration.Plugin.Abstractions.ConfigHelpers;
 
 namespace ECK1.Integration.Cache.ShortTerm;
 

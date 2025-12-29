@@ -178,7 +178,8 @@ public class SampleEventHandlers(
             await mediator.Publish(new EventNotification<SampleThinEvent, SampleView>(new SampleThinEvent
             {
                 EventType = data.Event.GetType().FullName,
-                Id = data.Event.SampleId,
+                EventId = data.Event.EventId,
+                EntityId = data.Event.SampleId,
                 OccuredAt = data.Event.OccurredAt.UtcDateTime,
                 Version = data.Event.Version
             }, newState), default);

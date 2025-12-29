@@ -14,7 +14,6 @@
         <ProjectReference Include="..\CodeGen\ECK1.GrpcService.Abstractions.CodeGen\ECK1.GrpcService.Abstractions.CodeGen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
         <ProjectReference Include="..\..\Nuget\ECK1.IntegrationContracts\ECK1.IntegrationContracts.csproj" />
         <ProjectReference Include="..\..\Nuget\ECK1.Kafka\ECK1.Kafka.csproj" />
-        <ProjectReference Include="..\IntegrationProxyPlugins\ECK1.Integration.Plugin.Abstractions\ECK1.Integration.Plugin.Abstractions.csproj" />
     </ItemGroup>
 
     <ItemGroup>

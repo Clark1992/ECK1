@@ -1,4 +1,6 @@
 ElasticSearchConfig__ClusterUrl: https://elasticsearch-svc.elasticsearch.svc.cluster.local:9200
+clickhouse:
+  compress: "False"
 
 envSpecific:
   ELASTICSEARCH_PASSWORD: "local"

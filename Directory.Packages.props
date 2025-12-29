@@ -9,6 +9,7 @@
     <PackageVersion Include="AvroSourceGenerator" Version="0.3.0" />
     <PackageVersion Include="ECK1.Contracts" Version="0.1.11" />
     <PackageVersion Include="ECK1.CommonUtils" Version="0.1.9" />
+    <PackageVersion Include="ECK1.IntegrationContracts" Version="0.1.2" />
     <PackageVersion Include="ECK1.Kafka" Version="0.1.7" />
     <PackageVersion Include="AutoMapper" Version="12.0.1" />
     <PackageVersion Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
@@ -31,12 +32,14 @@
     <PackageVersion Include="protobuf-net.Grpc.ClientFactory" Version="1.2.2" />
     <PackageVersion Include="RocksDB" Version="10.4.2.63147" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="9.0.4" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="9.0.8" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
     <PackageVersion Include="Confluent.Kafka" Version="2.11.1" />
     <PackageVersion Include="Confluent.SchemaRegistry" Version="2.11.1" />
     <PackageVersion Include="Confluent.SchemaRegistry.Serdes.Avro" Version="2.11.1" />
     <PackageVersion Include="Confluent.SchemaRegistry.Serdes.Json" Version="2.11.1" />
+    <PackageVersion Include="ClickHouse.Client" Version="7.14.0" />
     <PackageVersion Include="MongoDB.Driver" Version="2.19.0" />
     <PackageVersion Include="Microsoft.Orleans.Server" Version="9.2.1" />
     <PackageVersion Include="Microsoft.Orleans.Streaming" Version="9.2.1" />

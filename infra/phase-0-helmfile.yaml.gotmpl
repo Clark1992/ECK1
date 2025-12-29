@@ -12,6 +12,7 @@ releases:
     namespace: global
     chart: k8s/charts/global-vars
     values:
+      - phase-all-values.default.yaml
       - k8s/charts/global-vars/values.{{ .Environment.Name }}.yaml
 
   - name: kubed

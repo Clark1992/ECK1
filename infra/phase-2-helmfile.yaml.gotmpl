@@ -160,18 +160,6 @@ releases:
         apiKeyGenJob:
           secretName: {{ requiredEnv "ElasticSearchConfig__ApiKeySecretName" }}
 
-  # - name: elasticsearch-mappings-update
-  #   namespace: {{ $default.elasticsearch.namespace }}
-  #   needs:
-  #     - elasticsearch-internal-access
-  #   chart: k8s/charts/elasticsearch/index-mappings
-  #   values:
-  #     - elasticsearch:
-  #         resourcePrefix: {{ $default.elasticsearch.resourcePrefix }}
-  #         security:
-  #           password: '{{ requiredEnv "ELASTICSEARCH_PASSWORD" }}'
-  #         port: {{ $default.elasticsearch.port }}
-
   {{- if eq .Environment.Name "local" }}
 
   - name: cert-manager

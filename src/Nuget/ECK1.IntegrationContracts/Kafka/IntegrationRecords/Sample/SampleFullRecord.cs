@@ -4,7 +4,7 @@ using ProtoBuf;
 namespace ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample;
 
 [ProtoContract]
-public class SampleFullRecord: IIntegrationEntity
+public class SampleFullRecord: IIntegrationMessage
 {
     [ProtoIgnore] public string Id => SampleId.ToString();
     [ProtoMember(1)] public Guid SampleId { get; set; }

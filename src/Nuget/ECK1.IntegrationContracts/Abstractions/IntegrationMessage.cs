@@ -1,6 +1,6 @@
 ﻿namespace ECK1.IntegrationContracts.Abstractions;
 
-public interface IIntegrationEntity
+public interface IIntegrationMessage
 {
     string Id { get; }
 

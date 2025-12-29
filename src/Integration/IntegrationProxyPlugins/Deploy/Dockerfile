@@ -8,14 +8,21 @@ COPY ./nuget.config ./*.props  ./
 
 COPY src/Integration/IntegrationProxyPlugins/ECK1.Integration.Plugin.Abstractions/*.csproj ./Integration/IntegrationProxyPlugins/
 COPY src/Integration/IntegrationProxyPlugins/$PLUGIN_PROJ/*.csproj ./Integration/IntegrationProxyPlugins/
-RUN for file in $(ls Integration/IntegrationProxyPlugins/*.csproj); do name=$(basename "$file" .csproj); mkdir -p Integration/IntegrationProxyPlugins/${name}/ && mv $file Integration/IntegrationProxyPlugins/${name}/; done
 
-RUN dotnet restore Integration/IntegrationProxyPlugins/$PLUGIN_PROJ/$PLUGIN_PROJ.csproj
+RUN for file in $(ls Integration/IntegrationProxyPlugins/*.csproj); do name=$(basename "$file" .csproj); mkdir -p src/Integration/IntegrationProxyPlugins/${name}/ && mv $file src/Integration/IntegrationProxyPlugins/${name}/; done
 
-COPY src/Integration/IntegrationProxyPlugins/ECK1.Integration.Plugin.Abstractions ./Integration/IntegrationProxyPlugins/ECK1.Integration.Plugin.Abstractions
-COPY src/Integration/IntegrationProxyPlugins/$PLUGIN_PROJ ./Integration/IntegrationProxyPlugins/$PLUGIN_PROJ
+# TODO: remove when will target nuget
+COPY src/Nuget/*/*.csproj ./Nuget/
+RUN for file in $(ls Nuget/*.csproj); do name=$(basename "$file" .csproj); mkdir -p src/Nuget/${name}/ && mv $file src/Nuget/${name}/; done
 
-WORKDIR /src/Integration/IntegrationProxyPlugins/$PLUGIN_PROJ
+RUN dotnet restore src/Integration/IntegrationProxyPlugins/$PLUGIN_PROJ/$PLUGIN_PROJ.csproj
+
+COPY src/Integration/IntegrationProxyPlugins/ECK1.Integration.Plugin.Abstractions ./src/Integration/IntegrationProxyPlugins/ECK1.Integration.Plugin.Abstractions
+COPY src/Integration/IntegrationProxyPlugins/$PLUGIN_PROJ ./src/Integration/IntegrationProxyPlugins/$PLUGIN_PROJ
+COPY src/Integration/CodeGen/ECK1.Integration.Plugin.Abstractions.CodeGen ./src/Integration/CodeGen/ECK1.Integration.Plugin.Abstractions.CodeGen
+COPY src/Integration/CodeGen/ECK1.CodeGen.Shared ./src/Integration/CodeGen/ECK1.CodeGen.Shared
+
+WORKDIR /src/src/Integration/IntegrationProxyPlugins/$PLUGIN_PROJ
 RUN dotnet publish -c Release -o /lib/publish
 
 # CMD ["tail", "-f", "/dev/null"]

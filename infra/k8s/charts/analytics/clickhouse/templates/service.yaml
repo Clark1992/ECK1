@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $.Values.clickhouse.resourcePrefix }}-svc
+spec:
+  type: {{ $.Values.service.type }}
+  ports:
+    - port: {{ $.Values.clickhouse.port }}
+      name: http
+      {{- if eq $.Values.service.type "NodePort" }}
+      nodePort: {{ $.Values.service.nodePort.http }}
+      {{- end }}
+    - port: 9000
+      name: tcp
+  selector:
+    app: {{ $.Values.clickhouse.resourcePrefix }}

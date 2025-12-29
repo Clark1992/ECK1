@@ -29,7 +29,7 @@ public class Inner
     public InnerItem SubItem { get; set; }
 }
 
-public partial class Parent : IIntegrationEntity
+public partial class Parent : IIntegrationMessage
 {
     public string ParentId { get; set; }
     public string ParentString { get; set; }

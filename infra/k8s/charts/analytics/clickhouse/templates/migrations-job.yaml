@@ -1,0 +1,58 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.clickhouse.resourcePrefix }}-migrations
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      annotations:
+        checksum/migrations: {{ include (print $.Template.BasePath "/migrations-configmap.yaml") . | sha256sum }}
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrations
+          image: {{ .Values.clickhouse.image }}
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -eu
+
+              CH_HOST="{{ .Values.clickhouse.resourcePrefix }}-svc"
+              CH_PORT="{{ .Values.migrations.port | default 9000 }}"
+              CH_DB="{{ .Values.clickhouse.database }}"
+
+              echo "Creating database if needed: $CH_DB"
+              clickhouse-client --host "$CH_HOST" --port "$CH_PORT" --query "CREATE DATABASE IF NOT EXISTS ${CH_DB}"
+
+              echo "Ensuring schema_migrations table exists"
+              clickhouse-client --host "$CH_HOST" --port "$CH_PORT" --database "$CH_DB" --query "CREATE TABLE IF NOT EXISTS schema_migrations (id String, applied_at DateTime) ENGINE = MergeTree ORDER BY (id)"
+
+              echo "Applying migrations (idempotent)"
+              for file in /migrations/*.sql; do
+                [ -f "$file" ] || continue
+                id=$(basename "$file")
+
+                applied=$(clickhouse-client --host "$CH_HOST" --port "$CH_PORT" --database "$CH_DB" --query "SELECT count() FROM schema_migrations WHERE id='${id}'")
+                if [ "$applied" = "0" ]; then
+                  echo "Running $id"
+                  clickhouse-client --host "$CH_HOST" --port "$CH_PORT" --database "$CH_DB" --multiquery < "$file"
+                  clickhouse-client --host "$CH_HOST" --port "$CH_PORT" --database "$CH_DB" --query "INSERT INTO schema_migrations (id, applied_at) VALUES ('${id}', now())"
+                else
+                  echo "Skipping $id (already applied)"
+                fi
+              done
+
+              echo "Done."
+          volumeMounts:
+            - name: migrations
+              mountPath: /migrations
+              readOnly: true
+      volumes:
+        - name: migrations
+          configMap:
+            name: {{ .Values.clickhouse.resourcePrefix }}-migrations

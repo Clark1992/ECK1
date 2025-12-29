@@ -16,8 +16,10 @@ public class IntergationPluginRegistry(ILogger<IntergationPluginRegistry> logger
     {
 #if DEBUG
         ["Elasticsearch"] = "ECK1.Integration.Plugin.ElasticSearch/bin/Debug/net8.0/ECK1.Integration.Plugin.ElasticSearch.dll",
+        ["Clickhouse"] = "ECK1.Integration.Plugin.Clickhouse/bin/Debug/net8.0/ECK1.Integration.Plugin.Clickhouse.dll",
 #else
         ["Elasticsearch"] = "ElasticSearch/ECK1.Integration.Plugin.ElasticSearch.dll",
+        ["Clickhouse"] = "Clickhouse/ECK1.Integration.Plugin.Clickhouse.dll",
 #endif
     };
 

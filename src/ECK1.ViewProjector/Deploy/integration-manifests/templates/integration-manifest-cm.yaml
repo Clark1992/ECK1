@@ -10,8 +10,6 @@ data:
     RecordTopic: sample-full-records
     Plugins: 
       Elasticsearch: 
-        Indexes: 
-          - sample-full-records
         Fields:
           - "sampleId"
           - "name"
@@ -22,4 +20,63 @@ data:
           - "attachments.id"
           - "attachments.fileName"
           - "attachments.url"
- 
+        Indexes: 
+          - sample-full-records
+
+      Clickhouse:
+        Fields:
+          - sampleId
+          - version
+          - name
+          - address.street
+          - address.city
+          - address.country
+          - attachments.fileName
+          - attachments.url
+
+        Table: integration_events_raw
+
+        Mappings:
+          format: object[]
+          items:
+            event_id:
+              source: event.EventId
+              type: System.Guid
+
+            event_type:
+              source: event.EventType
+              type: string
+
+            occurred_at:
+              source: event.OccuredAt
+              type: System.DateTime
+
+            entity_id:
+              source: event.EntityId
+              type: System.Guid
+
+            entity_type:
+              source: const.Sample
+              type: string
+
+            entity_version:
+              source: record.Version
+              type: int
+
+            payload:
+              format: json
+              fields:
+                sample_id: record.SampleId
+                name: record.Name
+                version: record.Version
+
+                address_city: record.Address.City
+                address_country: record.Address.Country
+
+                attachments:
+                  type: array
+                  context: record.Attachments
+                  items:
+                    - fileName: item.FileName
+                    - url: item.Url
+

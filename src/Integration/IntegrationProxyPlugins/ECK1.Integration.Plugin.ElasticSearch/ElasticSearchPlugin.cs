@@ -17,7 +17,7 @@ public class ElasticSearchPluginLoader : IIntergationPluginLoader
         services.Configure<ElasticSearchConfig>(config.GetSection(nameof(ElasticSearchConfig)));
         services.AddSingleton(integrationConfig);
 
-        services.AddSingleton(typeof(IIntergationPlugin<>), typeof(ElasticSearchWriter<>));
+        services.AddSingleton(typeof(IIntergationPlugin<,>), typeof(ElasticSearchWriter<,>));
 
         services.AddSingleton<ElasticsearchClient>(sp =>
         {
@@ -57,21 +57,21 @@ public class ElasticSearchPluginLoader : IIntergationPluginLoader
     }
 }
 
-public class ElasticSearchWriter<T> : IIntergationPlugin<T>
+public class ElasticSearchWriter<TEvent, TMessage> : IIntergationPlugin<TEvent, TMessage>
 {
     private readonly ElasticsearchClient client;
-    private readonly ILogger<ElasticSearchWriter<T>> logger;
+    private readonly ILogger<ElasticSearchWriter<TEvent, TMessage>> logger;
     private readonly List<string> indexes;
     private readonly ElasticSearchConfig config;
 
     public ElasticSearchWriter(
         ElasticsearchClient client,
-        ILogger<ElasticSearchWriter<T>> logger,
+        ILogger<ElasticSearchWriter<TEvent, TMessage>> logger,
         IOptions<ElasticSearchConfig> options,
         IntegrationConfig integrationConfig)
     {
         this.logger = logger;
-        string messageType = typeof(T).FullName;
+        string messageType = typeof(TMessage).FullName;
         this.indexes = integrationConfig.TryGetValue(
                 messageType, out var entry) ?
             entry.PluginConfig.GetSection("Indexes").Get<List<string>>() :
@@ -84,7 +84,7 @@ public class ElasticSearchWriter<T> : IIntergationPlugin<T>
         this.logger.LogInformation("Indexes for {type}: {config}", messageType, JsonSerializer.Serialize(this.indexes));
     }
 
-    public async Task PushAsync(T message)
+    public async Task PushAsync(TEvent _, TMessage message)
     {
         try
         {

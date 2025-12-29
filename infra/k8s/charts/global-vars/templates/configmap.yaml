@@ -9,6 +9,9 @@ data:
   ElasticSearchConfig__ClusterUrl: {{ .Values.ElasticSearchConfig__ClusterUrl | quote }}
   ElasticSearchConfig__CaSecretName: "es-ca"
   ElasticSearchConfig__ApiKeySecretName: "es-api-key"
+
+  ClickhouseConfig__ConnectionString: "Host={{ .Values.clickhouse.resourcePrefix }}-svc.{{ .Values.clickhouse.namespace }}.svc.cluster.local;Port={{ .Values.clickhouse.port }};Database={{ .Values.clickhouse.database }};Username={{ .Values.clickhouse.username }};Password={{ .Values.clickhouse.password | default "" }};Compress={{ .Values.clickhouse.compress }}"
+
   AppServiceNamespace: "app-services"
   {{- if .Values.envSpecific }}
   {{- range $key, $value := .Values.envSpecific }}

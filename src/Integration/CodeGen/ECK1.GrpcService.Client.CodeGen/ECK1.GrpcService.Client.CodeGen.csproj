@@ -19,7 +19,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Compile Include="..\ECK1.GrpcService.CodeGen.Shared\**\*.cs">
+		<Compile Include="..\ECK1.CodeGen.Shared\Common\*.cs">
+			<Link>Shared\%(RecursiveDir)%(Filename)%(Extension)</Link>
+		</Compile>
+		<Compile Include="..\ECK1.CodeGen.Shared\Grpc\*.cs">
 			<Link>Shared\%(RecursiveDir)%(Filename)%(Extension)</Link>
 		</Compile>
 	</ItemGroup>

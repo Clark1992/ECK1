@@ -91,11 +91,17 @@ releases:
           image: {{ $default.elasticsearch.image }}
           caSecretName: {{ requiredEnv "ElasticSearchConfig__CaSecretName" }}
 
-
-      
-      
-
-          
-
-
-
+  - name: clickhouse
+    namespace: {{ $default.clickhouse.namespace }}
+    chart: k8s/charts/analytics/clickhouse
+    values:
+      - environment: {{ .Environment.Name }}
+      - clickhouse:
+          resourcePrefix: {{ $default.clickhouse.resourcePrefix }}
+          port: {{ $default.clickhouse.port }}
+          database: {{ $default.clickhouse.database }}
+          username: {{ $default.clickhouse.username }}
+      - k8s/charts/analytics/clickhouse/values.{{ .Environment.Name }}.yaml
+      {{- if isFile "k8s/charts/analytics/clickhouse/values.secrets.yaml" }}
+      - k8s/charts/analytics/clickhouse/values.secrets.yaml
+      {{- end }}

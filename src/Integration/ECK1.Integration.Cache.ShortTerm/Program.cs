@@ -5,7 +5,6 @@ using ECK1.Integration.Cache.ShortTerm.Services;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using ProtoBuf.Grpc.Server;
 using ECK1.Integration.EntityStore.Generated;
-using ECK1.Integration.Plugin.Abstractions;
 
 var builder = WebApplication.CreateBuilder(args);
 

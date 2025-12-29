@@ -11,3 +11,11 @@ kafka:
 apicurio:
   namespace: apicurio
   schemaRegistryUrlInternal: "http://apicurio-registry-service.apicurio.svc.cluster.local:8080/apis/ccompat/v7"
+
+clickhouse:
+  namespace: analytics
+  resourcePrefix: clickhouse
+  port: 8123
+  database: eck1_analytics
+  username: default
+  compress: "True"

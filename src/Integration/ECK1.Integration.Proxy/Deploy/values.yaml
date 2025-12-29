@@ -8,4 +8,3 @@ image:
 env:
   ASPNETCORE_ENVIRONMENT: Development
   Proxy__PluginsDir: "/mnt/plugins"
-

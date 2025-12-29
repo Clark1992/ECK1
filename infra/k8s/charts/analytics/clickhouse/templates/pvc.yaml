@@ -1,0 +1,16 @@
+{{- range $i := until (int .Values.clickhouse.replicas) }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data-{{ $.Values.clickhouse.resourcePrefix }}-{{ $i }}
+  annotations:
+    rollme: {{ now | quote }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ $.Values.clickhouse.persistence.storageClass }}
+  resources:
+    requests:
+      storage: {{ $.Values.clickhouse.persistence.size }}
+{{- end }}

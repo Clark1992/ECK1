@@ -1,10 +1,10 @@
 ﻿using Microsoft.CodeAnalysis;
-using System.Net;
 using System.Text;
 
-using static ECK1.GrpcService.CodeGen.Common.Common;
+using static ECK1.CodeGen.Shared.Common.Common;
+using static ECK1.CodeGen.Shared.Grpc.GrpcCommon;
 
-namespace ECK1.GrpcService.Abstractions.CodeGen;
+namespace ECK1.GrpcService.Client.CodeGen;
 
 [Generator]
 public class ServiceAbstractionsGenerator : IIncrementalGenerator

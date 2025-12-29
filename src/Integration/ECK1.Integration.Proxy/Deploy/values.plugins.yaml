@@ -19,3 +19,14 @@ plugins:
             ApiKey: 
               name: {{ .Env.ElasticSearchConfig__ApiKeySecretName }}
               key: api_key
+
+  - name: Clickhouse
+    replicaCount: 1
+    spec:
+      config:
+        configMap:
+          ClickhouseConfig:
+            ConnectionString: 
+              name: global-vars
+              key: ClickhouseConfig__ConnectionString
+            
