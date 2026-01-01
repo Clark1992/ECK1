@@ -1,0 +1,4 @@
+apiVersion: v2
+name: grafana-ingress
+version: 0.1.0
+description: Grafana ingress (expose Grafana via ingress-nginx)

@@ -6,6 +6,8 @@ repositories:
     url: https://strimzi.io/charts
   - name: elastic
     url: https://helm.elastic.co
+  - name: grafana
+    url: https://grafana.github.io/helm-charts
 
 ---
 {{- $common := (readFile "./phase-all-values.default.yaml" | fromYaml) }}
@@ -101,7 +103,62 @@ releases:
           port: {{ $default.clickhouse.port }}
           database: {{ $default.clickhouse.database }}
           username: {{ $default.clickhouse.username }}
+          password: {{ $default.clickhouse.password }}
       - k8s/charts/analytics/clickhouse/values.{{ .Environment.Name }}.yaml
       {{- if isFile "k8s/charts/analytics/clickhouse/values.secrets.yaml" }}
       - k8s/charts/analytics/clickhouse/values.secrets.yaml
       {{- end }}
+
+  - name: grafana-storage
+    installed: {{ eq .Environment.Name "local" }}
+    namespace: {{ $default.grafana.namespace }}
+    chart: k8s/charts/analytics/grafana/storage
+    values:
+      - environment: {{ .Environment.Name }}
+      - k8s/charts/analytics/grafana/storage/values.{{ .Environment.Name }}.yaml
+      {{- if isFile "k8s/charts/analytics/grafana/storage/values.secrets.yaml" }}
+      - k8s/charts/analytics/grafana/storage/values.secrets.yaml
+      {{- end }}
+
+  - name: grafana
+    needs:
+      - clickhouse
+      - grafana-storage
+    namespace: {{ $default.grafana.namespace }}
+    chart: grafana/grafana
+    version: {{ $default.grafana.chartVersion }}
+    values:
+      - adminUser: admin
+      - adminPassword: {{ env "GRAFANA_ADMIN_PASSWORD" | default "admin" | quote }}
+      {{- if eq .Environment.Name "local" }}
+      - initChownData:
+          enabled: false
+      - persistence:
+          enabled: true
+          existingClaim: grafana
+      - extraVolumes:
+          - name: grafana-plugins
+            emptyDir: {}
+      - extraVolumeMounts:
+          - name: grafana-plugins
+            mountPath: /var/lib/grafana/plugins
+      {{- end }}
+      - plugins:
+          - grafana-clickhouse-datasource 4.11.4
+      - datasources:
+          datasources.yaml:
+            apiVersion: 1
+            datasources:
+              - name: ClickHouse
+                type: grafana-clickhouse-datasource
+                access: proxy
+                editable: true
+                isDefault: false
+                jsonData:
+                  defaultDatabase: {{ $default.clickhouse.database | quote }}
+                  host: {{ printf "%s-svc.%s.svc.cluster.local" $default.clickhouse.resourcePrefix $default.clickhouse.namespace | quote }}
+                  port: {{ $default.clickhouse.port }}
+                  username: {{ $default.clickhouse.username | quote }}
+                  protocol: http
+                secureJsonData:
+                  password: {{ $default.clickhouse.password | quote }}

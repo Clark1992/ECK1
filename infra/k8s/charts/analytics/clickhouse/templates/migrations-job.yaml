@@ -4,7 +4,7 @@ metadata:
   name: {{ .Values.clickhouse.resourcePrefix }}-migrations
   annotations:
     "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    # "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 spec:
   backoffLimit: 1
   template:
@@ -17,6 +17,11 @@ spec:
         - name: migrations
           image: {{ .Values.clickhouse.image }}
           imagePullPolicy: IfNotPresent
+          env:
+            - name: CLICKHOUSE_USER
+              value: {{ .Values.clickhouse.username | default "" | quote }}
+            - name: CLICKHOUSE_PASSWORD
+              value: {{ .Values.clickhouse.password | default "" | quote }}
           command: ["/bin/sh", "-c"]
           args:
             - |
@@ -26,22 +31,36 @@ spec:
               CH_PORT="{{ .Values.migrations.port | default 9000 }}"
               CH_DB="{{ .Values.clickhouse.database }}"
 
+              AUTH_ARGS=""
+              if [ -n "${CLICKHOUSE_USER:-}" ]; then
+                AUTH_ARGS="$AUTH_ARGS --user ${CLICKHOUSE_USER}"
+              fi
+              if [ -n "${CLICKHOUSE_PASSWORD:-}" ]; then
+                AUTH_ARGS="$AUTH_ARGS --password ${CLICKHOUSE_PASSWORD}"
+              fi
+
+              echo "Waiting for ClickHouse..."
+              until clickhouse-client --host "$CH_HOST" --port "$CH_PORT" $AUTH_ARGS --query "SELECT 1" >/dev/null 2>&1; do
+                sleep 2
+              done
+              echo "ClickHouse is ready"
+
               echo "Creating database if needed: $CH_DB"
-              clickhouse-client --host "$CH_HOST" --port "$CH_PORT" --query "CREATE DATABASE IF NOT EXISTS ${CH_DB}"
+              clickhouse-client --host "$CH_HOST" --port "$CH_PORT" $AUTH_ARGS --query "CREATE DATABASE IF NOT EXISTS ${CH_DB}"
 
               echo "Ensuring schema_migrations table exists"
-              clickhouse-client --host "$CH_HOST" --port "$CH_PORT" --database "$CH_DB" --query "CREATE TABLE IF NOT EXISTS schema_migrations (id String, applied_at DateTime) ENGINE = MergeTree ORDER BY (id)"
+              clickhouse-client --host "$CH_HOST" --port "$CH_PORT" $AUTH_ARGS --database "$CH_DB" --query "CREATE TABLE IF NOT EXISTS schema_migrations (id String, applied_at DateTime) ENGINE = MergeTree ORDER BY (id)"
 
               echo "Applying migrations (idempotent)"
               for file in /migrations/*.sql; do
                 [ -f "$file" ] || continue
                 id=$(basename "$file")
 
-                applied=$(clickhouse-client --host "$CH_HOST" --port "$CH_PORT" --database "$CH_DB" --query "SELECT count() FROM schema_migrations WHERE id='${id}'")
+                applied=$(clickhouse-client --host "$CH_HOST" --port "$CH_PORT" $AUTH_ARGS --database "$CH_DB" --query "SELECT count() FROM schema_migrations WHERE id='${id}'")
                 if [ "$applied" = "0" ]; then
                   echo "Running $id"
-                  clickhouse-client --host "$CH_HOST" --port "$CH_PORT" --database "$CH_DB" --multiquery < "$file"
-                  clickhouse-client --host "$CH_HOST" --port "$CH_PORT" --database "$CH_DB" --query "INSERT INTO schema_migrations (id, applied_at) VALUES ('${id}', now())"
+                  clickhouse-client --host "$CH_HOST" --port "$CH_PORT" $AUTH_ARGS --database "$CH_DB" --multiquery < "$file"
+                  clickhouse-client --host "$CH_HOST" --port "$CH_PORT" $AUTH_ARGS --database "$CH_DB" --query "INSERT INTO schema_migrations (id, applied_at) VALUES ('${id}', now())"
                 else
                   echo "Skipping $id (already applied)"
                 fi

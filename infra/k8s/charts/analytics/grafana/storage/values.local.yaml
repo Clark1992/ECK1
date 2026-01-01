@@ -1,0 +1,9 @@
+environment: local
+
+grafana:
+  resourcePrefix: grafana
+
+  persistence:
+    storageClass: "hostpath"
+    size: 5Gi
+    claimName: grafana

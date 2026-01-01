@@ -18,4 +18,8 @@ clickhouse:
   port: 8123
   database: eck1_analytics
   username: default
+  password: default
   compress: "True"
+
+grafana:
+  namespace: analytics

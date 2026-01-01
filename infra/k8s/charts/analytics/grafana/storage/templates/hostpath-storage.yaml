@@ -1,0 +1,20 @@
+{{- if eq .Values.environment "local" }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.grafana.resourcePrefix }}-pv
+spec:
+  capacity:
+    storage: {{ .Values.grafana.persistence.size }}
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: {{ printf "%s/grafana" .Values.grafana.storage.hostPathRoot | quote }}
+    type: DirectoryOrCreate
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: {{ .Values.grafana.persistence.storageClass }}
+  claimRef:
+    namespace: {{ $.Release.Namespace }}
+    name: {{ .Values.grafana.persistence.claimName }}
+{{- end }}

@@ -1,0 +1,4 @@
+apiVersion: v2
+name: grafana-storage
+version: 0.1.0
+description: Grafana local hostPath PV + PVC

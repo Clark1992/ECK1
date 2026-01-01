@@ -1,2 +1,5 @@
 kafka:
   operatorVersion: "0.45.0"
+
+grafana:
+  chartVersion: "10.4.3"

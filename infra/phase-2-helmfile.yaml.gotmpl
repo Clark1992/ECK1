@@ -33,6 +33,14 @@ releases:
       - name: controller.service.nodePorts.https
         value: {{ $default.ingress.ingressHttpsPort }}
 
+  - name: grafana-ingress
+    needs:
+      - {{ $default.ingress.namespace }}/ingress-nginx
+    namespace: {{ $default.grafana.namespace }}
+    chart: k8s/charts/analytics/grafana/ingress
+    values:
+      - k8s/charts/analytics/grafana/ingress/values.{{ .Environment.Name }}.yaml
+
   - name: apicurio
     needs:
       - {{ $default.ingress.namespace }}/ingress-nginx

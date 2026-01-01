@@ -1,0 +1,11 @@
+grafana:
+  serviceName: grafana
+  servicePort: 80
+
+ingress:
+  enabled: true
+  host: grafana.localhost
+  className: nginx
+  tls:
+    enabled: false
+    secretName: ""
