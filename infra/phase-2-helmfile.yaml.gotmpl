@@ -2,8 +2,6 @@ environments:
   local: {}
 
 repositories:
-  - name: ingress-nginx
-    url: https://kubernetes.github.io/ingress-nginx
   - name: kafka-ui 
     url: https://provectus.github.io/kafka-ui-charts
   - name: nfs-subdir-external-provisioner
@@ -21,29 +19,7 @@ repositories:
 {{- $default := merge $common $phase }}
 
 releases:
-  - name: ingress-nginx
-    namespace: {{ $default.ingress.namespace }}
-    chart: ingress-nginx/ingress-nginx
-    version: {{ $default.ingress.ingressChartVersion }}
-    values:
-      - k8s/charts/ingress-nginx/values.{{ .Environment.Name }}.yaml
-    set:
-      - name: controller.service.nodePorts.http
-        value: {{ $default.ingress.ingressHttpPort }}
-      - name: controller.service.nodePorts.https
-        value: {{ $default.ingress.ingressHttpsPort }}
-
-  - name: grafana-ingress
-    needs:
-      - {{ $default.ingress.namespace }}/ingress-nginx
-    namespace: {{ $default.grafana.namespace }}
-    chart: k8s/charts/analytics/grafana/ingress
-    values:
-      - k8s/charts/analytics/grafana/ingress/values.{{ .Environment.Name }}.yaml
-
   - name: apicurio
-    needs:
-      - {{ $default.ingress.namespace }}/ingress-nginx
     namespace: {{ $default.apicurio.namespace }}
     chart: k8s/charts/kafka/schema-registry/apicurio
     values:
@@ -81,8 +57,6 @@ releases:
           - '{{ requiredEnv "KAFKA_PASSWORD" }}'
 
   - name: kafka-ui
-    needs:
-      - {{ $default.ingress.namespace }}/ingress-nginx
     namespace: {{ $default.kafka.namespace }}
     chart: kafka-ui/kafka-ui
     version: {{ $default.kafkaUi.version }}

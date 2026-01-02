@@ -2,4 +2,9 @@ kafka:
   operatorVersion: "0.45.0"
 
 grafana:
-  chartVersion: "10.4.3"
+  namespace: analytics
+  resourcePrefix: grafana
+
+ingress:
+  namespace: ingress-nginx
+  ingressChartVersion: 4.13.3

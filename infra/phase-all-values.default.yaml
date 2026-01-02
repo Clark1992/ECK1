@@ -8,6 +8,10 @@ kafka:
   namespace: kafka
   userSecretName: "kafka-user"
 
+ingress:
+  ingressHttpPort: 30200
+  ingressHttpsPort: 30443
+
 apicurio:
   namespace: apicurio
   schemaRegistryUrlInternal: "http://apicurio-registry-service.apicurio.svc.cluster.local:8080/apis/ccompat/v7"
@@ -20,6 +24,3 @@ clickhouse:
   username: default
   password: default
   compress: "True"
-
-grafana:
-  namespace: analytics

@@ -1,0 +1,20 @@
+apiVersion: v2
+name: grafana-stack
+version: 0.1.0
+description: ECK1 Grafana stack (grafana + storage + ingress)
+type: application
+
+dependencies:
+  - name: grafana
+    version: 10.4.3
+    repository: https://grafana.github.io/helm-charts
+
+  - name: grafana-storage
+    version: 0.1.0
+    repository: file://storage
+    condition: grafana-storage.enabled
+
+  - name: grafana-ingress
+    version: 0.1.0
+    repository: file://ingress
+    condition: grafana-ingress.enabled

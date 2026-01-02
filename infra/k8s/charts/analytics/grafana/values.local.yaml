@@ -1,0 +1,18 @@
+grafana-storage:
+  grafana:
+    persistence:
+      storageClass: "hostpath"
+      size: 5Gi
+      claimName: grafana
+
+grafana-ingress:
+  grafana:
+    servicePort: 80
+
+  ingress:
+    enabled: true
+    host: grafana.localhost
+    className: nginx
+    tls:
+      enabled: false
+      secretName: ""

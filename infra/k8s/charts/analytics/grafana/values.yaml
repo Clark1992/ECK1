@@ -1,0 +1,23 @@
+grafana-storage:
+  enabled: false
+
+grafana-ingress:
+  enabled: false
+
+grafana:
+  adminUser: admin
+  adminPassword: admin
+
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      folder: /var/lib/grafana/dashboards
+      provider:
+        name: default
+        orgid: 1
+        folder: ""
+        type: file
+        disableDelete: false
+        allowUiUpdates: true

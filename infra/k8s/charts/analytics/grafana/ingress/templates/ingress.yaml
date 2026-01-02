@@ -22,7 +22,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ .Values.grafana.serviceName }}
+                name: {{ .Values.grafana.resourcePrefix }}
                 port:
                   number: {{ .Values.grafana.servicePort }}
 {{- end }}

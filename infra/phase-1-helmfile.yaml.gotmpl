@@ -8,6 +8,8 @@ repositories:
     url: https://helm.elastic.co
   - name: grafana
     url: https://grafana.github.io/helm-charts
+  - name: ingress-nginx
+    url: https://kubernetes.github.io/ingress-nginx
 
 ---
 {{- $common := (readFile "./phase-all-values.default.yaml" | fromYaml) }}
@@ -23,6 +25,19 @@ releases:
       - elasticsearch: 
           caSecretName: {{ requiredEnv "ElasticSearchConfig__CaSecretName" }}
           apiKeySecretName: {{ requiredEnv "ElasticSearchConfig__ApiKeySecretName" }}
+
+  - name: ingress-nginx
+    namespace: {{ $default.ingress.namespace }}
+    createNamespace: true
+    chart: ingress-nginx/ingress-nginx
+    version: {{ $default.ingress.ingressChartVersion }}
+    values:
+      - k8s/charts/ingress-nginx/values.{{ .Environment.Name }}.yaml
+    set:
+      - name: controller.service.nodePorts.http
+        value: {{ $default.ingress.ingressHttpPort }}
+      - name: controller.service.nodePorts.https
+        value: {{ $default.ingress.ingressHttpsPort }}
 
   - name: strimzi
     namespace: {{ $default.kafka.namespace }}
@@ -109,56 +124,73 @@ releases:
       - k8s/charts/analytics/clickhouse/values.secrets.yaml
       {{- end }}
 
-  - name: grafana-storage
-    installed: {{ eq .Environment.Name "local" }}
-    namespace: {{ $default.grafana.namespace }}
-    chart: k8s/charts/analytics/grafana/storage
-    values:
-      - environment: {{ .Environment.Name }}
-      - k8s/charts/analytics/grafana/storage/values.{{ .Environment.Name }}.yaml
-      {{- if isFile "k8s/charts/analytics/grafana/storage/values.secrets.yaml" }}
-      - k8s/charts/analytics/grafana/storage/values.secrets.yaml
-      {{- end }}
-
   - name: grafana
     needs:
+      - {{ $default.ingress.namespace }}/ingress-nginx
       - clickhouse
-      - grafana-storage
     namespace: {{ $default.grafana.namespace }}
-    chart: grafana/grafana
-    version: {{ $default.grafana.chartVersion }}
+    chart: k8s/charts/analytics/grafana
     values:
-      - adminUser: admin
-      - adminPassword: {{ env "GRAFANA_ADMIN_PASSWORD" | default "admin" | quote }}
-      {{- if eq .Environment.Name "local" }}
-      - initChownData:
-          enabled: false
-      - persistence:
-          enabled: true
-          existingClaim: grafana
-      - extraVolumes:
-          - name: grafana-plugins
-            emptyDir: {}
-      - extraVolumeMounts:
-          - name: grafana-plugins
-            mountPath: /var/lib/grafana/plugins
+      - grafana-storage:
+          enabled: {{ eq .Environment.Name "local" }}
+          environment: {{ .Environment.Name }}
+          grafana:
+            resourcePrefix: {{ $default.grafana.resourcePrefix }}
+      - grafana-ingress:
+          enabled: {{ eq .Environment.Name "local" }}
+          environment: {{ .Environment.Name }}
+          grafana:
+            resourcePrefix: {{ $default.grafana.resourcePrefix }}
+      - grafana:
+          adminUser: admin
+          adminPassword: {{ env "GRAFANA_ADMIN_PASSWORD" | default "admin" | quote }}
+          sidecar:
+            dashboards:
+              enabled: true
+              label: grafana_dashboard
+              labelValue: "1"
+              folder: /var/lib/grafana/dashboards
+              provider:
+                name: default
+                orgid: 1
+                folder: ""
+                type: file
+                disableDelete: false
+                allowUiUpdates: true
+          {{- if eq .Environment.Name "local" }}
+          initChownData:
+            enabled: true
+          persistence:
+            enabled: true
+            existingClaim: grafana
+          extraVolumes:
+            - name: grafana-plugins
+              emptyDir: {}
+          extraVolumeMounts:
+            - name: grafana-plugins
+              mountPath: /var/lib/grafana/plugins
+          {{- end }}
+          plugins:
+            - grafana-clickhouse-datasource 4.11.4
+          datasources:
+            datasources.yaml:
+              apiVersion: 1
+              datasources:
+                - name: ClickHouse
+                  type: grafana-clickhouse-datasource
+                  access: proxy
+                  editable: true
+                  isDefault: false
+                  jsonData:
+                    defaultDatabase: {{ $default.clickhouse.database | quote }}
+                    host: {{ printf "%s-svc.%s.svc.cluster.local" $default.clickhouse.resourcePrefix $default.clickhouse.namespace | quote }}
+                    port: {{ $default.clickhouse.port }}
+                    username: {{ $default.clickhouse.username | quote }}
+                    protocol: http
+                  secureJsonData:
+                    password: {{ $default.clickhouse.password | quote }}
+      - k8s/charts/analytics/grafana/values.{{ .Environment.Name }}.yaml
+      {{- if isFile "k8s/charts/analytics/grafana/values.secrets.yaml" }}
+      - k8s/charts/analytics/grafana/values.secrets.yaml
       {{- end }}
-      - plugins:
-          - grafana-clickhouse-datasource 4.11.4
-      - datasources:
-          datasources.yaml:
-            apiVersion: 1
-            datasources:
-              - name: ClickHouse
-                type: grafana-clickhouse-datasource
-                access: proxy
-                editable: true
-                isDefault: false
-                jsonData:
-                  defaultDatabase: {{ $default.clickhouse.database | quote }}
-                  host: {{ printf "%s-svc.%s.svc.cluster.local" $default.clickhouse.resourcePrefix $default.clickhouse.namespace | quote }}
-                  port: {{ $default.clickhouse.port }}
-                  username: {{ $default.clickhouse.username | quote }}
-                  protocol: http
-                secureJsonData:
-                  password: {{ $default.clickhouse.password | quote }}
+

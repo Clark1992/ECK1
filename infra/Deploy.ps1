@@ -109,7 +109,7 @@ try {
 
     # Wait for ingress rule to create
     $ingressControllerName = "ingress-nginx-controller"
-    $ingressNS = Get-YamlValue -YamlPath ".\infra\phase-2-values.default.yaml" -PropPath "ingress.namespace"
+    $ingressNS = Get-YamlValue -YamlPath ".\infra\phase-1-values.default.yaml" -PropPath "ingress.namespace"
 
     $cmd = "kubectl get service $ingressControllerName -n $ingressNS --ignore-not-found"
     WaitFor-Command -Command $cmd -MaxAttempts 30
