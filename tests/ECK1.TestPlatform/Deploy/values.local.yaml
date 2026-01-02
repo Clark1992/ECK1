@@ -1,0 +1,6 @@
+replicaCount: 1
+
+image:
+  repository: localhost:5000/test-platform
+  tag: dev
+

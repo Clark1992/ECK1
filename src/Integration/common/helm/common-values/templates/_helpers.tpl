@@ -1,5 +1,5 @@
 {{- define "common-values.cacheShortTermServiceName" -}}
-cache-short-term-svc
+eck1-cache-short-term-svc
 {{- end -}}
 
 

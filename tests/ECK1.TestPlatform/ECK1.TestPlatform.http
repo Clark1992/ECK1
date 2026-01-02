@@ -1,0 +1,6 @@
+@ECK1.TestPlatform_HostAddress = http://localhost:5072
+
+GET {{ECK1.TestPlatform_HostAddress}}/api/
+Accept: application/json
+
+###

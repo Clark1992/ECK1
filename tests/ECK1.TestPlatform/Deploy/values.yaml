@@ -1,0 +1,18 @@
+replicaCount: 1
+
+image:
+  repository: myregistry.azurecr.io/test-platform
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 80
+  nodePort: 30280
+
+env:
+  ASPNETCORE_ENVIRONMENT: Development
+  # Prefer in-cluster DNS for CommandsAPI.
+  # CommandsAPI Service name comes from its chart: eck1-commandsapi
+  CommandsApi__BaseUrl: "http://eck1-commandsapi:80/"
+  CommandsApi__TimeoutSeconds: "300"
