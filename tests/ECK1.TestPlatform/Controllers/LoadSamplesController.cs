@@ -16,7 +16,6 @@ public sealed class LoadSamplesController(
     public async Task<ActionResult<CreateSamplesResponse>> CreateSamples(
         [FromQuery] int count = 100,
         [FromQuery] int concurrency = 10,
-        [FromQuery] double? rps = null,
         [FromQuery(Name = "min_rate")] double? minRate = null,
         [FromQuery(Name = "max_rate")] double? maxRate = null,
         [FromQuery(Name = "rate_change_sec")] int? rateChangeSec = null,
@@ -24,7 +23,7 @@ public sealed class LoadSamplesController(
         CancellationToken ct = default)
     {
         var res = await mediator.Send(
-            new CreateSamplesOperation(count, concurrency, rps, minRate, maxRate, rateChangeSec, withAddress),
+            new CreateSamplesOperation(count, concurrency, minRate, maxRate, rateChangeSec, withAddress),
             ct);
 
         return Ok(res);
@@ -39,7 +38,6 @@ public sealed class LoadSamplesController(
         [FromQuery] int count = 50,
         [FromQuery] int updatesPerSample = 5,
         [FromQuery] int concurrency = 10,
-        [FromQuery] double? rps = null,
         [FromQuery(Name = "min_rate")] double? minRate = null,
         [FromQuery(Name = "max_rate")] double? maxRate = null,
         [FromQuery(Name = "rate_change_sec")] int? rateChangeSec = null,
@@ -47,7 +45,7 @@ public sealed class LoadSamplesController(
         CancellationToken ct = default)
     {
         var res = await mediator.Send(
-            new CreateAndUpdateNamesOperation(count, updatesPerSample, concurrency, rps, minRate, maxRate, rateChangeSec, withAddress),
+            new CreateAndUpdateNamesOperation(count, updatesPerSample, concurrency, minRate, maxRate, rateChangeSec, withAddress),
             ct);
 
         return Ok(res);
@@ -62,7 +60,6 @@ public sealed class LoadSamplesController(
         [FromQuery] Guid? id = null,
         [FromQuery] int updates = 500,
         [FromQuery] int concurrency = 10,
-        [FromQuery] double? rps = null,
         [FromQuery(Name = "min_rate")] double? minRate = null,
         [FromQuery(Name = "max_rate")] double? maxRate = null,
         [FromQuery(Name = "rate_change_sec")] int? rateChangeSec = null,
@@ -72,7 +69,7 @@ public sealed class LoadSamplesController(
         try
         {
             var res = await mediator.Send(
-                new HotspotUpdateNameOperation(id, updates, concurrency, rps, minRate, maxRate, rateChangeSec, createIfMissing),
+                new HotspotUpdateNameOperation(id, updates, concurrency, minRate, maxRate, rateChangeSec, createIfMissing),
                 ct);
 
             return Ok(res);

@@ -46,3 +46,9 @@ HiddenREADME.md
 *.env
 .devtests/**
 copilot-instructions.md
+prompts/
+values.secret.yaml
+Chart.lock
+
+# Local (untracked) docs
+**/README.local.md

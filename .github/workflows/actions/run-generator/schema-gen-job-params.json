@@ -29,5 +29,36 @@
     "format": "proto",
     "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.ViewProjector/sample-full-records",
     "topic": "sample-full-records"
+  },
+  {
+    "assemblyPath": "__BUSINESS_CONTRACTS_ASSEMBLY_PATH__",
+    "typeName": "ECK1.Contracts.Kafka.BusinessEvents.Sample2.ISample2Event",
+    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/sample2-business-events",
+    "format": "json",
+    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/sample2-business-events",
+    "topic": "sample2-business-events"
+  },
+  {
+    "assemblyPath": "__BUSINESS_CONTRACTS_ASSEMBLY_PATH__",
+    "typeName": "ECK1.Contracts.Kafka.BusinessEvents.Sample2.Sample2EventFailure",
+    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.ViewProjector/sample2-business-events.dlq",
+    "format": "json",
+    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.ViewProjector/sample2-business-events.dlq",
+    "topic": "sample2-business-events.dlq"
+  },
+  {
+    "assemblyPath": "__INTEGRATION_CONTRACTS_ASSEMBLY_PATH__",
+    "typeName": "ECK1.IntegrationContracts.Kafka.IntegrationRecords.ThinEvent",
+    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.ViewProjector/sample2-thin-events",
+    "format": "avro",
+    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.ViewProjector/sample2-thin-events"
+  },
+  {
+    "assemblyPath": "__INTEGRATION_CONTRACTS_ASSEMBLY_PATH__",
+    "typeName": "ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample2.Sample2FullRecord",
+    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.ViewProjector/sample2-full-records",
+    "format": "proto",
+    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.ViewProjector/sample2-full-records",
+    "topic": "sample2-full-records"
   }
 ]

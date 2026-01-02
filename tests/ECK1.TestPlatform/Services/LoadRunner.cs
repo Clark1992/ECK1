@@ -8,7 +8,6 @@ public sealed class LoadRunner
     public async Task<LoadRunSummary> RunAsync(
         int count,
         int concurrency,
-        double? rps,
         double? minRate,
         double? maxRate,
         int? rateChangeSec,
@@ -28,7 +27,7 @@ public sealed class LoadRunner
 
         var tasks = new List<Task>(count);
 
-        var schedule = CreateScheduler(rps, minRate, maxRate, rateChangeSec);
+        var schedule = CreateScheduler(minRate, maxRate, rateChangeSec);
 
         for (var i = 0; i < count; i++)
         {
@@ -74,33 +73,31 @@ public sealed class LoadRunner
             AchievedRps: achievedRps);
     }
 
-    private static IScheduler CreateScheduler(double? rps, double? minRate, double? maxRate, int? rateChangeSec)
+    private static IScheduler CreateScheduler(double? minRate, double? maxRate, int? rateChangeSec)
     {
-        if (minRate is not null || maxRate is not null)
-        {
-            if (minRate is null || maxRate is null)
-                throw new ArgumentException("Both minRate and maxRate must be provided when using varying rate.");
-
-            if (minRate <= 0 || maxRate <= 0)
-                throw new ArgumentException("minRate and maxRate must be > 0.");
-
-            var change = rateChangeSec ?? 10;
-            if (change <= 0)
-                throw new ArgumentException("rateChangeSec must be > 0.");
-
-            var min = Math.Min(minRate.Value, maxRate.Value);
-            var max = Math.Max(minRate.Value, maxRate.Value);
-
-            if (Math.Abs(max - min) < 0.000001)
-                return new FixedRateScheduler(min);
-
-            return new StepVaryingRateScheduler(min, max, TimeSpan.FromSeconds(change));
-        }
-
-        if (rps is null || rps <= 0)
+        if (minRate is null && maxRate is null)
             return new NoopScheduler();
 
-        return new FixedRateScheduler(rps.Value);
+        var min = minRate ?? maxRate;
+        var max = maxRate ?? minRate;
+
+        if (min is null || max is null)
+            return new NoopScheduler();
+
+        if (min <= 0 || max <= 0)
+            throw new ArgumentException("min_rate/max_rate must be > 0.");
+
+        var change = rateChangeSec ?? 10;
+        if (change <= 0)
+            throw new ArgumentException("rate_change_sec must be > 0.");
+
+        var orderedMin = Math.Min(min.Value, max.Value);
+        var orderedMax = Math.Max(min.Value, max.Value);
+
+        if (Math.Abs(orderedMax - orderedMin) < 0.000001)
+            return new FixedRateScheduler(orderedMin);
+
+        return new SmoothVaryingRateScheduler(orderedMin, orderedMax, TimeSpan.FromSeconds(change));
     }
 
     private interface IScheduler
@@ -129,24 +126,19 @@ public sealed class LoadRunner
         }
     }
 
-    private sealed class StepVaryingRateScheduler : IScheduler
+    private sealed class SmoothVaryingRateScheduler : IScheduler
     {
         private readonly double _minRps;
         private readonly double _maxRps;
         private readonly TimeSpan _hold;
         private readonly Stopwatch _sw = Stopwatch.StartNew();
-
-        private bool _useMax;
-        private TimeSpan _nextSwitchAt;
         private TimeSpan _nextDue;
 
-        public StepVaryingRateScheduler(double minRps, double maxRps, TimeSpan holdDuration)
+        public SmoothVaryingRateScheduler(double minRps, double maxRps, TimeSpan holdDuration)
         {
             _minRps = minRps;
             _maxRps = maxRps;
             _hold = holdDuration;
-            _useMax = false;
-            _nextSwitchAt = _hold;
             _nextDue = TimeSpan.Zero;
         }
 
@@ -154,13 +146,12 @@ public sealed class LoadRunner
         {
             var elapsed = _sw.Elapsed;
 
-            while (elapsed >= _nextSwitchAt)
-            {
-                _useMax = !_useMax;
-                _nextSwitchAt += _hold;
-            }
+            // Smoothly ramp between min and max in a triangle wave.
+            var cycle = _hold.TotalSeconds * 2.0;
+            var t = elapsed.TotalSeconds % cycle;
+            var phase = t <= _hold.TotalSeconds ? (t / _hold.TotalSeconds) : (1.0 - ((t - _hold.TotalSeconds) / _hold.TotalSeconds));
+            var rps = _minRps + ((_maxRps - _minRps) * phase);
 
-            var rps = _useMax ? _maxRps : _minRps;
             var period = TimeSpan.FromSeconds(1.0 / Math.Max(0.1, rps));
 
             _nextDue += period;

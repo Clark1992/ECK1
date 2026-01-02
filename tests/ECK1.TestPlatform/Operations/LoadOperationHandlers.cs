@@ -16,7 +16,6 @@ public sealed class CreateSamplesOperationHandler(
         var summary = await runner.RunAsync(
             count,
             request.Concurrency,
-            request.Rps,
             request.MinRate,
             request.MaxRate,
             request.RateChangeSec,
@@ -55,7 +54,6 @@ public sealed class CreateAndUpdateNamesOperationHandler(
         var createSummary = await runner.RunAsync(
             count,
             request.Concurrency,
-            request.Rps,
             request.MinRate,
             request.MaxRate,
             request.RateChangeSec,
@@ -84,7 +82,6 @@ public sealed class CreateAndUpdateNamesOperationHandler(
         var updateSummary = await runner.RunAsync(
             totalUpdates,
             request.Concurrency,
-            request.Rps,
             request.MinRate,
             request.MaxRate,
             request.RateChangeSec,
@@ -126,7 +123,6 @@ public sealed class HotspotUpdateNameOperationHandler(
         var summary = await runner.RunAsync(
             updates,
             request.Concurrency,
-            request.Rps,
             request.MinRate,
             request.MaxRate,
             request.RateChangeSec,

@@ -6,7 +6,6 @@ namespace ECK1.TestPlatform.Operations;
 public sealed record CreateSamplesOperation(
     int Count,
     int Concurrency,
-    double? Rps,
     double? MinRate,
     double? MaxRate,
     int? RateChangeSec,
@@ -16,7 +15,6 @@ public sealed record CreateAndUpdateNamesOperation(
     int Count,
     int UpdatesPerSample,
     int Concurrency,
-    double? Rps,
     double? MinRate,
     double? MaxRate,
     int? RateChangeSec,
@@ -26,7 +24,6 @@ public sealed record HotspotUpdateNameOperation(
     Guid? Id,
     int Updates,
     int Concurrency,
-    double? Rps,
     double? MinRate,
     double? MaxRate,
     int? RateChangeSec,
