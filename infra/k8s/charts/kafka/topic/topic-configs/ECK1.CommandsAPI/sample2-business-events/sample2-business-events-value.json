@@ -1,0 +1,576 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "ISample2Event",
+  "type": "object",
+  "definitions": {
+    "Sample2CreatedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Sample2Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "EventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "Version": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "OccurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "Customer": {
+          "default": null,
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/Sample2Customer"
+            }
+          ]
+        },
+        "ShippingAddress": {
+          "default": null,
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/Sample2Address"
+            }
+          ]
+        },
+        "LineItems": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "default": null,
+          "items": {
+            "$ref": "#/definitions/Sample2LineItem"
+          }
+        },
+        "Tags": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "default": null,
+          "items": {
+            "type": "string"
+          }
+        },
+        "Status": {
+          "$ref": "#/definitions/Sample2Status"
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "Sample2CreatedEvent"
+          ]
+        }
+      }
+    },
+    "Sample2Customer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "CustomerId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "Email": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Segment": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
+    },
+    "Sample2Address": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "Street": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "City": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Country": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
+    },
+    "Sample2LineItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ItemId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "Sku": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Quantity": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "UnitPrice": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/Sample2Money"
+            }
+          ]
+        }
+      }
+    },
+    "Sample2Money": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Amount": {
+          "type": "number",
+          "format": "decimal"
+        },
+        "Currency": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
+    },
+    "Sample2Status": {
+      "type": "integer",
+      "description": "",
+      "x-enumNames": [
+        "Draft",
+        "Submitted",
+        "Paid",
+        "Shipped",
+        "Cancelled"
+      ],
+      "enum": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "Sample2CustomerEmailChangedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Sample2Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "EventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "Version": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "OccurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "NewEmail": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "Sample2CustomerEmailChangedEvent"
+          ]
+        }
+      }
+    },
+    "Sample2ShippingAddressChangedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Sample2Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "EventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "Version": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "OccurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "NewAddress": {
+          "default": null,
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/Sample2Address"
+            }
+          ]
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "Sample2ShippingAddressChangedEvent"
+          ]
+        }
+      }
+    },
+    "Sample2LineItemAddedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Sample2Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "EventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "Version": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "OccurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "Item": {
+          "default": null,
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/Sample2LineItem"
+            }
+          ]
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "Sample2LineItemAddedEvent"
+          ]
+        }
+      }
+    },
+    "Sample2LineItemRemovedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Sample2Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "EventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "Version": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "OccurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ItemId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "Sample2LineItemRemovedEvent"
+          ]
+        }
+      }
+    },
+    "Sample2StatusChangedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Sample2Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "EventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "Version": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "OccurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "NewStatus": {
+          "$ref": "#/definitions/Sample2Status"
+        },
+        "Reason": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "Sample2StatusChangedEvent"
+          ]
+        }
+      }
+    },
+    "Sample2TagAddedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Sample2Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "EventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "Version": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "OccurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "Tag": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "Sample2TagAddedEvent"
+          ]
+        }
+      }
+    },
+    "Sample2TagRemovedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Sample2Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "EventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "Version": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "OccurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "Tag": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "Sample2TagRemovedEvent"
+          ]
+        }
+      }
+    },
+    "Sample2RebuiltEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Sample2Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "EventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "Version": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "OccurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "Customer": {
+          "default": null,
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/Sample2Customer"
+            }
+          ]
+        },
+        "ShippingAddress": {
+          "default": null,
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/Sample2Address"
+            }
+          ]
+        },
+        "LineItems": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "default": null,
+          "items": {
+            "$ref": "#/definitions/Sample2LineItem"
+          }
+        },
+        "Tags": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "default": null,
+          "items": {
+            "type": "string"
+          }
+        },
+        "Status": {
+          "$ref": "#/definitions/Sample2Status"
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "Sample2RebuiltEvent"
+          ]
+        }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/definitions/Sample2CreatedEvent"
+    },
+    {
+      "$ref": "#/definitions/Sample2CustomerEmailChangedEvent"
+    },
+    {
+      "$ref": "#/definitions/Sample2ShippingAddressChangedEvent"
+    },
+    {
+      "$ref": "#/definitions/Sample2LineItemAddedEvent"
+    },
+    {
+      "$ref": "#/definitions/Sample2LineItemRemovedEvent"
+    },
+    {
+      "$ref": "#/definitions/Sample2StatusChangedEvent"
+    },
+    {
+      "$ref": "#/definitions/Sample2TagAddedEvent"
+    },
+    {
+      "$ref": "#/definitions/Sample2TagRemovedEvent"
+    },
+    {
+      "$ref": "#/definitions/Sample2RebuiltEvent"
+    }
+  ]
+}
