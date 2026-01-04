@@ -4,10 +4,10 @@ kind: Ingress
 metadata:
   name: apicurio-registry
   namespace: {{ .Values.namespace }}
-  annotations:
-    nginx.ingress.kubernetes.io/auth-type: basic
-    nginx.ingress.kubernetes.io/auth-secret: apicurio-basic-auth
-    nginx.ingress.kubernetes.io/auth-realm: "Authentication Required"
+  # annotations:
+  #   nginx.ingress.kubernetes.io/auth-type: basic
+  #   nginx.ingress.kubernetes.io/auth-secret: apicurio-basic-auth
+  #   nginx.ingress.kubernetes.io/auth-realm: "Authentication Required"
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   {{- if .Values.ingress.tls.enabled }}

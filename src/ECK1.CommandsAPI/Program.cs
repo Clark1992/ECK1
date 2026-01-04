@@ -42,6 +42,7 @@ builder.Services.Configure<EventsStoreConfig>(
     builder.Configuration.GetSection(nameof(EventsStoreConfig))
 );
 builder.Services.AddScoped<SampleRepo>();
+builder.Services.AddScoped<Sample2Repo>();
 
 builder.Services.SetupKafka(builder.Configuration);
 

@@ -7,6 +7,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Content Include="Migrations\20260103_01-unify_event_failures.sql">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Content>
 	  <Content Include="Migrations\20251006_01-add_job.sql">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </Content>

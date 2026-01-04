@@ -52,6 +52,27 @@ public sealed class LoadSamplesController(
     }
 
     /// <summary>
+    /// Scenario: create N samples then apply M description updates to each sample.
+    /// </summary>
+    [HttpPost("create-and-update-descriptions")]
+    public async Task<ActionResult<CreateAndUpdateDescriptionsResponse>> CreateAndUpdateDescriptions(
+        [FromQuery] int count = 50,
+        [FromQuery] int updatesPerSample = 5,
+        [FromQuery] int concurrency = 10,
+        [FromQuery(Name = "min_rate")] double? minRate = null,
+        [FromQuery(Name = "max_rate")] double? maxRate = null,
+        [FromQuery(Name = "rate_change_sec")] int? rateChangeSec = null,
+        [FromQuery] bool withAddress = true,
+        CancellationToken ct = default)
+    {
+        var res = await mediator.Send(
+            new CreateAndUpdateDescriptionsOperation(count, updatesPerSample, concurrency, minRate, maxRate, rateChangeSec, withAddress),
+            ct);
+
+        return Ok(res);
+    }
+
+    /// <summary>
     /// Scenario: repeatedly update a single sample ("hot key").
     /// Helps reproduce contention/versioning issues.
     /// </summary>

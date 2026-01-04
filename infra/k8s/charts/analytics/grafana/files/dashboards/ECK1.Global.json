@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 1,
+  "id": 0,
   "links": [],
   "panels": [
     {
@@ -84,12 +84,13 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 6,
+        "w": 10,
         "x": 0,
         "y": 0
       },
       "id": 3,
+      "interval": "1m",
       "maxDataPoints": 1000,
       "options": {
         "legend": {
@@ -177,6 +178,15 @@
         }
       ],
       "title": "Cardinality / Unique Entities",
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "(.*)",
+            "renamePattern": "$1"
+          }
+        }
+      ],
       "type": "timeseries"
     },
     {
@@ -217,7 +227,7 @@
             "spanNulls": false,
             "stacking": {
               "group": "A",
-              "mode": "percent"
+              "mode": "normal"
             },
             "thresholdsStyle": {
               "mode": "off"
@@ -241,10 +251,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 5,
+        "w": 10,
         "x": 0,
-        "y": 8
+        "y": 6
       },
       "id": 2,
       "maxDataPoints": 50,
@@ -382,10 +392,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 7,
-        "w": 12,
+        "h": 5,
+        "w": 10,
         "x": 0,
-        "y": 16
+        "y": 11
       },
       "id": 1,
       "options": {
@@ -424,7 +434,7 @@
           },
           "pluginVersion": "4.11.4",
           "queryType": "table",
-          "rawSql": "WITH\r\n    intDiv(300000, 1000) AS step,\r\n    toUInt32($__from/ 1000) AS from_ts,\r\n    toUInt32($__to / 1000) AS to_ts\r\n\r\nSELECT\r\n    toDateTime(t) AS time,\r\n    coalesce(sum(events_count), 0) AS count\r\nFROM\r\n(\r\n    SELECT\r\n        arrayJoin(\r\n            range(\r\n                intDiv(from_ts, step) * step,\r\n                intDiv(to_ts, step) * step + step,\r\n                step\r\n            )\r\n        ) AS t\r\n) grid\r\nLEFT JOIN\r\n(\r\n    SELECT\r\n        intDiv(toUInt32(minute), step) * step AS t,\r\n        sum(events_count) AS events_count\r\n    FROM \"eck1_analytics\".\"events_per_minute_by_type_by_entity_type\"\r\n    WHERE  ( time >= $__fromTime AND time <= $__toTime )\r\n    GROUP BY t\r\n) data\r\nUSING t\r\nGROUP BY t\r\nORDER BY t\r\n",
+          "rawSql": "WITH\r\n    $__interval_s AS step,\r\n    toUInt32($__from/ 1000) AS from_ts,\r\n    toUInt32($__to / 1000) AS to_ts\r\n\r\nSELECT\r\n    toDateTime(t) AS time,\r\n    coalesce(sum(events_count), 0) AS count\r\nFROM\r\n(\r\n    SELECT\r\n        arrayJoin(\r\n            range(\r\n                intDiv(from_ts, step) * step,\r\n                intDiv(to_ts, step) * step + step,\r\n                step\r\n            )\r\n        ) AS t\r\n) grid\r\nLEFT JOIN\r\n(\r\n    SELECT\r\n        intDiv(toUInt32(minute), step) * step AS t,\r\n        sum(events_count) AS events_count\r\n    FROM \"eck1_analytics\".\"events_per_minute_by_type_by_entity_type\"\r\n    WHERE  ( time >= $__fromTime AND time <= $__toTime )\r\n    GROUP BY t\r\n) data\r\nUSING t\r\nGROUP BY t\r\nORDER BY t\r\n",
           "refId": "Events Over Time"
         }
       ],
@@ -433,19 +443,19 @@
     }
   ],
   "preload": false,
-  "refresh": "",
+  "refresh": "5s",
   "schemaVersion": 42,
   "tags": [],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-2d",
+    "from": "now-12h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Global",
   "uid": "2bbaa50a-441f-44b1-8b4c-3621e3f02509",
-  "version": 2
+  "version": 7
 }

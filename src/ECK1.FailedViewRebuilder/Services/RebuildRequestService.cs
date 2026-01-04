@@ -9,7 +9,7 @@ namespace ECK1.FailedViewRebuilder.Services;
 public class FailedViewsResponse<TId>
 {
     public int Count { get; set; }
-    public List<TId> TopIds { get; set; }
+    public List<(TId, string)> TopIdsWithTypes { get; set; }
 }
 
 public interface IRebuildRequestService<TEntity, TMessage> where TEntity : class
@@ -22,7 +22,7 @@ public interface IRebuildRequestService<TEntity, TMessage> where TEntity : class
     Task<int> StopJob(string jobName);
 
     Task<FailedViewsResponse<TId>> GetFailedViewsOverview<TId, TKey>(
-        Func<TEntity, TId> idSelector,
+        Func<TEntity, (TId, string)> idSelector,
         QueryParams<TEntity, TKey> qParams);
 
     Task<int> GetStatus(string jobName);
@@ -91,10 +91,16 @@ public class RebuildRequestService<TEntity, TMessage>(
     }
 
     public async Task<FailedViewsResponse<TId>> GetFailedViewsOverview<TId, TKey>(
-        Func<TEntity, TId> idSelector,
+        Func<TEntity, (TId, string)> idAndTypeSelector,
         QueryParams<TEntity, TKey> qParams)
     {
         IQueryable<TEntity> failedEventsQuery = db.Set<TEntity>();
+
+        if (qParams.Filter is not null)
+        {
+            failedEventsQuery = failedEventsQuery.Where(qParams.Filter);
+        }
+
         failedEventsQuery = qParams.IsAsc ? failedEventsQuery.OrderBy(qParams.OrderBy) : failedEventsQuery.OrderByDescending(qParams.OrderBy);
 
         failedEventsQuery = failedEventsQuery.Take(qParams.Count ?? 10);
@@ -104,7 +110,7 @@ public class RebuildRequestService<TEntity, TMessage>(
         return new FailedViewsResponse<TId>
         {
             Count = failedEvents.Count,
-            TopIds = [.. failedEvents.Select(e => idSelector(e))]
+            TopIdsWithTypes = [.. failedEvents.Select(e => idAndTypeSelector(e))]
         };
     }
 }

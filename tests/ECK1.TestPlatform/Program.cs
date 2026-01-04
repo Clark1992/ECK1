@@ -21,7 +21,10 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
 builder.Services.AddSingleton<FakeSampleDataFactory>();
+builder.Services.AddSingleton<FakeSample2DataFactory>();
 builder.Services.AddSingleton<LoadRunner>();
+builder.Services.AddSingleton<InterleavedCreateUpdateRunner>();
+builder.Services.AddSingleton<InterleavedTwoPoolCreateUpdateRunner>();
 
 builder.Services.Configure<CommandsApiClientOptions>(
     builder.Configuration.GetSection(CommandsApiClientOptions.SectionName));

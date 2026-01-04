@@ -51,6 +51,12 @@ public class JobRunner<TEntity, TMessage>(
                 }
 
                 IQueryable<TEntity> failedEventsQuery = db.Set<TEntity>();
+
+                if (qParams.Filter is not null)
+                {
+                    failedEventsQuery = failedEventsQuery.Where(qParams.Filter);
+                }
+
                 failedEventsQuery = qParams.IsAsc ? failedEventsQuery.OrderBy(qParams.OrderBy) : failedEventsQuery.OrderByDescending(qParams.OrderBy);
 
                 failedEventsQuery = failedEventsQuery.Take(qParams.Count ?? BatchSize);

@@ -13,5 +13,6 @@ namespace ECK1.ViewProjector.Data
         }
 
         public IMongoCollection<SampleView> Samples => _database.GetCollection<SampleView>("samples");
+        public IMongoCollection<Sample2View> Sample2s => _database.GetCollection<Sample2View>("sample2s");
     }
 }

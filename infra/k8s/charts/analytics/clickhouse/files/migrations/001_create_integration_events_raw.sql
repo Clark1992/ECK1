@@ -9,6 +9,6 @@ CREATE TABLE IF NOT EXISTS integration_events_raw
   entity_version Int32,
   payload String
 )
-ENGINE = MergeTree
+ENGINE = ReplacingMergeTree
 PARTITION BY occurred_date
-ORDER BY (entity_type, event_type, occurred_at, entity_id);
+ORDER BY (event_id);

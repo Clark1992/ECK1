@@ -4,17 +4,22 @@ using MediatR;
 
 namespace ECK1.CommandsAPI.Kafka;
 
-public interface ISampleRebuildHandler: IKafkaMessageHandler<Guid>;
+public interface IRebuildHandler: IKafkaMessageHandler<Guid>;
 
-public class SampleRebuildHandler(IMediator mediator, ILogger<SampleRebuildHandler> logger) : ISampleRebuildHandler
+public class RebuildHandler<TCommand>(IMediator mediator, ILogger<RebuildHandler<TCommand>> logger) : IRebuildHandler
+    where TCommand: IRebuildViewCommandBase, new()
 {
     public async Task Handle(string key, Guid message, KafkaMessageId messageId, CancellationToken ct)
     {
-        var res = await mediator.Send(new RebuildSampleViewCommand(message), ct);
+        var cmd = new TCommand
+        {
+            Id = message
+        };
+        var res = await mediator.Send(cmd, ct);
 
         if (res is not Success)
         {
-            logger.LogWarning("Command result does not indicate success: {res}, id = {id}", res, message);
+            logger.LogWarning("Command [{TCommand}] result does not indicate success: {res}, id = {id}", typeof(TCommand).Name, res, message);
         }
     }
 }

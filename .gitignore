@@ -51,4 +51,4 @@ values.secret.yaml
 Chart.lock
 
 # Local (untracked) docs
-**/README.local.md
+**/README*.local.md

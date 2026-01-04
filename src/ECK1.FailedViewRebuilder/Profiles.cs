@@ -7,6 +7,9 @@ public class ModelsProfile: Profile
 {
     public ModelsProfile()
     {
-        CreateMap<Contracts.Kafka.BusinessEvents.Sample.SampleEventFailure, SampleEventFailure>();
+        CreateMap<Contracts.Kafka.BusinessEvents.Sample.SampleEventFailure, EventFailure>()
+            .ForMember(x => x.EntityType, o => o.MapFrom(_ => EntityType.Sample));
+        CreateMap<Contracts.Kafka.BusinessEvents.Sample2.Sample2EventFailure, EventFailure>()
+            .ForMember(x => x.EntityType, o => o.MapFrom(_ => EntityType.Sample2));
     }
 }

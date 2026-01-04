@@ -8,7 +8,9 @@ namespace ECK1.QueriesAPI.Queries;
 
 public class Handlers : HandlersBase, 
     IRequestHandler<GetSampleByIdQuery, SampleView>,
-    IRequestHandler<GetSamplesPagedQuery, PagedResponse<SampleView>>
+    IRequestHandler<GetSamplesPagedQuery, PagedResponse<SampleView>>,
+    IRequestHandler<GetSample2ByIdQuery, Sample2View>,
+    IRequestHandler<GetSample2sPagedQuery, PagedResponse<Sample2View>>
 {
     private readonly MongoDbContext _dbContext;
     public Handlers(MongoDbContext dbContext)
@@ -23,6 +25,14 @@ public class Handlers : HandlersBase,
 
     public Task<PagedResponse<SampleView>> Handle(GetSamplesPagedQuery request, CancellationToken ct) =>
         GetPagedAsync(_dbContext.Samples, request, FilterDefinition<SampleView>.Empty, ct);
+
+    public async Task<Sample2View> Handle(GetSample2ByIdQuery request, CancellationToken ct)
+    {
+        return await _dbContext.Sample2s.Find(s => s.Sample2Id == request.Id).FirstOrDefaultAsync(ct);
+    }
+
+    public Task<PagedResponse<Sample2View>> Handle(GetSample2sPagedQuery request, CancellationToken ct) =>
+        GetPagedAsync(_dbContext.Sample2s, request, FilterDefinition<Sample2View>.Empty, ct);
 }
 
 public class HandlersBase

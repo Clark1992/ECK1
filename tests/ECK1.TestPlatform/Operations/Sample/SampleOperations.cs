@@ -9,7 +9,8 @@ public sealed record CreateSamplesOperation(
     double? MinRate,
     double? MaxRate,
     int? RateChangeSec,
-    bool WithAddress) : IRequest<CreateSamplesResponse>;
+    bool WithAddress)
+    : LoadOperationBase(Count, Concurrency, MinRate, MaxRate, RateChangeSec), IRequest<CreateSamplesResponse>;
 
 public sealed record CreateAndUpdateNamesOperation(
     int Count,
@@ -18,7 +19,18 @@ public sealed record CreateAndUpdateNamesOperation(
     double? MinRate,
     double? MaxRate,
     int? RateChangeSec,
-    bool WithAddress) : IRequest<CreateAndUpdateNamesResponse>;
+    bool WithAddress)
+    : LoadOperationBase(Count, Concurrency, MinRate, MaxRate, RateChangeSec), IRequest<CreateAndUpdateNamesResponse>;
+
+public sealed record CreateAndUpdateDescriptionsOperation(
+    int Count,
+    int UpdatesPerSample,
+    int Concurrency,
+    double? MinRate,
+    double? MaxRate,
+    int? RateChangeSec,
+    bool WithAddress)
+    : LoadOperationBase(Count, Concurrency, MinRate, MaxRate, RateChangeSec), IRequest<CreateAndUpdateDescriptionsResponse>;
 
 public sealed record HotspotUpdateNameOperation(
     Guid? Id,
@@ -27,10 +39,13 @@ public sealed record HotspotUpdateNameOperation(
     double? MinRate,
     double? MaxRate,
     int? RateChangeSec,
-    bool CreateIfMissing) : IRequest<HotspotUpdateResponse>;
+    bool CreateIfMissing)
+    : HotspotOperationBase(Updates, Concurrency, MinRate, MaxRate, RateChangeSec), IRequest<HotspotUpdateResponse>;
 
 public sealed record CreateSamplesResponse(LoadRunSummary Summary, List<Guid> CreatedIdsPreview);
 
 public sealed record CreateAndUpdateNamesResponse(LoadRunSummary CreateSummary, LoadRunSummary UpdateSummary, List<Guid> CreatedIdsPreview);
+
+public sealed record CreateAndUpdateDescriptionsResponse(LoadRunSummary CreateSummary, LoadRunSummary UpdateSummary, List<Guid> CreatedIdsPreview);
 
 public sealed record HotspotUpdateResponse(Guid SampleId, LoadRunSummary Summary);

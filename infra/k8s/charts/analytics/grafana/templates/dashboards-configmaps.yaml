@@ -1,3 +1,4 @@
+{{- if .Values.grafana.sidecar.dashboards.enabled -}}
 {{- $root := . -}}
 {{- range $path, $bytes := $root.Files.Glob "files/dashboards/*.json" -}}
 apiVersion: v1
@@ -10,4 +11,5 @@ data:
   {{ $path | base }}: |
 {{ $bytes | toString | nindent 4 }}
 ---
+{{- end -}}
 {{- end -}}

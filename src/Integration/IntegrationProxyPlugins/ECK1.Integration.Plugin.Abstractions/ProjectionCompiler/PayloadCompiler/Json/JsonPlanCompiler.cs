@@ -103,8 +103,49 @@ public sealed class JsonPlanCompiler<TEvent, TRecord> : IJsonPlanCompiler<TEvent
                 w.WriteStringValue(guidGetter(ctx.Record));
         }
 
+        if (RecordAccessor<TRecord>.TryGetDecimal(propertyName, out var decimalGetter))
+        {
+            return (w, ctx) =>
+                w.WriteNumberValue(decimalGetter(ctx.Record));
+        }
+
         throw new InvalidOperationException(
             $"Field '{propertyName}' not found on {typeof(TRecord).Name}");
+    }
+
+    private static Action<Utf8JsonWriter, JsonExecutionContext<TEvent, TRecord>> CompileItemEmitter<TItem>(string mapping)
+    {
+        if (!mapping.StartsWith("item.", StringComparison.Ordinal))
+            throw new NotSupportedException($"Unsupported mapping '{mapping}'");
+
+        var propertyName = mapping["item.".Length..];
+
+        if (ItemAccessor<TItem>.TryGetInt(propertyName, out var intGetter))
+        {
+            return (w, ctx) =>
+                w.WriteNumberValue(intGetter((TItem)ctx.Item));
+        }
+
+        if (ItemAccessor<TItem>.TryGetString(propertyName, out var stringGetter))
+        {
+            return (w, ctx) =>
+                w.WriteStringValue(stringGetter((TItem)ctx.Item));
+        }
+
+        if (ItemAccessor<TItem>.TryGetGuid(propertyName, out var guidGetter))
+        {
+            return (w, ctx) =>
+                w.WriteStringValue(guidGetter((TItem)ctx.Item));
+        }
+
+        if (ItemAccessor<TItem>.TryGetDecimal(propertyName, out var decimalGetter))
+        {
+            return (w, ctx) =>
+                w.WriteNumberValue(decimalGetter((TItem)ctx.Item));
+        }
+
+        throw new InvalidOperationException(
+            $"Field '{propertyName}' not found on {typeof(TItem).Name}");
     }
 
     public void CompileArrayField<TItem>(
@@ -249,7 +290,7 @@ public sealed class JsonPlanCompiler<TEvent, TRecord> : IJsonPlanCompiler<TEvent
         }));
     }
 
-    private Func<TItem, IEnumerable<TChildItem>> CompileEnumerableGetterForItem<TItem, TChildItem>(string mapping)
+    private static Func<TItem, IEnumerable<TChildItem>> CompileEnumerableGetterForItem<TItem, TChildItem>(string mapping)
     {
         if (!mapping.StartsWith("item.", StringComparison.Ordinal))
             throw new NotSupportedException(
@@ -264,15 +305,11 @@ public sealed class JsonPlanCompiler<TEvent, TRecord> : IJsonPlanCompiler<TEvent
         return getter;
     }
 
-    private Action<Utf8JsonWriter, JsonExecutionContext<TEvent, TRecord>> CompileEmitterForItem<TItem>(string mapping)
+    private static Action<Utf8JsonWriter, JsonExecutionContext<TEvent, TRecord>> CompileEmitterForItem<TItem>(string mapping)
     {
         if (mapping.StartsWith("item."))
         {
-            var path = mapping["item.".Length..];
-            if (!ItemAccessor<TItem>.TryGetString(path, out var getter))
-                throw new InvalidOperationException($"{path} not found in {typeof(TItem).Name}");
-
-            return (w, ctx) => w.WriteStringValue(getter((TItem)ctx.Item));
+            return CompileItemEmitter<TItem>(mapping);
         }
 
         if (mapping.StartsWith("record."))

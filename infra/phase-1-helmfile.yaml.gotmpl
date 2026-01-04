@@ -144,9 +144,12 @@ releases:
       - grafana:
           adminUser: admin
           adminPassword: {{ env "GRAFANA_ADMIN_PASSWORD" | default "admin" | quote }}
+          securityContext:
+            runAsUser: 472
+            runAsGroup: 472
           sidecar:
             dashboards:
-              enabled: true
+              enabled: false
               label: grafana_dashboard
               labelValue: "1"
               folder: /var/lib/grafana/dashboards

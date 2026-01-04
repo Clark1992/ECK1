@@ -9,7 +9,7 @@ public class FailuresDbContext : DbContext
     {
     }
 
-    public DbSet<SampleEventFailure> SampleEventFailures { get; set; }
+    public DbSet<EventFailure> EventFailures { get; set; }
     public DbSet<JobHistory> JobHistories { get; set; }
 
 

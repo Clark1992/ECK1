@@ -10,7 +10,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: {{ printf "%s/grafana" .Values.grafana.storage.hostPathRoot | quote }}
+    path: {{ printf "/var/lib/%s" $.Values.grafana.storage.hostPath }}
     type: DirectoryOrCreate
   persistentVolumeReclaimPolicy: Retain
   storageClassName: {{ .Values.grafana.persistence.storageClass }}

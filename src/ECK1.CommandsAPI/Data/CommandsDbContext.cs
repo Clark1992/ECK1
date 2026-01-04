@@ -12,6 +12,9 @@ public class CommandsDbContext : DbContext
     public DbSet<SampleEventEntity> SampleEvents { get; set; }
     public DbSet<SampleSnapshotEntity> SampleSnapshots { get; set; }
 
+    public DbSet<Sample2EventEntity> Sample2Events { get; set; }
+    public DbSet<Sample2SnapshotEntity> Sample2Snapshots { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

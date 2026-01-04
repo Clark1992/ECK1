@@ -6,6 +6,8 @@ ARG PLUGIN_PROJ
 
 COPY ./nuget.config ./*.props  ./
 
+COPY src/Integration/CodeGen/ECK1.Integration.Plugin.Abstractions.CodeGen ./src/Integration/CodeGen/ECK1.Integration.Plugin.Abstractions.CodeGen
+COPY src/Integration/CodeGen/ECK1.CodeGen.Shared ./src/Integration/CodeGen/ECK1.CodeGen.Shared
 COPY src/Integration/IntegrationProxyPlugins/ECK1.Integration.Plugin.Abstractions/*.csproj ./Integration/IntegrationProxyPlugins/
 COPY src/Integration/IntegrationProxyPlugins/$PLUGIN_PROJ/*.csproj ./Integration/IntegrationProxyPlugins/
 
@@ -19,10 +21,9 @@ RUN dotnet restore src/Integration/IntegrationProxyPlugins/$PLUGIN_PROJ/$PLUGIN_
 
 COPY src/Integration/IntegrationProxyPlugins/ECK1.Integration.Plugin.Abstractions ./src/Integration/IntegrationProxyPlugins/ECK1.Integration.Plugin.Abstractions
 COPY src/Integration/IntegrationProxyPlugins/$PLUGIN_PROJ ./src/Integration/IntegrationProxyPlugins/$PLUGIN_PROJ
-COPY src/Integration/CodeGen/ECK1.Integration.Plugin.Abstractions.CodeGen ./src/Integration/CodeGen/ECK1.Integration.Plugin.Abstractions.CodeGen
-COPY src/Integration/CodeGen/ECK1.CodeGen.Shared ./src/Integration/CodeGen/ECK1.CodeGen.Shared
 
 WORKDIR /src/src/Integration/IntegrationProxyPlugins/$PLUGIN_PROJ
+
 RUN dotnet publish -c Release -o /lib/publish
 
 # CMD ["tail", "-f", "/dev/null"]

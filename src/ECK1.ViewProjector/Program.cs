@@ -2,6 +2,7 @@
 using ECK1.CommonUtils.Secrets.Doppler;
 using ECK1.CommonUtils.Secrets.K8s;
 using ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample;
+using ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample2;
 using ECK1.Orleans.Extensions;
 using ECK1.ViewProjector.Data;
 using ECK1.ViewProjector.Handlers.Services;
@@ -66,6 +67,7 @@ builder.Services.AddLogging()
     .AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
 builder.Services.AddSingleton<IFullRecordBuilder<SampleView, SampleThinEvent, SampleFullRecord>, SampleFullRecordBuilder>();
+builder.Services.AddSingleton<IFullRecordBuilder<Sample2View, Sample2ThinEvent, Sample2FullRecord>, Sample2FullRecordBuilder>();
 
 var app = builder.Build();
 

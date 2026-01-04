@@ -1,23 +1,37 @@
 ﻿using AutoMapper;
+using ECK1.CommandsAPI.Domain.Sample2s;
 using ECK1.CommandsAPI.Domain.Samples;
 using ECK1.CommonUtils.Mapping;
 using ECK1.Kafka;
 using MediatR;
-using EventContracts = ECK1.Contracts.Kafka.BusinessEvents.Sample;
+using SampleContracts = ECK1.Contracts.Kafka.BusinessEvents.Sample;
+using Sample2Contracts = ECK1.Contracts.Kafka.BusinessEvents.Sample2;
 
 namespace ECK1.CommandsAPI.Kafka;
 
 public record EventNotification<TEvent>(TEvent Event, int Version) : INotification;
 
-public class SampleIntegrationKafkaSender(IMapper mapper, IKafkaTopicProducer<EventContracts.ISampleEvent> producer) :
-    IntegrationBase<ISampleEvent, EventContracts.ISampleEvent>(mapper, producer)
+public class SampleIntegrationKafkaSender(IMapper mapper, IKafkaTopicProducer<SampleContracts.ISampleEvent> producer) :
+    IntegrationBase<ISampleEvent, SampleContracts.ISampleEvent>(mapper, producer)
 {
-    protected override string Key(EventContracts.ISampleEvent @event) => @event.SampleId.ToString();
+    protected override string Key(SampleContracts.ISampleEvent @event) => @event.SampleId.ToString();
 
-    protected override EventContracts.ISampleEvent AdjustMessage(EventNotification<ISampleEvent> notification, EventContracts.ISampleEvent message)
+    protected override SampleContracts.ISampleEvent AdjustMessage(EventNotification<ISampleEvent> notification, SampleContracts.ISampleEvent message)
     {
         message.Version = notification.Version;
 
+        return message;
+    }
+}
+
+public class Sample2IntegrationKafkaSender(IMapper mapper, IKafkaTopicProducer<Sample2Contracts.ISample2Event> producer) :
+    IntegrationBase<ISample2Event, Sample2Contracts.ISample2Event>(mapper, producer)
+{
+    protected override string Key(Sample2Contracts.ISample2Event @event) => @event.Sample2Id.ToString();
+
+    protected override Sample2Contracts.ISample2Event AdjustMessage(EventNotification<ISample2Event> notification, Sample2Contracts.ISample2Event message)
+    {
+        message.Version = notification.Version;
         return message;
     }
 }

@@ -1,8 +1,10 @@
-﻿namespace ECK1.FailedViewRebuilder.Data.Models;
+namespace ECK1.FailedViewRebuilder.Data.Models;
 
-public class SampleEventFailure
+public class EventFailure
 {
-    public Guid SampleId { get; set; }
+    public string EntityType { get; set; }
+
+    public Guid EntityId { get; set; }
 
     public string FailedEventType { get; set; }
 

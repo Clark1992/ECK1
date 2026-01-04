@@ -80,3 +80,106 @@ data:
                     - fileName: item.FileName
                     - url: item.Url
 
+  ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample2.Sample2FullRecord: |
+    EventsTopic: sample2-thin-events
+    RecordTopic: sample2-full-records
+    Plugins:
+      Elasticsearch:
+        Fields:
+          - "sample2Id"
+          - "version"
+          - "customer.customerId"
+          - "customer.email"
+          - "customer.segment"
+          - "shippingAddress.street"
+          - "shippingAddress.city"
+          - "shippingAddress.country"
+          - "lineItems.itemId"
+          - "lineItems.sku"
+          - "lineItems.quantity"
+          - "lineItems.unitPrice.amount"
+          - "lineItems.unitPrice.currency"
+          - "tags.value"
+          - "status"
+        Indexes:
+          - sample2-full-records
+
+      Clickhouse:
+        Fields:
+          - sample2Id
+          - version
+          - status
+          - customer.customerId
+          - customer.email
+          - customer.segment
+          - shippingAddress.street
+          - shippingAddress.city
+          - shippingAddress.country
+          - lineItems.itemId
+          - lineItems.sku
+          - lineItems.quantity
+          - lineItems.unitPrice.amount
+          - lineItems.unitPrice.currency
+          - tags.value
+        Table: integration_events_raw
+
+        Mappings:
+          format: object[]
+          items:
+            event_id:
+              source: event.EventId
+              type: System.Guid
+
+            event_type:
+              source: event.EventType
+              type: string
+
+            occurred_at:
+              source: event.OccuredAt
+              type: System.DateTime
+
+            entity_id:
+              source: event.EntityId
+              type: System.Guid
+
+            entity_type:
+              source: const.Sample2
+              type: string
+
+            entity_version:
+              source: record.Version
+              type: int
+
+            payload:
+              format: json
+              fields:
+                sample2Id: record.Sample2Id
+                version: record.Version
+                status: record.Status
+
+                customer:
+                  customerId: record.Customer.CustomerId
+                  email: record.Customer.Email
+                  segment: record.Customer.Segment
+
+                shippingAddress:
+                  street: record.ShippingAddress.Street
+                  city: record.ShippingAddress.City
+                  country: record.ShippingAddress.Country
+
+                lineItems:
+                  type: array
+                  context: record.LineItems
+                  items:
+                    - itemId: item.ItemId
+                    - sku: item.Sku
+                    - quantity: item.Quantity
+                    - unitPrice:
+                        amount: item.UnitPrice.Amount
+                        currency: item.UnitPrice.Currency
+
+                tags:
+                  type: array
+                  context: record.Tags
+                  items:
+                    - value: item.Value

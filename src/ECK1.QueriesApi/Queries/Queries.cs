@@ -20,3 +20,7 @@ public record PagedResponse<T>
 public record GetSampleByIdQuery(Guid Id) : IRequest<SampleView>;
 
 public record GetSamplesPagedQuery : PagedQuery<SampleView>;
+
+public record GetSample2ByIdQuery(Guid Id) : IRequest<Sample2View>;
+
+public record GetSample2sPagedQuery : PagedQuery<Sample2View>;

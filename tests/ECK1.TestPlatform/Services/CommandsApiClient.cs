@@ -29,6 +29,33 @@ public sealed class CommandsApiClient
         return await ReadAcceptedAsync(response, ct);
     }
 
+    public async Task<CommandsApiAccepted?> CreateSample2Async(CreateSample2Request request, CancellationToken ct)
+    {
+        using var response = await _http.PostAsJsonAsync("api/sample2", request, JsonOptions, ct);
+        return await ReadAcceptedAsync(response, ct);
+    }
+
+    public async Task<CommandsApiAccepted?> ChangeSample2CustomerEmailAsync(Guid id, string newEmail, CancellationToken ct)
+    {
+        // CommandsAPI expects a raw JSON string, not an object
+        using var content = new StringContent(JsonSerializer.Serialize(newEmail, JsonOptions), Encoding.UTF8, "application/json");
+        using var response = await _http.PutAsync($"api/sample2/{id}/customer-email", content, ct);
+        return await ReadAcceptedAsync(response, ct);
+    }
+
+    public async Task<CommandsApiAccepted?> ChangeSample2StatusAsync(Guid id, int newStatus, string reason, CancellationToken ct)
+    {
+        var request = new ChangeSample2StatusRequest(newStatus, reason);
+        using var response = await _http.PutAsJsonAsync($"api/sample2/{id}/status", request, JsonOptions, ct);
+        return await ReadAcceptedAsync(response, ct);
+    }
+
+    public async Task<CommandsApiAccepted?> ChangeSample2ShippingAddressAsync(Guid id, Sample2AddressDto newAddress, CancellationToken ct)
+    {
+        using var response = await _http.PutAsJsonAsync($"api/sample2/{id}/shipping-address", newAddress, JsonOptions, ct);
+        return await ReadAcceptedAsync(response, ct);
+    }
+
     public async Task<CommandsApiAccepted?> ChangeSampleNameAsync(Guid id, string newName, CancellationToken ct)
     {
         // CommandsAPI expects a raw JSON string, not an object
@@ -59,5 +86,21 @@ public sealed class CommandsApiClient
 public sealed record CreateSampleRequest(string Name, string Description, SampleAddressDto? Address);
 
 public sealed record SampleAddressDto(string Street, string City, string Country);
+
+public sealed record CreateSample2Request(
+    Sample2CustomerDto Customer,
+    Sample2AddressDto ShippingAddress,
+    List<Sample2LineItemDto> LineItems,
+    List<string> Tags);
+
+public sealed record Sample2CustomerDto(Guid CustomerId, string Email, string Segment);
+
+public sealed record Sample2AddressDto(Guid Id, string Street, string City, string Country);
+
+public sealed record Sample2MoneyDto(decimal Amount, string Currency);
+
+public sealed record Sample2LineItemDto(Guid ItemId, string Sku, int Quantity, Sample2MoneyDto UnitPrice);
+
+public sealed record ChangeSample2StatusRequest(int NewStatus, string Reason);
 
 public sealed record CommandsApiAccepted(Guid Id, List<Guid> EventIds);

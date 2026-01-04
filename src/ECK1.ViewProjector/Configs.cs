@@ -11,5 +11,9 @@ public class KafkaSettings
     public string SampleFailureEventsTopic { get; set; }
     public string SampleFullRecordsTopic { get; set; }
     public string SampleThinEventsTopic { get; set; }
+    public string Sample2BusinessEventsTopic { get; set; }
+    public string Sample2FailureEventsTopic { get; set; }
+    public string Sample2FullRecordsTopic { get; set; }
+    public string Sample2ThinEventsTopic { get; set; }
     public string GroupId { get; set; }
 }

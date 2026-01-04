@@ -1,0 +1,91 @@
+{
+  "mappings": {
+    "dynamic": "false",
+    "properties": {
+      "sample2Id": { "type": "keyword" },
+      "version": { "type": "integer" },
+      "status": { "type": "keyword" },
+
+      "customer": {
+        "type": "object",
+        "dynamic": "false",
+        "properties": {
+          "customerId": { "type": "keyword" },
+          "email": {
+            "type": "text",
+            "fields": {
+              "keyword": { "type": "keyword" }
+            }
+          },
+          "segment": {
+            "type": "text",
+            "fields": {
+              "keyword": { "type": "keyword" }
+            }
+          }
+        }
+      },
+
+      "shippingAddress": {
+        "type": "object",
+        "dynamic": "false",
+        "properties": {
+          "street": {
+            "type": "text",
+            "fields": {
+              "keyword": { "type": "keyword" }
+            }
+          },
+          "city": {
+            "type": "text",
+            "fields": {
+              "keyword": { "type": "keyword" }
+            }
+          },
+          "country": {
+            "type": "text",
+            "fields": {
+              "keyword": { "type": "keyword" }
+            }
+          }
+        }
+      },
+
+      "lineItems": {
+        "type": "nested",
+        "dynamic": "false",
+        "properties": {
+          "itemId": { "type": "keyword" },
+          "sku": {
+            "type": "text",
+            "fields": {
+              "keyword": { "type": "keyword" }
+            }
+          },
+          "quantity": { "type": "integer" },
+          "unitPrice": {
+            "type": "object",
+            "dynamic": "false",
+            "properties": {
+              "amount": { "type": "double" },
+              "currency": { "type": "keyword" }
+            }
+          }
+        }
+      },
+
+      "tags": {
+        "type": "nested",
+        "dynamic": "false",
+        "properties": {
+          "value": {
+            "type": "text",
+            "fields": {
+              "keyword": { "type": "keyword" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

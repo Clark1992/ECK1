@@ -193,6 +193,7 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
         sb.AppendLine("    private static readonly Dictionary<Type, Func<string, Delegate>> _recordString = new();");
         sb.AppendLine("    private static readonly Dictionary<Type, Func<string, Delegate>> _recordGuid = new();");
         sb.AppendLine("    private static readonly Dictionary<Type, Func<string, Delegate>> _recordDateTime = new();");
+        sb.AppendLine("    private static readonly Dictionary<Type, Func<string, Delegate>> _recordDecimal = new();");
         sb.AppendLine("    private static readonly Dictionary<(Type container, Type item), Func<string, Delegate>> _recordEnumerable = new();");
         sb.AppendLine("    private static readonly Dictionary<Type, IRecordArrayCompileHandler> _recordArrayHandlers = new();");
         sb.AppendLine();
@@ -201,10 +202,15 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
         sb.AppendLine("    private static readonly Dictionary<Type, Func<string, Delegate>> _eventString = new();");
         sb.AppendLine("    private static readonly Dictionary<Type, Func<string, Delegate>> _eventGuid = new();");
         sb.AppendLine("    private static readonly Dictionary<Type, Func<string, Delegate>> _eventDateTime = new();");
+        sb.AppendLine("    private static readonly Dictionary<Type, Func<string, Delegate>> _eventDecimal = new();");
         sb.AppendLine("    private static readonly Dictionary<(Type container, Type item), Func<string, Delegate>> _eventEnumerable = new();");
         sb.AppendLine();
 
+        sb.AppendLine("    private static readonly Dictionary<Type, Func<string, Delegate>> _itemInt = new();");
         sb.AppendLine("    private static readonly Dictionary<Type, Func<string, Delegate>> _itemString = new();");
+        sb.AppendLine("    private static readonly Dictionary<Type, Func<string, Delegate>> _itemGuid = new();");
+        sb.AppendLine("    private static readonly Dictionary<Type, Func<string, Delegate>> _itemDateTime = new();");
+        sb.AppendLine("    private static readonly Dictionary<Type, Func<string, Delegate>> _itemDecimal = new();");
         sb.AppendLine("    private static readonly Dictionary<(Type container, Type item), Func<string, Delegate>> _itemEnumerable = new();");
         sb.AppendLine("    private static readonly Dictionary<Type, IItemArrayCompileHandler> _itemArrayHandlers = new();");
         sb.AppendLine();
@@ -213,6 +219,7 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
         sb.AppendLine("    public static void RegisterRecordString(Type recordType, Func<string, Delegate> factory) { lock (_gate) _recordString[recordType] = factory; }");
         sb.AppendLine("    public static void RegisterRecordGuid(Type recordType, Func<string, Delegate> factory) { lock (_gate) _recordGuid[recordType] = factory; }");
         sb.AppendLine("    public static void RegisterRecordDateTime(Type recordType, Func<string, Delegate> factory) { lock (_gate) _recordDateTime[recordType] = factory; }");
+        sb.AppendLine("    public static void RegisterRecordDecimal(Type recordType, Func<string, Delegate> factory) { lock (_gate) _recordDecimal[recordType] = factory; }");
         sb.AppendLine("    public static void RegisterRecordEnumerable(Type recordType, Type itemType, Func<string, Delegate> factory) { lock (_gate) _recordEnumerable[(recordType, itemType)] = factory; }");
         sb.AppendLine("    public static void RegisterRecordArrayHandler(Type recordType, IRecordArrayCompileHandler handler) { lock (_gate) _recordArrayHandlers[recordType] = handler; }");
         sb.AppendLine();
@@ -221,10 +228,15 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
         sb.AppendLine("    public static void RegisterEventString(Type eventType, Func<string, Delegate> factory) { lock (_gate) _eventString[eventType] = factory; }");
         sb.AppendLine("    public static void RegisterEventGuid(Type eventType, Func<string, Delegate> factory) { lock (_gate) _eventGuid[eventType] = factory; }");
         sb.AppendLine("    public static void RegisterEventDateTime(Type eventType, Func<string, Delegate> factory) { lock (_gate) _eventDateTime[eventType] = factory; }");
+        sb.AppendLine("    public static void RegisterEventDecimal(Type eventType, Func<string, Delegate> factory) { lock (_gate) _eventDecimal[eventType] = factory; }");
         sb.AppendLine("    public static void RegisterEventEnumerable(Type eventType, Type itemType, Func<string, Delegate> factory) { lock (_gate) _eventEnumerable[(eventType, itemType)] = factory; }");
         sb.AppendLine();
 
+        sb.AppendLine("    public static void RegisterItemInt(Type itemType, Func<string, Delegate> factory) { lock (_gate) _itemInt[itemType] = factory; }");
         sb.AppendLine("    public static void RegisterItemString(Type itemType, Func<string, Delegate> factory) { lock (_gate) _itemString[itemType] = factory; }");
+        sb.AppendLine("    public static void RegisterItemGuid(Type itemType, Func<string, Delegate> factory) { lock (_gate) _itemGuid[itemType] = factory; }");
+        sb.AppendLine("    public static void RegisterItemDateTime(Type itemType, Func<string, Delegate> factory) { lock (_gate) _itemDateTime[itemType] = factory; }");
+        sb.AppendLine("    public static void RegisterItemDecimal(Type itemType, Func<string, Delegate> factory) { lock (_gate) _itemDecimal[itemType] = factory; }");
         sb.AppendLine("    public static void RegisterItemEnumerable(Type itemType, Type childItemType, Func<string, Delegate> factory) { lock (_gate) _itemEnumerable[(itemType, childItemType)] = factory; }");
         sb.AppendLine("    public static void RegisterItemArrayHandler(Type itemType, IItemArrayCompileHandler handler) { lock (_gate) _itemArrayHandlers[itemType] = handler; }");
         sb.AppendLine();
@@ -233,6 +245,7 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
         sb.AppendLine("    public static bool TryGetRecordString(Type recordType, string name, out Delegate getter) => TryGet(_recordString, recordType, name, out getter);");
         sb.AppendLine("    public static bool TryGetRecordGuid(Type recordType, string name, out Delegate getter) => TryGet(_recordGuid, recordType, name, out getter);");
         sb.AppendLine("    public static bool TryGetRecordDateTime(Type recordType, string name, out Delegate getter) => TryGet(_recordDateTime, recordType, name, out getter);");
+        sb.AppendLine("    public static bool TryGetRecordDecimal(Type recordType, string name, out Delegate getter) => TryGet(_recordDecimal, recordType, name, out getter);");
         sb.AppendLine("    public static bool TryGetRecordEnumerable(Type recordType, Type itemType, string path, out Delegate getter) => TryGet(_recordEnumerable, (recordType, itemType), path, out getter);");
         sb.AppendLine("    public static bool TryGetRecordArrayHandler(Type recordType, out IRecordArrayCompileHandler handler)");
         sb.AppendLine("    {");
@@ -244,10 +257,15 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
         sb.AppendLine("    public static bool TryGetEventString(Type eventType, string name, out Delegate getter) => TryGet(_eventString, eventType, name, out getter);");
         sb.AppendLine("    public static bool TryGetEventGuid(Type eventType, string name, out Delegate getter) => TryGet(_eventGuid, eventType, name, out getter);");
         sb.AppendLine("    public static bool TryGetEventDateTime(Type eventType, string name, out Delegate getter) => TryGet(_eventDateTime, eventType, name, out getter);");
+        sb.AppendLine("    public static bool TryGetEventDecimal(Type eventType, string name, out Delegate getter) => TryGet(_eventDecimal, eventType, name, out getter);");
         sb.AppendLine("    public static bool TryGetEventEnumerable(Type eventType, Type itemType, string path, out Delegate getter) => TryGet(_eventEnumerable, (eventType, itemType), path, out getter);");
         sb.AppendLine();
 
+        sb.AppendLine("    public static bool TryGetItemInt(Type itemType, string path, out Delegate getter) => TryGet(_itemInt, itemType, path, out getter);");
         sb.AppendLine("    public static bool TryGetItemString(Type itemType, string path, out Delegate getter) => TryGet(_itemString, itemType, path, out getter);");
+        sb.AppendLine("    public static bool TryGetItemGuid(Type itemType, string path, out Delegate getter) => TryGet(_itemGuid, itemType, path, out getter);");
+        sb.AppendLine("    public static bool TryGetItemDateTime(Type itemType, string path, out Delegate getter) => TryGet(_itemDateTime, itemType, path, out getter);");
+        sb.AppendLine("    public static bool TryGetItemDecimal(Type itemType, string path, out Delegate getter) => TryGet(_itemDecimal, itemType, path, out getter);");
         sb.AppendLine("    public static bool TryGetItemEnumerable(Type itemType, Type childItemType, string path, out Delegate getter) => TryGet(_itemEnumerable, (itemType, childItemType), path, out getter);");
         sb.AppendLine("    public static bool TryGetItemArrayHandler(Type itemType, out IItemArrayCompileHandler handler)");
         sb.AppendLine("    {");
@@ -311,6 +329,13 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
         sb.AppendLine("        getter = null; return false;");
         sb.AppendLine("    }");
         sb.AppendLine();
+        sb.AppendLine("    public static bool TryGetDecimal(string name, out Func<TRecord, decimal> getter)");
+        sb.AppendLine("    {");
+        sb.AppendLine("        if (ProjectionAccessorsRegistry.TryGetRecordDecimal(typeof(TRecord), name, out var d))");
+        sb.AppendLine("        { getter = (Func<TRecord, decimal>)(object)d!; return true; }");
+        sb.AppendLine("        getter = null; return false;");
+        sb.AppendLine("    }");
+        sb.AppendLine();
         sb.AppendLine("    public static bool TryGetEnumerable<TItem>(string path, out Func<TRecord, IEnumerable<TItem>> getter)");
         sb.AppendLine("    {");
         sb.AppendLine("        if (ProjectionAccessorsRegistry.TryGetRecordEnumerable(typeof(TRecord), typeof(TItem), path, out var d))");
@@ -359,6 +384,13 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
         sb.AppendLine("        getter = null; return false;");
         sb.AppendLine("    }");
         sb.AppendLine();
+        sb.AppendLine("    public static bool TryGetDecimal(string name, out Func<TEvent, decimal> getter)");
+        sb.AppendLine("    {");
+        sb.AppendLine("        if (ProjectionAccessorsRegistry.TryGetEventDecimal(typeof(TEvent), name, out var d))");
+        sb.AppendLine("        { getter = (Func<TEvent, decimal>)(object)d!; return true; }");
+        sb.AppendLine("        getter = null; return false;");
+        sb.AppendLine("    }");
+        sb.AppendLine();
         sb.AppendLine("    public static bool TryGetEnumerable<TItem>(string path, out Func<TEvent, IEnumerable<TItem>> getter)");
         sb.AppendLine("    {");
         sb.AppendLine("        if (ProjectionAccessorsRegistry.TryGetEventEnumerable(typeof(TEvent), typeof(TItem), path, out var d))");
@@ -379,10 +411,38 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine("internal static class ItemAccessor<TItem>");
         sb.AppendLine("{");
+        sb.AppendLine("    public static bool TryGetInt(string path, out Func<TItem, int> getter)");
+        sb.AppendLine("    {");
+        sb.AppendLine("        if (ProjectionAccessorsRegistry.TryGetItemInt(typeof(TItem), path, out var d))");
+        sb.AppendLine("        { getter = (Func<TItem, int>)(object)d!; return true; }");
+        sb.AppendLine("        getter = null; return false;");
+        sb.AppendLine("    }");
+        sb.AppendLine();
         sb.AppendLine("    public static bool TryGetString(string path, out Func<TItem, string> getter)");
         sb.AppendLine("    {");
         sb.AppendLine("        if (ProjectionAccessorsRegistry.TryGetItemString(typeof(TItem), path, out var d))");
         sb.AppendLine("        { getter = (Func<TItem, string>)(object)d!; return true; }");
+        sb.AppendLine("        getter = null; return false;");
+        sb.AppendLine("    }");
+        sb.AppendLine();
+        sb.AppendLine("    public static bool TryGetGuid(string path, out Func<TItem, Guid> getter)");
+        sb.AppendLine("    {");
+        sb.AppendLine("        if (ProjectionAccessorsRegistry.TryGetItemGuid(typeof(TItem), path, out var d))");
+        sb.AppendLine("        { getter = (Func<TItem, Guid>)(object)d!; return true; }");
+        sb.AppendLine("        getter = null; return false;");
+        sb.AppendLine("    }");
+        sb.AppendLine();
+        sb.AppendLine("    public static bool TryGetDateTime(string path, out Func<TItem, DateTime> getter)");
+        sb.AppendLine("    {");
+        sb.AppendLine("        if (ProjectionAccessorsRegistry.TryGetItemDateTime(typeof(TItem), path, out var d))");
+        sb.AppendLine("        { getter = (Func<TItem, DateTime>)(object)d!; return true; }");
+        sb.AppendLine("        getter = null; return false;");
+        sb.AppendLine("    }");
+        sb.AppendLine();
+        sb.AppendLine("    public static bool TryGetDecimal(string path, out Func<TItem, decimal> getter)");
+        sb.AppendLine("    {");
+        sb.AppendLine("        if (ProjectionAccessorsRegistry.TryGetItemDecimal(typeof(TItem), path, out var d))");
+        sb.AppendLine("        { getter = (Func<TItem, decimal>)(object)d!; return true; }");
         sb.AppendLine("        getter = null; return false;");
         sb.AppendLine("    }");
         sb.AppendLine();
@@ -423,6 +483,7 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
             sb.AppendLine($"        ProjectionAccessorsRegistry.Register{kind}String(typeof({fq}), static name => {accessor}.TryGetString(name, out Func<{fq}, string> g) ? g : null);");
             sb.AppendLine($"        ProjectionAccessorsRegistry.Register{kind}Guid(typeof({fq}), static name => {accessor}.TryGetGuid(name, out Func<{fq}, Guid> g) ? g : null);");
             sb.AppendLine($"        ProjectionAccessorsRegistry.Register{kind}DateTime(typeof({fq}), static name => {accessor}.TryGetDateTime(name, out Func<{fq}, DateTime> g) ? g : null);");
+            sb.AppendLine($"        ProjectionAccessorsRegistry.Register{kind}Decimal(typeof({fq}), static name => {accessor}.TryGetDecimal(name, out Func<{fq}, decimal> g) ? g : null);");
 
             var elementTypes = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
             foreach (var p in GetAllInstanceProperties(t))
@@ -471,7 +532,11 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
             var fq = t.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             var accessor = $"{MakeSafeIdentifier(t)}_Accessors";
 
+            sb.AppendLine($"        ProjectionAccessorsRegistry.RegisterItemInt(typeof({fq}), static path => {accessor}.TryGetInt(path, out Func<{fq}, int> g) ? g : null);");
             sb.AppendLine($"        ProjectionAccessorsRegistry.RegisterItemString(typeof({fq}), static path => {accessor}.TryGetString(path, out Func<{fq}, string> g) ? g : null);");
+            sb.AppendLine($"        ProjectionAccessorsRegistry.RegisterItemGuid(typeof({fq}), static path => {accessor}.TryGetGuid(path, out Func<{fq}, Guid> g) ? g : null);");
+            sb.AppendLine($"        ProjectionAccessorsRegistry.RegisterItemDateTime(typeof({fq}), static path => {accessor}.TryGetDateTime(path, out Func<{fq}, DateTime> g) ? g : null);");
+            sb.AppendLine($"        ProjectionAccessorsRegistry.RegisterItemDecimal(typeof({fq}), static path => {accessor}.TryGetDecimal(path, out Func<{fq}, decimal> g) ? g : null);");
 
             var elementTypes = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
             foreach (var p in GetAllInstanceProperties(t))
@@ -602,6 +667,7 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
         EmitSwitchGetter(sb, type, "String", "string", scalarAccessors.StringPaths);
         EmitSwitchGetter(sb, type, "Guid", "System.Guid", scalarAccessors.GuidPaths);
         EmitSwitchGetter(sb, type, "DateTime", "System.DateTime", scalarAccessors.DateTimePaths);
+        EmitSwitchGetter(sb, type, "Decimal", "decimal", scalarAccessors.DecimalPaths);
 
         // Enumerable overloads (safe, type-checked). Even if no arrays exist, emit stubs.
         EmitEnumerableAccessors(sb, type);
@@ -623,7 +689,11 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
         sb.AppendLine("{");
 
         var scalarAccessors = CollectScalarAccessors(type);
+        EmitSwitchGetter(sb, type, "Int", "int", scalarAccessors.IntPaths);
         EmitSwitchGetter(sb, type, "String", "string", scalarAccessors.StringPaths);
+        EmitSwitchGetter(sb, type, "Guid", "System.Guid", scalarAccessors.GuidPaths);
+        EmitSwitchGetter(sb, type, "DateTime", "System.DateTime", scalarAccessors.DateTimePaths);
+        EmitSwitchGetter(sb, type, "Decimal", "decimal", scalarAccessors.DecimalPaths);
 
         EmitEnumerableAccessors(sb, type);
 
@@ -728,12 +798,14 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
         List<(string Path, string Expr)> IntPaths,
         List<(string Path, string Expr)> StringPaths,
         List<(string Path, string Expr)> GuidPaths,
-        List<(string Path, string Expr)> DateTimePaths)
+        List<(string Path, string Expr)> DateTimePaths,
+        List<(string Path, string Expr)> DecimalPaths)
     {
         public List<(string Path, string Expr)> IntPaths { get; } = IntPaths;
         public List<(string Path, string Expr)> StringPaths { get; } = StringPaths;
         public List<(string Path, string Expr)> GuidPaths { get; } = GuidPaths;
         public List<(string Path, string Expr)> DateTimePaths { get; } = DateTimePaths;
+        public List<(string Path, string Expr)> DecimalPaths { get; } = DecimalPaths;
     }
 
     private static ScalarAccessors CollectScalarAccessors(INamedTypeSymbol root)
@@ -742,6 +814,7 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
         var strings = new List<(string, string)>();
         var guids = new List<(string, string)>();
         var dateTimes = new List<(string, string)>();
+        var decimals = new List<(string, string)>();
 
         var recursionStack = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
 
@@ -780,6 +853,9 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
                         case ScalarKind.DateTime:
                             dateTimes.Add((path, expr));
                             break;
+                        case ScalarKind.Decimal:
+                            decimals.Add((path, expr));
+                            break;
                     }
 
                     continue;
@@ -801,7 +877,7 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
 
         Walk(root, []);
 
-        return new ScalarAccessors(ints, strings, guids, dateTimes);
+        return new ScalarAccessors(ints, strings, guids, dateTimes, decimals);
     }
 
     private enum ScalarKind
@@ -809,7 +885,8 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
         Int,
         String,
         Guid,
-        DateTime
+        DateTime,
+        Decimal
     }
 
     private static bool IsScalarSupported(ITypeSymbol type, out ScalarKind kind)
@@ -837,6 +914,12 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
         if (type is INamedTypeSymbol namedDt && namedDt.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == "global::System.DateTime")
         {
             kind = ScalarKind.DateTime;
+            return true;
+        }
+
+        if (type.SpecialType == SpecialType.System_Decimal)
+        {
+            kind = ScalarKind.Decimal;
             return true;
         }
 
@@ -871,6 +954,8 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
         if (kind == ScalarKind.String && chain.Last().Type.TypeKind == TypeKind.Enum)
             finalExpr = finalAccess + ".ToString()";
         else if (kind == ScalarKind.Guid && IsNullableGuid(chain.Last().Type))
+            finalExpr = finalAccess + ".Value";
+        else if (kind == ScalarKind.Decimal && IsNullableDecimal(chain.Last().Type))
             finalExpr = finalAccess + ".Value";
         else
             finalExpr = finalAccess;
@@ -913,6 +998,14 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
         if (named.OriginalDefinition.SpecialType != SpecialType.System_Nullable_T) return false;
         if (named.TypeArguments.Length != 1) return false;
         return named.TypeArguments[0].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == "global::System.Guid";
+    }
+
+    private static bool IsNullableDecimal(ITypeSymbol type)
+    {
+        if (type is not INamedTypeSymbol named) return false;
+        if (named.OriginalDefinition.SpecialType != SpecialType.System_Nullable_T) return false;
+        if (named.TypeArguments.Length != 1) return false;
+        return named.TypeArguments[0].SpecialType == SpecialType.System_Decimal;
     }
 
     private static ITypeSymbol UnwrapNullable(ITypeSymbol type)
