@@ -1,18 +1,17 @@
 using MongoDB.Driver;
 using ECK1.QueriesAPI.Views;
 
-namespace ECK1.QueriesApi.Data
-{
-    public class MongoDbContext
-    {
-        private readonly IMongoDatabase _database;
-        public MongoDbContext(string connectionString, string databaseName)
-        {
-            var client = new MongoClient(connectionString);
-            _database = client.GetDatabase(databaseName);
-        }
+namespace ECK1.QueriesAPI.Data;
 
-        public IMongoCollection<SampleView> Samples => _database.GetCollection<SampleView>("samples");
-        public IMongoCollection<Sample2View> Sample2s => _database.GetCollection<Sample2View>("sample2s");
+public class MongoDbContext
+{
+    private readonly IMongoDatabase _database;
+    public MongoDbContext(string connectionString, string databaseName)
+    {
+        var client = new MongoClient(connectionString);
+        _database = client.GetDatabase(databaseName);
     }
+
+    public IMongoCollection<SampleView> Samples => _database.GetCollection<SampleView>("samples");
+    public IMongoCollection<Sample2View> Sample2s => _database.GetCollection<Sample2View>("sample2s");
 }

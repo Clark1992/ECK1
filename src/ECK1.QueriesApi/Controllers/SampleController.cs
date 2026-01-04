@@ -1,10 +1,9 @@
-using ECK1.QueriesAPI.Controllers;
 using ECK1.QueriesAPI.Queries;
 using ECK1.QueriesAPI.Views;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ECK1.QueriesApi.Controllers;
+namespace ECK1.QueriesAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]

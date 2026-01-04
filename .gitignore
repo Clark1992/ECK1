@@ -52,3 +52,4 @@ Chart.lock
 
 # Local (untracked) docs
 **/README*.local.md
+COPILOT_CONTEXT.md

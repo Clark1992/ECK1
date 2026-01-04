@@ -1,5 +1,4 @@
 using MediatR;
-using ECK1.QueriesApi.Data;
 using ECK1.QueriesAPI.Views;
 using MongoDB.Driver;
 using ECK1.QueriesAPI.Data;

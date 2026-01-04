@@ -22,7 +22,11 @@ Ensure-Helm
 
 helm upgrade --install $releaseName $baseDir\Deploy\$chartPath `
     --namespace $env:AppServiceNamespace `
-    -f $baseDir\Deploy\values.local.yaml
+    -f $baseDir\Deploy\values.local.yaml `
+    -f $baseDir\Deploy\values.secrets.yaml `
+    --set ElasticSearchConfig__CaSecretName=$env:ElasticSearchConfig__CaSecretName `
+    --set ElasticSearchConfig__ApiKeySecretName=$env:ElasticSearchConfig__ApiKeySecretName `
+    --set env.ElasticSearchConfig__ClusterUrl=$env:ElasticSearchConfig__ClusterUrl
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Helm deployment failed."

@@ -20,10 +20,12 @@
 	<PackageReference Include="Swashbuckle.AspNetCore" />
     <PackageReference Include="MongoDB.Driver" />
     <PackageReference Include="System.Linq.Dynamic.Core" />
+    <PackageReference Include="Elastic.Clients.Elasticsearch" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Nuget\ECK1.CommonUtils\ECK1.CommonUtils.csproj" />
+    <ProjectReference Include="..\Nuget\ECK1.IntegrationContracts\ECK1.IntegrationContracts.csproj" />
   </ItemGroup>
 
 </Project>

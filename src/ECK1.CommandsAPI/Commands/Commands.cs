@@ -22,6 +22,16 @@ public class NotFound : ICommandResult { }
 
 public class Error : ICommandResult { public string ErrorMessage { get; set; } }
 
+public interface IRebuildViewCommandBase
+{
+    Guid Id { get; set; }
+}
+
+public class RebuildViewCommandBase : IRequest<ICommandResult>, IRebuildViewCommandBase
+{
+    public Guid Id { get; set; }
+}
+
 
 public record CreateSampleCommand(string Name, string Description, SampleAddress Address) : IRequest<ICommandResult>;
 public record ChangeSampleNameCommand(Guid Id, string NewName) : IRequest<ICommandResult>;
@@ -30,7 +40,7 @@ public record ChangeSampleAddressCommand(Guid Id, SampleAddress NewAddress) : IR
 public record AddSampleAttachmentCommand(Guid Id, SampleAttachment Attachment) : IRequest<ICommandResult>;
 public record RemoveSampleAttachmentCommand(Guid Id, Guid AttachmentId) : IRequest<ICommandResult>;
 public record UpdateSampleAttachmentCommand(Guid Id, Guid AttachmentId, string NewFileName, string NewUrl) : IRequest<ICommandResult>;
-public record RebuildSampleViewCommand(Guid Id) : IRequest<ICommandResult>;
+public class RebuildSampleViewCommand: RebuildViewCommandBase { };
 
 public record CreateSample2Command(Sample2Customer Customer, Sample2Address ShippingAddress, List<Sample2LineItem> LineItems, List<string> Tags) : IRequest<ICommandResult>;
 public record ChangeSample2CustomerEmailCommand(Guid Id, string NewEmail) : IRequest<ICommandResult>;
@@ -40,5 +50,5 @@ public record RemoveSample2LineItemCommand(Guid Id, Guid ItemId) : IRequest<ICom
 public record ChangeSample2StatusCommand(Guid Id, Sample2Status NewStatus, string Reason) : IRequest<ICommandResult>;
 public record AddSample2TagCommand(Guid Id, string Tag) : IRequest<ICommandResult>;
 public record RemoveSample2TagCommand(Guid Id, string Tag) : IRequest<ICommandResult>;
-public record RebuildSample2ViewCommand(Guid Id) : IRequest<ICommandResult>;
+public class RebuildSample2ViewCommand: RebuildViewCommandBase { };
 

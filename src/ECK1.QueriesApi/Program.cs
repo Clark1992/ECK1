@@ -1,12 +1,24 @@
 ﻿using ECK1.CommonUtils.AspNet;
-using ECK1.QueriesApi.Data;
+using ECK1.CommonUtils.Secrets.Doppler;
+using ECK1.CommonUtils.Secrets.K8s;
+using ECK1.QueriesAPI.Data;
+using ECK1.QueriesAPI.Elasticsearch;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Serializers;
 
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.AddK8sSecrets();
+
+#if DEBUG
+builder.Configuration.AddUserSecrets<Program>();
+#endif
+
+builder.Configuration.AddDopplerSecrets();
 
 var configuration = builder.Configuration;
 var environment = builder.Environment;
@@ -30,6 +42,8 @@ builder.Services.AddSingleton(sp =>
     var mongoDatabaseName = configuration["MongoDb:DatabaseName"] ?? throw new Exception("Missing MongoDb:DatabaseName");
     return new MongoDbContext(mongoConnectionString, mongoDatabaseName);
 });
+
+builder.Services.SetupElasticsearch(builder.Configuration);
 
 builder.Services.AddCors(options =>
 {

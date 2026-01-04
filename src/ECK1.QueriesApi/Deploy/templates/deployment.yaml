@@ -20,12 +20,26 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 80
+          volumeMounts:
+            - name: {{ .Values.ElasticSearchConfig__CaSecretName }}
+              mountPath: /etc/elasticsearch/certs
+              readOnly: true
           env:
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}
               value: "{{ $value }}"
             {{- end }}
+            - name: ElasticSearchConfig__ApiKey
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.ElasticSearchConfig__ApiKeySecretName }}
+                  key: api_key
             - name: MongoDb__ConnectionString
               value: "{{ .Values.mongo.connectionString }}"
             - name: MongoDb__DatabaseName
               value: eck1-queries
+
+      volumes:
+        - name: {{ .Values.ElasticSearchConfig__CaSecretName }}
+          secret:
+            secretName: {{ .Values.ElasticSearchConfig__CaSecretName }}
