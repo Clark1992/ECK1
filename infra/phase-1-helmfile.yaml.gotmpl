@@ -162,7 +162,15 @@ releases:
                 allowUiUpdates: true
           {{- if eq .Environment.Name "local" }}
           initChownData:
-            enabled: true
+            enabled: false
+          # workaround chown: /var/lib/grafana/png: Permission denied
+          extraInitContainers:
+            - name: chmod-data
+              image: busybox:1.36
+              command: ["sh", "-c", "chmod -R 777 /var/lib/grafana || true"]
+              volumeMounts:
+                - name: storage
+                  mountPath: /var/lib/grafana
           persistence:
             enabled: true
             existingClaim: grafana
