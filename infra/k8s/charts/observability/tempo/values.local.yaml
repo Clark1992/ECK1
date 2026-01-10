@@ -1,0 +1,61 @@
+# Values for grafana/tempo-distributed (see infra/phase-1-helmfile.yaml.gotmpl)
+
+tempo:
+  structuredConfig:
+    auth_enabled: false
+
+traces:
+  otlp:
+    grpc:
+      enabled: true
+    http:
+      enabled: true
+
+storage:
+  trace:
+    backend: local
+    local:
+      path: /var/tempo/traces
+    wal:
+      path: /var/tempo/wal
+
+ingester:
+  replicas: 1
+  config:
+    replication_factor: 1
+
+compactor:
+  affinity: |
+    {}
+  config:
+    compaction:
+      block_retention: 24h
+
+# Single-node local clusters can get stuck on hard pod anti-affinity during upgrades.
+distributor:
+  affinity: |
+    {}
+
+querier:
+  affinity: |
+    {}
+
+queryFrontend:
+  affinity: |
+    {}
+
+memcached:
+  affinity: |
+    {}
+
+gateway:
+  affinity: |
+    {}
+
+monitoring:
+  dashboards:
+    enabled: false
+  rules:
+    enabled: false
+  serviceMonitor:
+    enabled: false

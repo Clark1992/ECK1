@@ -8,6 +8,10 @@ repositories:
     url: https://helm.elastic.co
   - name: grafana
     url: https://grafana.github.io/helm-charts
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+  - name: open-telemetry
+    url: https://open-telemetry.github.io/opentelemetry-helm-charts
   - name: ingress-nginx
     url: https://kubernetes.github.io/ingress-nginx
 
@@ -124,12 +128,45 @@ releases:
       - k8s/charts/analytics/clickhouse/values.secrets.yaml
       {{- end }}
 
+  - name: tempo
+    namespace: observability
+    chart: grafana/tempo-distributed
+    version: {{ $default.tempo.version }}
+    values:
+      - k8s/charts/observability/tempo/values.{{ .Environment.Name }}.yaml
+
+  - name: loki
+    namespace: observability
+    chart: grafana/loki
+    version: {{ $default.loki.version }}
+    values:
+      - k8s/charts/observability/loki/values.{{ .Environment.Name }}.yaml
+
+  - name: prometheus
+    namespace: observability
+    chart: prometheus-community/kube-prometheus-stack
+    version: {{  $default.prometheus.version }}
+    values:
+      - k8s/charts/observability/prometheus/values.{{ .Environment.Name }}.yaml
+
+  
+  - name: otel-collector
+    namespace: observability
+    chart: open-telemetry/opentelemetry-collector
+    version: 0.143.0
+    values:
+      - k8s/charts/observability/otel-collector/values.{{ .Environment.Name }}.yaml
+
   - name: grafana
     needs:
       - {{ $default.ingress.namespace }}/ingress-nginx
-      - clickhouse
+      - {{ $default.clickhouse.namespace }}/clickhouse
+      - tempo
+      - loki
+      - prometheus
+      - otel-collector
     namespace: {{ $default.grafana.namespace }}
-    chart: k8s/charts/analytics/grafana
+    chart: k8s/charts/observability/grafana
     values:
       - grafana-storage:
           enabled: {{ eq .Environment.Name "local" }}
@@ -200,8 +237,42 @@ releases:
                     protocol: http
                   secureJsonData:
                     password: {{ $default.clickhouse.password | quote }}
-      - k8s/charts/analytics/grafana/values.{{ .Environment.Name }}.yaml
-      {{- if isFile "k8s/charts/analytics/grafana/values.secrets.yaml" }}
-      - k8s/charts/analytics/grafana/values.secrets.yaml
+                
+                - name: Tempo
+                  type: tempo
+                  access: proxy
+                  editable: true
+                  isDefault: false
+                  url: http://tempo-query-frontend.observability.svc.cluster.local:3100
+                  jsonData:
+                    httpMethod: GET
+                    tracesToLogsV2:
+                      datasourceUid: Loki
+                      spanStartTimeShift: "-1m"
+                      spanEndTimeShift: "1m"
+                      filterByTraceID: true
+                      filterBySpanID: true
+                    serviceMap:
+                      datasourceUid: Prometheus
+
+                - name: Loki
+                  uid: Loki
+                  type: loki
+                  access: proxy
+                  editable: true
+                  isDefault: false
+                  url: http://loki.observability.svc.cluster.local:3100
+
+                - name: Prometheus
+                  uid: Prometheus
+                  type: prometheus
+                  access: proxy
+                  editable: true
+                  isDefault: false
+                  url: http://prometheus-kube-prometheus-prometheus.observability.svc.cluster.local:9090
+
+      - k8s/charts/observability/grafana/values.{{ .Environment.Name }}.yaml
+      {{- if isFile "k8s/charts/observability/grafana/values.secrets.yaml" }}
+      - k8s/charts/observability/grafana/values.secrets.yaml
       {{- end }}
 

@@ -2,8 +2,17 @@ kafka:
   operatorVersion: "0.45.0"
 
 grafana:
-  namespace: analytics
+  namespace: observability
   resourcePrefix: grafana
+
+tempo:
+  version: 1.6.0
+
+loki:
+  version: 6.49.0
+
+prometheus:
+  version: 80.13.1
 
 ingress:
   namespace: ingress-nginx
