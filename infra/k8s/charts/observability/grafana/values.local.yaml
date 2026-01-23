@@ -5,6 +5,13 @@ grafana-storage:
       size: 5Gi
       claimName: grafana
 
+  tempo:
+    persistence:
+      enabled: true
+      storageClass: "nfs-client"
+      size: 10Gi
+      claimName: tempo-shared
+
 grafana-ingress:
   grafana:
     servicePort: 80

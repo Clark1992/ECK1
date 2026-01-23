@@ -1,57 +1,55 @@
-# Values for grafana/tempo-distributed (see infra/phase-1-helmfile.yaml.gotmpl)
-
-tempo:
-  structuredConfig:
-    auth_enabled: false
-
-traces:
-  otlp:
-    grpc:
-      enabled: true
-    http:
-      enabled: true
-
-storage:
-  trace:
-    backend: local
-    local:
-      path: /var/tempo/traces
-    wal:
-      path: /var/tempo/wal
-
-ingester:
-  replicas: 1
-  config:
-    replication_factor: 1
-
 compactor:
   affinity: |
     {}
   config:
     compaction:
-      block_retention: 24h
-
-# Single-node local clusters can get stuck on hard pod anti-affinity during upgrades.
+      block_retention: 168h
+  extraVolumeMounts:
+    - mountPath: /tempo-nfs
+      name: tempo-nfs
+  extraVolumes:
+    - name: tempo-nfs
+      persistentVolumeClaim:
+        claimName: tempo-shared
 distributor:
   affinity: |
     {}
-
-querier:
-  affinity: |
-    {}
-
-queryFrontend:
-  affinity: |
-    {}
-
-memcached:
-  affinity: |
-    {}
-
+  extraVolumeMounts:
+    - mountPath: /tempo-nfs
+      name: tempo-nfs
+  extraVolumes:
+    - name: tempo-nfs
+      persistentVolumeClaim:
+        claimName: tempo-shared
 gateway:
   affinity: |
     {}
-
+ingester:
+  config:
+    replication_factor: 1
+  extraVolumeMounts:
+    - mountPath: /tempo-nfs
+      name: tempo-nfs
+  extraVolumes:
+    - name: tempo-nfs
+      persistentVolumeClaim:
+        claimName: tempo-shared
+  replicas: 1
+memcached:
+  affinity: |
+    {}
+metricsGenerator:
+  affinity: |
+    {}
+  enabled: true
+  extraVolumeMounts:
+    - mountPath: /tempo-nfs
+      name: tempo-nfs
+  extraVolumes:
+    - name: tempo-nfs
+      persistentVolumeClaim:
+        claimName: tempo-shared
+  replicas: 1
 monitoring:
   dashboards:
     enabled: false
@@ -59,3 +57,64 @@ monitoring:
     enabled: false
   serviceMonitor:
     enabled: false
+querier:
+  affinity: |
+    {}
+  extraVolumeMounts:
+    - mountPath: /tempo-nfs
+      name: tempo-nfs
+  extraVolumes:
+    - name: tempo-nfs
+      persistentVolumeClaim:
+        claimName: tempo-shared
+queryFrontend:
+  affinity: |
+    {}
+  config:
+    metrics:
+      query_backend_after: 2h
+  extraVolumeMounts:
+    - mountPath: /tempo-nfs
+      name: tempo-nfs
+  extraVolumes:
+    - name: tempo-nfs
+      persistentVolumeClaim:
+        claimName: tempo-shared
+search:
+  enabled: true
+storage:
+  trace:
+    backend: local
+tempo:
+  structuredConfig:
+    auth_enabled: false
+    metrics_generator:
+      processor:
+        local_blocks:
+          flush_to_storage: true
+      storage:
+        path: /tempo-nfs/metrics-wal
+      traces_storage:
+        path: /tempo-nfs/traces
+      traces_query_storage:
+        path: /tempo-nfs/traces-query-wal
+    overrides:
+      defaults:
+        metrics_generator:
+          processors:
+          - local-blocks
+          - service-graphs
+          - span-metrics
+      per_tenant_override_config: ""
+    storage:
+      trace:
+        local:
+          path: /tempo-nfs/traces
+        wal:
+          path: /tempo-nfs/wal
+traces:
+  otlp:
+    grpc:
+      enabled: true
+    http:
+      enabled: true

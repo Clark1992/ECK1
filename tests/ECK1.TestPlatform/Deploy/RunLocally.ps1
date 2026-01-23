@@ -24,6 +24,7 @@ Ensure-Helm
 Write-Host "Deploying Helm chart..."
 helm upgrade --install $releaseName $baseDir\Deploy\$chartPath `
     --namespace $env:AppServiceNamespace `
+    --set environment=local `
     -f $baseDir\Deploy\values.local.yaml
 
 if ($LASTEXITCODE -ne 0) {

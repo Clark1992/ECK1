@@ -37,6 +37,7 @@ if ($LASTEXITCODE -ne 0) {
 
 helm upgrade --install $releaseName $baseDir\Deploy\$chartPath `
     --namespace $env:AppServiceNamespace `
+    --set environment=local `
     -f $baseDir\Deploy\values.local.yaml `
     -f $baseDir\Deploy\values.secrets.yaml
 

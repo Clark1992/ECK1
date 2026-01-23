@@ -24,3 +24,9 @@ clickhouse:
   username: default
   password: default
   compress: "True"
+
+observability:
+  namespace: observability
+  otlpService: "otel-collector-opentelemetry-collector"
+  otlpPort: "4317"
+  otlpProtocol: grpc

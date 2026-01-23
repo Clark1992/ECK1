@@ -47,9 +47,11 @@ HiddenREADME.md
 .devtests/**
 copilot-instructions.md
 prompts/
+instructions/
 values.secret.yaml
 Chart.lock
 
 # Local (untracked) docs
 **/README*.local.md
 COPILOT_CONTEXT.md
+infra/k8s/charts/analytics/clickhouse/files/queries/*

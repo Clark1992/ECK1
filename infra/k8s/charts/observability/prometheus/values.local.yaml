@@ -9,3 +9,6 @@ prometheus:
     retention: 24h
     scrapeInterval: 30s
     evaluationInterval: 30s
+  service:
+    type: NodePort
+    nodePort: 30909  

@@ -2,17 +2,21 @@ kafka:
   operatorVersion: "0.45.0"
 
 grafana:
-  namespace: observability
   resourcePrefix: grafana
 
 tempo:
-  version: 1.6.0
+  version: 1.60.0
+  uid: Tempo
 
 loki:
   version: 6.49.0
+  service: loki
+  port: 3100
+  uid: Loki
 
 prometheus:
   version: 80.13.1
+  uid: Prometheus
 
 ingress:
   namespace: ingress-nginx

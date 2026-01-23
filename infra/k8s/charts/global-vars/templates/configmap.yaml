@@ -10,6 +10,9 @@ data:
   ElasticSearchConfig__CaSecretName: "es-ca"
   ElasticSearchConfig__ApiKeySecretName: "es-api-key"
 
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://{{ .Values.observability.otlpService }}.{{ .Values.observability.namespace }}.svc.cluster.local:{{ .Values.observability.otlpPort }}
+  OTEL_EXPORTER_OTLP_PROTOCOL: {{ .Values.observability.otlpProtocol | default "grpc" | quote }}
+
   ClickhouseConfig__ConnectionString: "Host={{ .Values.clickhouse.resourcePrefix }}-svc.{{ .Values.clickhouse.namespace }}.svc.cluster.local;Port={{ .Values.clickhouse.port }};Database={{ .Values.clickhouse.database }};Username={{ .Values.clickhouse.username }};Password={{ .Values.clickhouse.password | default "" }};Compress={{ .Values.clickhouse.compress }}"
 
   AppServiceNamespace: "app-services"

@@ -129,33 +129,36 @@ releases:
       {{- end }}
 
   - name: tempo
-    namespace: observability
+    namespace: {{ $default.observability.namespace }}
     chart: grafana/tempo-distributed
     version: {{ $default.tempo.version }}
     values:
       - k8s/charts/observability/tempo/values.{{ .Environment.Name }}.yaml
 
   - name: loki
-    namespace: observability
+    namespace: {{ $default.observability.namespace }}
     chart: grafana/loki
     version: {{ $default.loki.version }}
     values:
       - k8s/charts/observability/loki/values.{{ .Environment.Name }}.yaml
 
   - name: prometheus
-    namespace: observability
+    namespace: {{ $default.observability.namespace }}
     chart: prometheus-community/kube-prometheus-stack
     version: {{  $default.prometheus.version }}
     values:
       - k8s/charts/observability/prometheus/values.{{ .Environment.Name }}.yaml
 
-  
   - name: otel-collector
-    namespace: observability
+    namespace: {{ $default.observability.namespace }}
     chart: open-telemetry/opentelemetry-collector
     version: 0.143.0
     values:
       - k8s/charts/observability/otel-collector/values.{{ .Environment.Name }}.yaml
+      - config:
+          exporters:
+            otlphttp/loki:
+              endpoint: http://{{ $default.loki.service }}.{{ $default.observability.namespace }}.svc.cluster.local:{{ $default.loki.port }}/otlp
 
   - name: grafana
     needs:
@@ -165,7 +168,7 @@ releases:
       - loki
       - prometheus
       - otel-collector
-    namespace: {{ $default.grafana.namespace }}
+    namespace: {{ $default.observability.namespace }}
     chart: k8s/charts/observability/grafana
     values:
       - grafana-storage:
@@ -237,39 +240,51 @@ releases:
                     protocol: http
                   secureJsonData:
                     password: {{ $default.clickhouse.password | quote }}
-                
-                - name: Tempo
-                  type: tempo
-                  access: proxy
-                  editable: true
-                  isDefault: false
-                  url: http://tempo-query-frontend.observability.svc.cluster.local:3100
-                  jsonData:
-                    httpMethod: GET
-                    tracesToLogsV2:
-                      datasourceUid: Loki
-                      spanStartTimeShift: "-1m"
-                      spanEndTimeShift: "1m"
-                      filterByTraceID: true
-                      filterBySpanID: true
-                    serviceMap:
-                      datasourceUid: Prometheus
 
                 - name: Loki
-                  uid: Loki
+                  uid: {{ $default.loki.uid }}
                   type: loki
                   access: proxy
                   editable: true
                   isDefault: false
-                  url: http://loki.observability.svc.cluster.local:3100
+                  url: http://{{ $default.loki.service }}.{{ $default.observability.namespace }}.svc.cluster.local:{{ $default.loki.port }}
+                  jsonData:
+                    derivedFields:
+                      - name: Trace
+                        matcherType: label
+                        matcherRegex: 'trace[_]?id'
+                        datasourceUid: {{ $default.tempo.uid }}
+                        url: '$${__value.raw}'
+                        urlDisplayLabel: 'Open Trace'
+                        targetBlank: true
 
                 - name: Prometheus
-                  uid: Prometheus
+                  uid: {{ $default.prometheus.uid }}
                   type: prometheus
                   access: proxy
                   editable: true
                   isDefault: false
-                  url: http://prometheus-kube-prometheus-prometheus.observability.svc.cluster.local:9090
+                  url: http://prometheus-kube-prometheus-prometheus.{{ $default.observability.namespace }}.svc.cluster.local:9090
+
+                - name: Tempo
+                  uid: {{ $default.tempo.uid }}
+                  type: tempo
+                  access: proxy
+                  editable: true
+                  isDefault: false
+                  url: http://tempo-query-frontend.{{ $default.observability.namespace }}.svc.cluster.local:3200
+                  jsonData:
+                    httpMethod: GET
+                    tracesToLogsV2:
+                      datasourceUid: {{ $default.loki.uid }}
+                      spanStartTimeShift: "-1m"
+                      spanEndTimeShift: "1m"
+                      filterByTraceID: false
+                      filterBySpanID: false
+                      customQuery: true
+                      query: '{ service_name=~".+" } | logfmt | trace_id="$${__trace.traceId}"'
+                    serviceMap:
+                      datasourceUid: {{ $default.prometheus.uid }}
 
       - k8s/charts/observability/grafana/values.{{ .Environment.Name }}.yaml
       {{- if isFile "k8s/charts/observability/grafana/values.secrets.yaml" }}

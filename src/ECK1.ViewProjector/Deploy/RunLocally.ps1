@@ -39,6 +39,7 @@ Write-Host "Mongo port $mongoPort is not in use. Helm will deploy mongo inside k
 
 helm upgrade --install $releaseName $baseDir\Deploy\service\$chartPath `
     --namespace $env:AppServiceNamespace `
+    --set environment=local `
     -f $baseDir\Deploy\service\values.local.yaml `
     -f $baseDir\Deploy\service\values.secrets.yaml
 

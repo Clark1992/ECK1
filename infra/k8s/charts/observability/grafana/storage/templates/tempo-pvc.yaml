@@ -1,0 +1,13 @@
+{{- if and (eq .Values.environment "local") (.Values.tempo.persistence.enabled) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.tempo.persistence.claimName }}
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: {{ .Values.tempo.persistence.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.tempo.persistence.size }}
+{{- end }}

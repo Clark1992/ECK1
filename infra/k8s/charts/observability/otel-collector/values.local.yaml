@@ -6,7 +6,7 @@ image:
   repository: otel/opentelemetry-collector-contrib
 
 service:
-  type: ClusterIP
+  type: NodePort
 
 ports:
   otlp:
@@ -27,6 +27,14 @@ ports:
     servicePort: 8889
     protocol: TCP
 
+serviceMonitor:
+  enabled: true
+  extraLabels :
+    release: prometheus
+  metricsEndpoints:
+    - port: metrics
+      interval: 15s
+
 config:
   receivers:
     otlp:
@@ -46,7 +54,7 @@ config:
 
     resource:
       attributes:
-        - key: environment
+        - key: "deployment.environment"
           value: local
           action: insert
 
@@ -56,11 +64,10 @@ config:
       tls:
         insecure: true
 
-    otlphttp/loki:
-      endpoint: http://loki.observability.svc.cluster.local:3100/otlp
-
     prometheus:
       endpoint: "0.0.0.0:8889"
+      resource_to_telemetry_conversion:
+        enabled: true
 
   service:
     pipelines:

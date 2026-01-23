@@ -47,6 +47,7 @@ helm uninstall $releaseName --namespace $env:AppServiceNamespace
 
 helm upgrade --install $releaseName $baseDir\Deploy\$chartPath `
     --namespace $env:AppServiceNamespace `
+    --set environment=local `
     -f $baseDir\Deploy\values.local.yaml `
     --set plugin.name=$pluginLower
 
