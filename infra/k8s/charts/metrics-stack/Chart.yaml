@@ -1,0 +1,12 @@
+apiVersion: v2
+name: metrics-stack
+version: 0.1.0
+description: Metrics stack (metrics-server + RBAC for metrics.k8s.io)
+
+dependencies:
+  - name: metrics-server
+    version: 3.13.0
+    repository: https://kubernetes-sigs.github.io/metrics-server
+  - name: metrics-access
+    version: 0.1.0
+    repository: file://./metrics-access

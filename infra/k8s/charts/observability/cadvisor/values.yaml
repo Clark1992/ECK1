@@ -1,0 +1,31 @@
+image:
+  repository: gcr.io/cadvisor/cadvisor
+  tag: v0.49.1
+  pullPolicy: IfNotPresent
+
+service:
+  port: 8080
+  name: http-metrics
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  scrapeTimeout: 10s
+  labels:
+    release: prometheus
+
+resources: {}
+
+tolerations: []
+affinity: {}
+
+args:
+  - --port=8080
+  - --housekeeping_interval=10s
+  - --max_housekeeping_interval=15s
+  - --containerd=/run/containerd/containerd.sock
+
+securityContext:
+  privileged: true
+
+podSecurityContext: {}

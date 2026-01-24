@@ -85,6 +85,12 @@ search:
 storage:
   trace:
     backend: local
+
+metaMonitoring:
+  serviceMonitor:
+    enabled: true
+    labels:
+      release: prometheus
 tempo:
   structuredConfig:
     auth_enabled: false
@@ -94,6 +100,8 @@ tempo:
           flush_to_storage: true
       storage:
         path: /tempo-nfs/metrics-wal
+        remote_write:
+          - url: http://prometheus-kube-prometheus-prometheus.observability.svc.cluster.local:9090/api/v1/write
       traces_storage:
         path: /tempo-nfs/traces
       traces_query_storage:

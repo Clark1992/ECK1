@@ -1,0 +1,3 @@
+# Parent chart values for the metrics-server subchart.
+metrics-server:
+  replicas: 1

@@ -1,0 +1,38 @@
+# Defaults are intentionally empty; use environment-specific values files.
+metrics-access:
+  fullnameOverride: metrics-access
+  subject:
+    kind: Group
+    name: system:authenticated
+    apiGroup: rbac.authorization.k8s.io
+
+# Parent chart values for the metrics-server subchart.
+metrics-server:
+  apiService:
+    create: true
+
+  # Override chart defaults to avoid duplicated flags (the metrics-server chart
+  # concatenates defaultArgs + args).
+  defaultArgs:
+    - --cert-dir=/tmp
+    - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+    - --kubelet-use-node-status-port
+
+    # Must be larger than kubelet-request-timeout.
+    - --metric-resolution=60s
+
+  args:
+    # For local clusters (docker-desktop/kind/minikube) kubelet certificates are often self-signed.
+    - --kubelet-insecure-tls
+
+    # Avoid scrape timeouts seen on docker-desktop (was 10s default).
+    # Must be smaller than --metric-resolution.
+    - --kubelet-request-timeout=30s
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi

@@ -4,6 +4,8 @@ environments:
 repositories:
   - name: appscode-charts
     url: https://charts.appscode.com/stable
+  - name: metrics-server
+    url: https://kubernetes-sigs.github.io/metrics-server
 
 ---
 
@@ -23,3 +25,9 @@ releases:
     version: "0.13.2"
     values:
       - k8s/charts/kubed/values.yaml
+
+  - name: metrics-server
+    namespace: kube-system
+    chart: k8s/charts/metrics-stack
+    values:
+      - k8s/charts/metrics-stack/values.{{ .Environment.Name }}.yaml

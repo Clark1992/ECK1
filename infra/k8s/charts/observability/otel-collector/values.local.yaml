@@ -8,6 +8,20 @@ image:
 service:
   type: NodePort
 
+# Required for k8sattributes processor (enrich telemetry with k8s metadata).
+serviceAccount:
+  create: true
+  name: otel-collector
+  automountServiceAccountToken: true
+
+clusterRole:
+  create: true
+  clusterRoleBinding: {}
+  rules:
+    - apiGroups: [""]
+      resources: ["pods", "namespaces", "nodes"]
+      verbs: ["get", "list", "watch"]
+
 ports:
   otlp:
     enabled: true
@@ -42,6 +56,9 @@ config:
         grpc: {}
         http: {}
 
+  extensions:
+    health_check: {}
+
   processors:
     memory_limiter:
       check_interval: 5s
@@ -58,6 +75,17 @@ config:
           value: local
           action: insert
 
+    # Adds k8s.namespace.name, k8s.pod.name, etc. based on the incoming connection/pod IP.
+    # This makes our Tempo tracesToMetrics queries (and logs→metrics links) viable.
+    k8sattributes:
+      auth_type: serviceAccount
+      passthrough: false
+      extract:
+        metadata:
+          - k8s.namespace.name
+          - k8s.pod.name
+          - k8s.node.name
+
   exporters:
     otlp/tempo:
       endpoint: tempo-distributor.observability.svc.cluster.local:4317
@@ -70,18 +98,19 @@ config:
         enabled: true
 
   service:
+    extensions: [health_check]
     pipelines:
       traces:
         receivers: [otlp]
-        processors: [memory_limiter, resource, batch]
+        processors: [memory_limiter, resource, k8sattributes, batch]
         exporters: [otlp/tempo]
 
       logs:
         receivers: [otlp]
-        processors: [memory_limiter, resource, batch]
+        processors: [memory_limiter, resource, k8sattributes, batch]
         exporters: [otlphttp/loki]
 
       metrics:
         receivers: [otlp]
-        processors: [memory_limiter, resource, batch]
+        processors: [memory_limiter, resource, k8sattributes, batch]
         exporters: [prometheus]

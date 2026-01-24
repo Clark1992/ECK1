@@ -1,0 +1,4 @@
+apiVersion: v2
+name: metrics-access
+version: 0.1.0
+description: RBAC for reading metrics.k8s.io (for tools like Lens)
