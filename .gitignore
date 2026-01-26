@@ -47,7 +47,7 @@ HiddenREADME.md
 .devtests/**
 copilot-instructions.md
 prompts/
-instructions/
+copilot-instructions/
 values.secret.yaml
 Chart.lock
 

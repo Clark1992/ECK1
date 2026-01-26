@@ -21,6 +21,21 @@ spec:
           ports:
             - containerPort: 80
           env:
+            - name: OTEL_SERVICE_NAME
+              value: {{ .Chart.Name | quote }}
+            - name: OTEL_SERVICE_VERSION
+              value: {{ .Chart.AppVersion | quote }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: OTEL_EXPORTER_OTLP_ENDPOINT
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: OTEL_EXPORTER_OTLP_PROTOCOL
+                
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}
               value: "{{ $value }}"

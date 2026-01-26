@@ -385,6 +385,14 @@ releases:
                         urlDisplayLabel: 'Open Trace'
                         targetBlank: true
 
+                      - name: View in context (pod)
+                        matcherType: label
+                        # Contains preformatted query params (ts_ms + pod + time window).
+                        matcherRegex: 'grafana_link_params'
+                        url: '/d/$${__dashboard.uid}?orgId=1&$${__value.raw}&time.window=240000&$${service_name:queryparam}&$${env:queryparam}'
+                        urlDisplayLabel: 'Open'
+                        targetBlank: true
+
                       # For metrics we link to Grafana Explore via URL.
                       - name: Pod CPU (Explore)
                         matcherType: label

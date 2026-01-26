@@ -3,6 +3,7 @@ using ECK1.CommandsAPI.Data;
 using ECK1.CommandsAPI.Kafka;
 using ECK1.CommandsAPI.Startup;
 using ECK1.CommonUtils.AspNet;
+using ECK1.CommonUtils.OpenTelemetry;
 using ECK1.CommonUtils.Secrets.Doppler;
 using ECK1.CommonUtils.Secrets.K8s;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
@@ -19,6 +20,8 @@ builder.Configuration.AddDopplerSecrets();
 
 var configuration = builder.Configuration;
 var environment = builder.Environment;
+
+builder.AddOpenTelemetry();
 
 builder.Services.AddControllers(options =>
     options.Conventions.Add(new RouteTokenTransformerConvention(new SlugifyParameterTransformer())));

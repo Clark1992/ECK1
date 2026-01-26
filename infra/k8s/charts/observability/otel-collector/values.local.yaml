@@ -86,6 +86,17 @@ config:
           - k8s.pod.name
           - k8s.node.name
 
+    # Derive a millisecond epoch timestamp for Grafana URL time params.
+    # Grafana Loki derivedFields reliably expose only `${__value.raw}`, so we need the
+    # matched value to already be in epoch-ms.
+    transform/log_links:
+      error_mode: ignore
+      log_statements:
+        - set(log.attributes["observed_timestamp_ms"], Int(log.observed_time_unix_nano / 1000000)) where log.observed_time_unix_nano != nil
+        - set(log.attributes["observed_timestamp"], String(log.observed_time_unix_nano)) where log.observed_time_unix_nano != nil and log.attributes["observed_timestamp"] == nil
+        - set(log.attributes["k8s_pod_name"], resource.attributes["k8s.pod.name"]) where log.attributes["k8s_pod_name"] == nil and resource.attributes["k8s.pod.name"] != nil
+        - set(log.attributes["grafana_link_params"], Format("var-ts=%d&var-pod=%s&time=%d", [log.observed_time_unix_nano, log.attributes["k8s_pod_name"], Int(log.observed_time_unix_nano / 1000000)])) where log.observed_time_unix_nano != nil and log.attributes["k8s_pod_name"] != nil
+
   exporters:
     otlp/tempo:
       endpoint: tempo-distributor.observability.svc.cluster.local:4317
@@ -107,7 +118,7 @@ config:
 
       logs:
         receivers: [otlp]
-        processors: [memory_limiter, resource, k8sattributes, batch]
+        processors: [memory_limiter, resource, k8sattributes, transform/log_links, batch]
         exporters: [otlphttp/loki]
 
       metrics:

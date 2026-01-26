@@ -1,4 +1,5 @@
 ﻿using ECK1.CommonUtils.AspNet;
+using ECK1.CommonUtils.OpenTelemetry;
 using ECK1.CommonUtils.Secrets.Doppler;
 using ECK1.CommonUtils.Secrets.K8s;
 using ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample;
@@ -27,6 +28,8 @@ builder.Configuration.AddDopplerSecrets();
 
 var configuration = builder.Configuration;
 var environment = builder.Environment;
+
+builder.AddOpenTelemetry();
 
 builder.Host.SetupOrleansHosting();
 
