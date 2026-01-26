@@ -19,16 +19,19 @@ public class SampleCommandHandlers :
     private readonly SampleRepo repo;
     private readonly IMediator mediator;
     private readonly IMapper mapper;
+    private readonly ILogger<SampleCommandHandlers> logger;
 
-    public SampleCommandHandlers(SampleRepo repo, IMediator mediator, IMapper mapper)
+    public SampleCommandHandlers(SampleRepo repo, IMediator mediator, IMapper mapper, ILogger<SampleCommandHandlers> logger)
     {
         this.repo = repo;
         this.mediator = mediator;
         this.mapper = mapper;
+        this.logger = logger;
     }
 
     public async Task<ICommandResult> Handle(CreateSampleCommand command, CancellationToken ct)
     {
+        this.logger.LogInformation("Handling {Type} command (Name = '{Name}').", command.GetType(), command.Name);
         var sample = Sample.Create(command.Name, command.Description, command.Address);
 
         return await SaveAndNotify(sample, ct);
