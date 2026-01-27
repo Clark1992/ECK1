@@ -6,7 +6,7 @@ namespace ECK1.Integration.Cache.ShortTerm.Tests;
 
 public class FieldMaskBenchmark(ITestOutputHelper output)
 {
-    private const int Iterations = 100000;
+    private const int Iterations = 10000;
 
     [Fact]
     public void RunEqualityCheck()

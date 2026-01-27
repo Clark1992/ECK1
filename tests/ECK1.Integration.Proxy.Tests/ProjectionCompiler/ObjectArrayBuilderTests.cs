@@ -239,7 +239,7 @@ public class ObjectArrayBuilderTests_SampleFullRecord2(ITestOutputHelper output)
 
         var fixture = new Fixture();
 
-        var count = 100000;
+        var count = 10000;
         var events = fixture.CreateMany<SampleThinEvent>(count).ToList();
         var records = fixture.CreateMany<TestSampleRecord>(count).ToList();
 

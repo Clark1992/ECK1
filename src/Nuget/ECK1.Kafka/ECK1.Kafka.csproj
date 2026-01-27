@@ -18,7 +18,10 @@
         <PackageReference Include="Confluent.SchemaRegistry" />
         <PackageReference Include="Confluent.SchemaRegistry.Serdes.Avro" />
         <PackageReference Include="Confluent.SchemaRegistry.Serdes.Json" />
+      <PackageReference Include="Confluent.Kafka.Extensions.Diagnostics" />
+      <PackageReference Include="Confluent.Kafka.Extensions.OpenTelemetry" />
         <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+      <PackageReference Include="OpenTelemetry" />
     </ItemGroup>
 
     <ItemGroup>

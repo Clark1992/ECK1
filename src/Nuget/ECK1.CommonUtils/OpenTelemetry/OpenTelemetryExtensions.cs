@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Exporter;
@@ -30,7 +31,8 @@ public static class OpenTelemetryExtensions
     public static WebApplicationBuilder AddOpenTelemetry(
         this WebApplicationBuilder builder,
         string[] ignoredRequestPathPrefixes = null,
-        string[] ignoredStaticFileExtensions = null)
+        string[] ignoredStaticFileExtensions = null,
+        Action<TracerProviderBuilder> tracingExtraConfig = null)
     {
         if (builder is null) throw new ArgumentNullException(nameof(builder));
 
@@ -55,7 +57,7 @@ public static class OpenTelemetryExtensions
         var serviceName = configuration["OTEL_SERVICE_NAME"] ?? assemblyName.Name;
         var serviceVersion = configuration["OTEL_SERVICE_VERSION"] ?? assemblyName.Version.ToString();
 
-        Uri? otlpEndpoint = null;
+        Uri otlpEndpoint = null;
         var otlpEndpointRaw = configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
         if (!string.IsNullOrWhiteSpace(otlpEndpointRaw) && Uri.TryCreate(otlpEndpointRaw, UriKind.Absolute, out var parsedEndpoint))
         {
@@ -95,6 +97,25 @@ public static class OpenTelemetryExtensions
                 otlp.Protocol = otlpProtocol.Value;
             }
         }
+
+        // Ensure conventional (stdout) logs can be correlated with traces.
+        // This makes ILogger providers (Console, etc.) include TraceId/SpanId in the logging scope.
+        builder.Logging.Configure(options =>
+        {
+            options.ActivityTrackingOptions = ActivityTrackingOptions.TraceId | ActivityTrackingOptions.SpanId;
+        });
+
+        // Make sure console formatters actually print scopes (where TraceId/SpanId live).
+        // This affects logs scraped from stdout (e.g., via Promtail/Loki).
+        builder.Services.Configure<SimpleConsoleFormatterOptions>(options =>
+        {
+            options.IncludeScopes = true;
+        });
+
+        builder.Services.Configure<JsonConsoleFormatterOptions>(options =>
+        {
+            options.IncludeScopes = true;
+        });
 
         builder.Logging.AddOpenTelemetry(options =>
         {
@@ -144,6 +165,8 @@ public static class OpenTelemetryExtensions
                         options.RecordException = true;
                     })
                     .AddOtlpExporter(ConfigureOtlpExporter);
+
+                tracingExtraConfig?.Invoke(tracing);
             })
             .WithMetrics(metrics =>
             {

@@ -13,15 +13,11 @@ public class KafkaTopicProducerBase<TValue> where TValue : class
     private readonly string topic;
 
     public KafkaTopicProducerBase(
-        Handle rootHandle, 
+        IProducer<string, TValue> producer,
         string topic,
-        IAsyncSerializer<TValue> asyncSerializer,
         ILogger<IKafkaTopicProducer<TValue>> logger)
     {
-        producer = new DependentProducerBuilder<string, TValue>(rootHandle)
-            .SetValueSerializer(asyncSerializer)
-            .Build();
-
+        this.producer = producer;
         this.topic = topic;
         this.logger = logger;
     }
@@ -49,13 +45,11 @@ public class KafkaJsonTopicProducer<TValue> : KafkaTopicProducerBase<TValue>, IK
     where TValue : class
 {
     public KafkaJsonTopicProducer(
-        Handle rootHandle,
+        IProducer<string, TValue> producer,
         string topic,
-        IAsyncSerializer<TValue> serializer,
         ILogger<KafkaJsonTopicProducer<TValue>> logger) : base(
-            rootHandle, 
+            producer,
             topic,
-            serializer,
             logger)
     {
     }
@@ -65,13 +59,11 @@ public class KafkaAvroTopicProducer<TValue> : KafkaTopicProducerBase<TValue>, IK
     where TValue : class
 {
     public KafkaAvroTopicProducer(
-        Handle rootHandle,
+        IProducer<string, TValue> producer,
         string topic,
-        IAsyncSerializer<TValue> serializer,
         ILogger<KafkaAvroTopicProducer<TValue>> logger) : base(
-            rootHandle,
+            producer,
             topic,
-            serializer,
             logger)
     {
     }
@@ -81,13 +73,11 @@ public class KafkaProtoTopicProducer<TValue> : KafkaTopicProducerBase<TValue>, I
     where TValue : class
 {
     public KafkaProtoTopicProducer(
-        Handle rootHandle,
+        IProducer<string, TValue> producer,
         string topic,
-        IAsyncSerializer<TValue> serializer,
         ILogger<KafkaProtoTopicProducer<TValue>> logger) : base(
-            rootHandle,
+            producer,
             topic,
-            serializer,
             logger)
     {
     }
@@ -111,12 +101,10 @@ public class KafkaRawBytesProducer : IKafkaRawBytesProducer
     private readonly IProducer<string, byte[]> producer;
 
     public KafkaRawBytesProducer(
-        Handle rootHandle,
+        IProducer<string, byte[]> producer,
         ILogger logger)
     {
-        producer = new DependentProducerBuilder<string, byte[]>(rootHandle)
-            .Build();
-
+        this.producer = producer;
         this.logger = logger;
     }
 
@@ -149,12 +137,10 @@ public class KafkaSimpleProducer<TValue> : IKafkaSimpleProducer<TValue>
     private readonly IProducer<string, string> producer;
 
     public KafkaSimpleProducer(
-        Handle rootHandle,
+        IProducer<string, string> producer,
         ILogger<KafkaSimpleProducer<TValue>> logger)
     {
-        producer = new DependentProducerBuilder<string, string>(rootHandle)
-            .Build();
-
+        this.producer = producer;
         this.logger = logger;
     }
 

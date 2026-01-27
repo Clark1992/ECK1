@@ -2,6 +2,7 @@
 using Confluent.SchemaRegistry;
 using Confluent.SchemaRegistry.Serdes;
 using ECK1.Kafka.ProtoBuf;
+using Confluent.Kafka.Extensions.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -19,6 +20,8 @@ public static class KafkaServiceCollectionExtensions
 {
     private const string UnkwonFormat = "Unknown serializer format";
 
+    private const string ProducerConfigServiceKey = "ECK1.Kafka.ProducerConfig";
+
     public static IServiceCollection AddKafkaRootProducer(
         this IServiceCollection services,
         string bootstrapServers,
@@ -31,8 +34,12 @@ public static class KafkaServiceCollectionExtensions
 
         configAction?.Invoke(config);
 
+        // Keep config available to build per-message-type producers.
+        services.AddKeyedSingleton<ProducerConfig>(ProducerConfigServiceKey, (_, _) => config);
+
         services.AddSingleton(_ =>
-            new ProducerBuilder<string, byte[]>(config).Build());
+            new ProducerBuilder<string, byte[]>(config)
+                .BuildWithInstrumentation());
 
         return services;
     }
@@ -75,8 +82,8 @@ public static class KafkaServiceCollectionExtensions
     {
         services.AddSingleton<IKafkaTopicProducer<T>>(sp =>
         {
-            var root = sp.GetRequiredService<IProducer<string, byte[]>>();
             var schemaRegistry = sp.GetRequiredService<ISchemaRegistryClient>();
+            var producerConfig = sp.GetRequiredKeyedService<ProducerConfig>(ProducerConfigServiceKey);
 
             IAsyncSerializer<T> serializer = format switch
             {
@@ -105,11 +112,15 @@ public static class KafkaServiceCollectionExtensions
                 _ => throw new InvalidOperationException(UnkwonFormat)
             };
 
+            var producer = new ProducerBuilder<string, T>(producerConfig)
+                .SetValueSerializer(serializer)
+                .BuildWithInstrumentation();
+
             return format switch
             {
-                SerializerType.JSON => new KafkaJsonTopicProducer<T>(root.Handle, topic, serializer, sp.GetRequiredService<ILogger<KafkaJsonTopicProducer<T>>>()),
-                SerializerType.AVRO => new KafkaAvroTopicProducer<T>(root.Handle, topic, serializer, sp.GetRequiredService<ILogger<KafkaAvroTopicProducer<T>>>()),
-                SerializerType.PROTO => new KafkaProtoTopicProducer<T>(root.Handle, topic, serializer, sp.GetRequiredService<ILogger<KafkaProtoTopicProducer<T>>>()),
+                SerializerType.JSON => new KafkaJsonTopicProducer<T>(producer, topic, sp.GetRequiredService<ILogger<KafkaJsonTopicProducer<T>>>()),
+                SerializerType.AVRO => new KafkaAvroTopicProducer<T>(producer, topic, sp.GetRequiredService<ILogger<KafkaAvroTopicProducer<T>>>()),
+                SerializerType.PROTO => new KafkaProtoTopicProducer<T>(producer, topic, sp.GetRequiredService<ILogger<KafkaProtoTopicProducer<T>>>()),
                 _ => throw new InvalidOperationException(UnkwonFormat)
             }; 
         });
@@ -121,8 +132,11 @@ public static class KafkaServiceCollectionExtensions
     {
         services.AddSingleton<IKafkaSimpleProducer<T>>(sp =>
         {
-            var root = sp.GetRequiredService<IProducer<string, byte[]>>();
-            return new KafkaSimpleProducer<T>(root.Handle, sp.GetRequiredService<ILogger<KafkaSimpleProducer<T>>>());
+            var producerConfig = sp.GetRequiredKeyedService<ProducerConfig>(ProducerConfigServiceKey);
+            var producer = new ProducerBuilder<string, string>(producerConfig)
+                .BuildWithInstrumentation();
+
+            return new KafkaSimpleProducer<T>(producer, sp.GetRequiredService<ILogger<KafkaSimpleProducer<T>>>());
         });
 
         return services;
@@ -132,8 +146,11 @@ public static class KafkaServiceCollectionExtensions
     {
         services.AddSingleton<IKafkaRawBytesProducer>(sp =>
         {
-            var root = sp.GetRequiredService<IProducer<string, byte[]>>();
-            return new KafkaRawBytesProducer(root.Handle, sp.GetRequiredService<ILogger<KafkaRawBytesProducer>>());
+            var producerConfig = sp.GetRequiredKeyedService<ProducerConfig>(ProducerConfigServiceKey);
+            var producer = new ProducerBuilder<string, byte[]>(producerConfig)
+                .BuildWithInstrumentation();
+
+            return new KafkaRawBytesProducer(producer, sp.GetRequiredService<ILogger<KafkaRawBytesProducer>>());
         });
 
         return services;

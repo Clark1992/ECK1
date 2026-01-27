@@ -6,6 +6,7 @@ using ECK1.CommonUtils.AspNet;
 using ECK1.CommonUtils.OpenTelemetry;
 using ECK1.CommonUtils.Secrets.Doppler;
 using ECK1.CommonUtils.Secrets.K8s;
+using ECK1.Kafka.OpenTelemetry;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,7 +22,7 @@ builder.Configuration.AddDopplerSecrets();
 var configuration = builder.Configuration;
 var environment = builder.Environment;
 
-builder.AddOpenTelemetry();
+builder.AddOpenTelemetry(tracingExtraConfig: tracing => tracing.AddKafkaInstrumentation());
 
 builder.Services.AddControllers(options =>
     options.Conventions.Add(new RouteTokenTransformerConvention(new SlugifyParameterTransformer())));
@@ -64,6 +65,9 @@ else
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("AllowAllOrigins");
+
+app.UseTraceResponseEnricher();
+
 app.UseAuthorization();
 
 // Swagger

@@ -1,4 +1,5 @@
 ﻿using Confluent.Kafka;
+using Confluent.Kafka.Extensions.Diagnostics;
 using Microsoft.Extensions.Logging;
 
 namespace ECK1.Kafka;
@@ -28,7 +29,7 @@ public abstract class ConsumerLoop<TValue>
     public Task StartConsumingAsync(
         Func<ConsumeResult<string, TValue>, Task> handler,
         CancellationToken ct) =>
-        Task.Run(async () =>
+        Task.Run(() =>
         {
             try
             {
@@ -36,20 +37,23 @@ public abstract class ConsumerLoop<TValue>
                 {
                     try
                     {
-                        var result = consumer.Consume(ct);
-                        if (result?.Message == null)
-                            continue;
-
-                        try
+                        consumer.ConsumeWithInstrumentation(result =>
                         {
-                            await handler(result);
+                            if (result?.Message == null)
+                            {
+                                return;
+                            }
 
-                            consumer.Commit(result);
-                        }
-                        catch (Exception e)
-                        {
-                            logger.LogError(e, "Error during handling {type}", result.Message.Value.GetType().Name);
-                        }
+                            try
+                            {
+                                handler(result).GetAwaiter().GetResult();
+                                consumer.Commit(result);
+                            }
+                            catch (Exception e)
+                            {
+                                logger.LogError(e, "Error during handling {type}", result.Message.Value.GetType().Name);
+                            }
+                        }, 1000);
                     }
                     catch (ConsumeException ex)
                     {

@@ -39,6 +39,8 @@
     <PackageVersion Include="Confluent.SchemaRegistry" Version="2.11.1" />
     <PackageVersion Include="Confluent.SchemaRegistry.Serdes.Avro" Version="2.11.1" />
     <PackageVersion Include="Confluent.SchemaRegistry.Serdes.Json" Version="2.11.1" />
+    <PackageVersion Include="Confluent.Kafka.Extensions.Diagnostics" Version="0.5.0" />
+    <PackageVersion Include="Confluent.Kafka.Extensions.OpenTelemetry" Version="0.4.0" />
     <PackageVersion Include="ClickHouse.Client" Version="7.14.0" />
     <PackageVersion Include="MongoDB.Driver" Version="2.19.0" />
     <PackageVersion Include="Microsoft.Orleans.Server" Version="9.2.1" />

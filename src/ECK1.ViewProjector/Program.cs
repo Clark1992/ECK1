@@ -15,6 +15,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Serializers;
+using ECK1.Kafka.OpenTelemetry;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,7 +30,10 @@ builder.Configuration.AddDopplerSecrets();
 var configuration = builder.Configuration;
 var environment = builder.Environment;
 
-builder.AddOpenTelemetry();
+builder.AddOpenTelemetry(tracingExtraConfig: tracing => tracing
+    .AddKafkaInstrumentation()
+    .AddSource("Microsoft.Orleans.Runtime")
+    .AddSource("Microsoft.Orleans.Application"));
 
 builder.Host.SetupOrleansHosting();
 
