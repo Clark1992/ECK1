@@ -1,3 +1,5 @@
+$ErrorActionPreference = 'Stop'
+
 . ".github\scripts\common.ps1"
 . "src\ECK1.ViewProjector\Deploy\local-mongo-ensure-stopped.ps1"
 

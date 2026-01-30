@@ -10,9 +10,10 @@
         "enable": true,
         "expr": "{service_name=~\"$service_name\", service_name!=\"unknown_service\", deployment_environment=\"$env\"} | observed_timestamp=\"$ts\"",
         "filter": {
-          "exclude": false,
+          "exclude": true,
           "ids": [
-            4
+            1,
+            3
           ]
         },
         "hide": false,
@@ -32,7 +33,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 0,
+  "id": 11,
   "links": [],
   "panels": [
     {
@@ -894,7 +895,9 @@
         "allValue": "^(unknown_service$)|(.+)",
         "current": {
           "text": "All",
-          "value": "$__all"
+          "value": [
+            "$__all"
+          ]
         },
         "datasource": {
           "type": "prometheus",
@@ -1000,12 +1003,12 @@
     ]
   },
   "time": {
-    "from": "2026-01-26T22:11:40.975Z",
-    "to": "2026-01-26T22:26:26.624Z"
+    "from": "now-15m",
+    "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Logs/Traces2",
   "uid": "adzf64t2",
-  "version": 120
+  "version": 121
 }

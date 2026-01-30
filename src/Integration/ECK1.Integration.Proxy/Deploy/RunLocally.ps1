@@ -1,3 +1,5 @@
+$ErrorActionPreference = 'Stop'
+
 . ".github\scripts\common.ps1"
 
 $baseDir = "src/Integration/ECK1.Integration.Proxy"

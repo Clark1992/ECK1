@@ -9,6 +9,7 @@ using ECK1.CommonUtils.Secrets.K8s;
 using ECK1.Kafka.OpenTelemetry;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.EntityFrameworkCore;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddK8sSecrets();
@@ -22,7 +23,12 @@ builder.Configuration.AddDopplerSecrets();
 var configuration = builder.Configuration;
 var environment = builder.Environment;
 
-builder.AddOpenTelemetry(tracingExtraConfig: tracing => tracing.AddKafkaInstrumentation());
+builder.AddOpenTelemetry(tracingExtraConfig: tracing => tracing
+    .AddKafkaInstrumentation()
+    .AddSqlClientInstrumentation(options =>
+    {
+        options.RecordException = true;
+    }));
 
 builder.Services.AddControllers(options =>
     options.Conventions.Add(new RouteTokenTransformerConvention(new SlugifyParameterTransformer())));

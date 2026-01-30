@@ -15,7 +15,16 @@ data:
 
   ClickhouseConfig__ConnectionString: "Host={{ .Values.clickhouse.resourcePrefix }}-svc.{{ .Values.clickhouse.namespace }}.svc.cluster.local;Port={{ .Values.clickhouse.port }};Database={{ .Values.clickhouse.database }};Username={{ .Values.clickhouse.username }};Password={{ .Values.clickhouse.password | default "" }};Compress={{ .Values.clickhouse.compress }}"
 
-  AppServiceNamespace: "app-services"
+  AppServiceNamespace: {{ .Values.appServiceNamespace | default "app-services" | quote }}
+
+  SQLSERVER_PORT: "1433"
+  SQLSERVER_COMMANDS_SERVICE_NAME: {{ .Values.sqlservers.commands.serviceName | quote }}
+  SQLSERVER_COMMANDS_HOST: {{ printf "%s.%s.svc.cluster.local" .Values.sqlservers.commands.serviceName (.Values.appServiceNamespace | default "app-services") | quote }}
+  SQLSERVER_COMMANDS_DB: {{ .Values.sqlservers.commands.database | quote }}
+
+  SQLSERVER_FAILED_VIEW_REBUILDER_SERVICE_NAME: {{ .Values.sqlservers.failedViewRebuilder.serviceName | quote }}
+  SQLSERVER_FAILED_VIEW_REBUILDER_HOST: {{ printf "%s.%s.svc.cluster.local" .Values.sqlservers.failedViewRebuilder.serviceName (.Values.appServiceNamespace | default "app-services") | quote }}
+  SQLSERVER_FAILED_VIEW_REBUILDER_DB: {{ .Values.sqlservers.failedViewRebuilder.database | quote }}
   {{- if .Values.envSpecific }}
   {{- range $key, $value := .Values.envSpecific }}
   {{ $key }}: {{ $value | quote }}

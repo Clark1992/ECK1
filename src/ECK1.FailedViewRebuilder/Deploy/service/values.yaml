@@ -6,10 +6,14 @@ image:
   pullPolicy: IfNotPresent
 
 service:
-  type: NodePort
+  type: ClusterIP
   port: 80
-  nodePort: 30100
 
 env:
   ASPNETCORE_ENVIRONMENT: Development
-  ConnectionStrings__DefaultConnection: "Server=...;Database=FailedViewRebuilderDb;User=sa;Password=12345;"
+
+dbup:
+  enabled: true
+  image:
+    repository: localhost:5000/dbup
+    tag: dev

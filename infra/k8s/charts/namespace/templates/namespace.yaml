@@ -4,5 +4,6 @@ metadata:
   name: {{ .Values.namespaceName }}
   labels:
     sync-global-vars: "true"
+    sync-global-secrets: "true"
     sync-{{ .Values.elasticsearch.caSecretName }}: "true"
     sync-{{ .Values.elasticsearch.apiKeySecretName }}: "true"

@@ -1,0 +1,14 @@
+appServiceNamespace: app-services
+
+sqlservers:
+  commands:
+    serviceName: eck1-commandsapi-sql
+    database: ECK1.Commands
+    appUser: eck1_commands_app
+    metricsUser: eck1_commands_metrics
+
+  failedViewRebuilder:
+    serviceName: eck1-failed-view-rebuilder-sql
+    database: ECK1.FailedViewRebuilder
+    appUser: eck1_failed_view_rebuilder_app
+    metricsUser: eck1_failed_view_rebuilder_metrics

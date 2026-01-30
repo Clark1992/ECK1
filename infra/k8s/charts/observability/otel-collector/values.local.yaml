@@ -49,12 +49,67 @@ serviceMonitor:
     - port: metrics
       interval: 15s
 
+extraEnvs:
+  - name: SQLSERVER_COMMANDS_HOST
+    valueFrom:
+      configMapKeyRef:
+        name: global-vars
+        key: SQLSERVER_COMMANDS_HOST
+  - name: SQLSERVER_COMMANDS_DB
+    valueFrom:
+      configMapKeyRef:
+        name: global-vars
+        key: SQLSERVER_COMMANDS_DB
+  - name: SQLSERVER_COMMANDS_METRICS_USER
+    valueFrom:
+      secretKeyRef:
+        name: global-secrets
+        key: SQLSERVER_COMMANDS_METRICS_USER
+  - name: SQLSERVER_COMMANDS_METRICS_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: global-secrets
+        key: SQLSERVER_COMMANDS_METRICS_PASSWORD
+  - name: SQLSERVER_COMMANDS_DATASOURCE
+    value: "Server=$(SQLSERVER_COMMANDS_HOST),1433;Database=$(SQLSERVER_COMMANDS_DB);User Id=$(SQLSERVER_COMMANDS_METRICS_USER);Password=$(SQLSERVER_COMMANDS_METRICS_PASSWORD);TrustServerCertificate=True;Encrypt=False"
+
+  - name: SQLSERVER_FAILED_VIEW_REBUILDER_HOST
+    valueFrom:
+      configMapKeyRef:
+        name: global-vars
+        key: SQLSERVER_FAILED_VIEW_REBUILDER_HOST
+  - name: SQLSERVER_FAILED_VIEW_REBUILDER_DB
+    valueFrom:
+      configMapKeyRef:
+        name: global-vars
+        key: SQLSERVER_FAILED_VIEW_REBUILDER_DB
+  - name: SQLSERVER_FAILED_VIEW_REBUILDER_METRICS_USER
+    valueFrom:
+      secretKeyRef:
+        name: global-secrets
+        key: SQLSERVER_FAILED_VIEW_REBUILDER_METRICS_USER
+  - name: SQLSERVER_FAILED_VIEW_REBUILDER_METRICS_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: global-secrets
+        key: SQLSERVER_FAILED_VIEW_REBUILDER_METRICS_PASSWORD
+  - name: SQLSERVER_FAILED_VIEW_REBUILDER_DATASOURCE
+    value: "Server=$(SQLSERVER_FAILED_VIEW_REBUILDER_HOST),1433;Database=$(SQLSERVER_FAILED_VIEW_REBUILDER_DB);User Id=$(SQLSERVER_FAILED_VIEW_REBUILDER_METRICS_USER);Password=$(SQLSERVER_FAILED_VIEW_REBUILDER_METRICS_PASSWORD);TrustServerCertificate=True;Encrypt=False"
+
 config:
   receivers:
     otlp:
       protocols:
         grpc: {}
         http: {}
+
+    sqlserver/commands:
+      collection_interval: 15s
+      datasource: ${env:SQLSERVER_COMMANDS_DATASOURCE}
+
+    sqlserver/failed:
+      collection_interval: 15s
+      datasource: ${env:SQLSERVER_FAILED_VIEW_REBUILDER_DATASOURCE}
 
   extensions:
     health_check: {}
@@ -74,6 +129,18 @@ config:
         - key: "deployment.environment"
           value: local
           action: insert
+
+    resource/sqlserver_commands:
+      attributes:
+        - key: "service.name"
+          value: "eck1-commandsapi"
+          action: upsert
+
+    resource/sqlserver_failed:
+      attributes:
+        - key: "service.name"
+          value: "eck1-failed-view-rebuilder"
+          action: upsert
 
     # Adds k8s.namespace.name, k8s.pod.name, etc. based on the incoming connection/pod IP.
     # This makes our Tempo tracesToMetrics queries (and logs→metrics links) viable.
@@ -124,4 +191,14 @@ config:
       metrics:
         receivers: [otlp]
         processors: [memory_limiter, resource, k8sattributes, batch]
+        exporters: [prometheus]
+
+      metrics/sqlserver/commands:
+        receivers: [sqlserver/commands]
+        processors: [memory_limiter, resource, resource/sqlserver_commands, batch]
+        exporters: [prometheus]
+
+      metrics/sqlserver/failed:
+        receivers: [sqlserver/failed]
+        processors: [memory_limiter, resource, resource/sqlserver_failed, batch]
         exporters: [prometheus]

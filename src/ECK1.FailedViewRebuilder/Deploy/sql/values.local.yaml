@@ -1,0 +1,8 @@
+sqlserver:
+  persistence:
+    hostPath:
+      enabled: true
+      path: "/var/lib/mssql-data/failed-view-rebuilder"
+  service:
+    type: NodePort
+    nodePort: 31434

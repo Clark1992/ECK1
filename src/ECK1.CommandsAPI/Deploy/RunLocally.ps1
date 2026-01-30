@@ -1,16 +1,22 @@
+$ErrorActionPreference = 'Stop'
+
 . ".github\scripts\common.ps1"
-. ".github\scripts\run-dbup-migrations.ps1"
 
 $baseDir = "src/ECK1.CommandsAPI"
 $dockerfilePath = "$baseDir/Dockerfile"
 $imageName = "commands-api"
 $imageTag = "dev"
 $imageNameWithTag = "${imageName}:${imageTag}"
-$chartPath = "."
-$releaseName = "$imageName-release"
+$sqlChartPath = "sql"
+$serviceChartPath = "service"
+$sqlReleaseName = "$imageName-sql-release"
+$appReleaseName = "$imageName-release"
 
 # 1. Ensure local registry
 Start-LocalDockerRegistry
+
+# 1.1 Ensure DbUp image
+Ensure-DbUpImage
 
 # 2 & 3. Build and push API image to local registry
 Build-DockerImage -imageNameWithTag $imageNameWithTag -dockerfilePath $dockerfilePath
@@ -22,20 +28,30 @@ Ensure-Helm
 
 . ".github\scripts\prepare.global.vars.ps1"
 
-Write-Host "Deploying Helm chart..."
-helm upgrade --install $releaseName $baseDir\Deploy\$chartPath `
+$connectionString = "Server=$env:SQLSERVER_COMMANDS_HOST,$env:SQLSERVER_PORT;Database=$env:SQLSERVER_COMMANDS_DB;User Id=$env:SQLSERVER_COMMANDS_APP_USER;Password=$env:SQLSERVER_COMMANDS_APP_PASSWORD;TrustServerCertificate=True;Encrypt=False"
+
+Write-Host "Deploying SQL Server Helm release..."
+helm upgrade --install $sqlReleaseName $baseDir\Deploy\$sqlChartPath `
     --namespace $env:AppServiceNamespace `
     --set environment=local `
-    -f $baseDir\Deploy\values.local.yaml `
-    -f $baseDir\Deploy\values.secrets.yaml
+    --set sqlserver.serviceName="$env:SQLSERVER_COMMANDS_SERVICE_NAME" `
+    -f $baseDir\Deploy\sql\values.local.yaml
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Helm deployment failed."
     throw
 }
 
-$cString = Get-YamlValue -YamlPath "$baseDir/Deploy/values.local.yaml" -PropPath "env.ConnectionStrings__DefaultConnection"
+Write-Host "Deploying app Helm release..."
+helm upgrade --install $appReleaseName $baseDir\Deploy\$serviceChartPath `
+    --namespace $env:AppServiceNamespace `
+    --set env.ConnectionStrings__DefaultConnection="$connectionString" `
+    -f $baseDir\Deploy\service\values.local.yaml `
+    -f $baseDir\Deploy\service\values.secrets.yaml
 
-Run-DbUp -ScriptsPath "$baseDir/Migrations" -ConnectionString $cString
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Helm deployment failed."
+    throw
+}
 
 Write-Host "All Done."

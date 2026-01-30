@@ -133,6 +133,32 @@ function Ensure-Helm {
 }
 
 # ===========================================
+# Ensure DbUp Image
+# ===========================================
+function Ensure-DbUpImage {
+    param(
+        [string]$ImageName = "dbup",
+        [string]$ImageTag = "dev",
+        [string]$Registry = "localhost:5000"
+    )
+
+    $fullImage = "$Registry/${ImageName}:$ImageTag"
+
+    $exists = docker images --format "{{.Repository}}:{{.Tag}}" | Where-Object { $_ -eq $fullImage }
+    if ($exists) {
+        Write-Host "✅ DbUp image found locally: $fullImage" -ForegroundColor Green
+        return
+    }
+
+    Write-Host "⚠ DbUp image not found. Building and pushing: $fullImage" -ForegroundColor Yellow
+    & "$PSScriptRoot\..\..\tools\db-up\build-dbup-image.ps1" -ImageName $ImageName -ImageTag $ImageTag -Registry $Registry
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "❌ Failed to build/push DbUp image"
+        throw
+    }
+}
+
+# ===========================================
 # Ensure Helmfile
 # ===========================================
 function Ensure-Helmfile {

@@ -1,0 +1,88 @@
+{{- if .Values.dbup.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Chart.Name }}-dbup
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-50"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: dbup
+          image: "{{ .Values.dbup.image.repository }}:{{ .Values.dbup.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SQLSERVER_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: SQLSERVER_FAILED_VIEW_REBUILDER_HOST
+            - name: SQLSERVER_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: SQLSERVER_PORT
+            - name: SQLSERVER_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: SQLSERVER_FAILED_VIEW_REBUILDER_DB
+            - name: SQLSERVER_USER
+              valueFrom:
+                secretKeyRef:
+                  name: global-secrets
+                  key: SQLSERVER_FAILED_VIEW_REBUILDER_APP_USER
+            - name: SQLSERVER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: global-secrets
+                  key: SQLSERVER_FAILED_VIEW_REBUILDER_APP_PASSWORD
+          volumeMounts:
+            - name: dbup-scripts
+              mountPath: /migrations
+          command: ["pwsh", "-NoLogo", "-NoProfile", "-Command"]
+          args:
+            - |
+              $ErrorActionPreference = 'Stop'
+              $PSNativeCommandUseErrorActionPreference = $true
+              Write-Host "Starting DbUp migrations..."
+              Import-Module dbops -Force
+              $dbUser = $env:SQLSERVER_USER
+              $dbPass = $env:SQLSERVER_PASSWORD
+              $conn = "Server=$env:SQLSERVER_HOST,$env:SQLSERVER_PORT;Database=$env:SQLSERVER_DB;User Id=$dbUser;Password=$dbPass;TrustServerCertificate=True;Encrypt=False"
+              $sqlcmd = "/opt/mssql-tools18/bin/sqlcmd"
+              if (-not (Test-Path $sqlcmd)) { throw "sqlcmd not found at $sqlcmd" }
+              $ready = $false
+              Write-Host "Waiting for SQL Server at $env:SQLSERVER_HOST:$env:SQLSERVER_PORT..."
+              for ($i = 0; $i -lt 60; $i++) {
+                try {
+                  & $sqlcmd -b -V 16 -l 5 -C -S "$env:SQLSERVER_HOST,$env:SQLSERVER_PORT" -U $dbUser -P $dbPass -Q "SELECT 1" | Out-Null
+                  if ($LASTEXITCODE -eq 0) {
+                    $ready = $true
+                    break
+                  }
+                } catch {
+                  # ignore and retry
+                }
+                Start-Sleep -Seconds 10
+              }
+              if (-not $ready) { throw "SQL Server is not ready" }
+              $scripts = Get-ChildItem -Path /migrations -Filter "*.sql" -File | Sort-Object Name
+              if (-not $scripts -or $scripts.Count -eq 0) { throw "No migration scripts found in /migrations" }
+              Write-Host ("Found {0} migration(s)." -f $scripts.Count)
+              foreach ($script in $scripts) {
+                Write-Host ("Running migration: {0}" -f $script.Name)
+                Install-DBOScript -Path $script.FullName -ConnectionString $conn -Type SqlServer
+                if ($LASTEXITCODE -ne 0) { throw "Migration failed: $($script.Name)" }
+              }
+              Write-Host "DbUp migrations completed."
+      volumes:
+        - name: dbup-scripts
+          configMap:
+            name: {{ .Chart.Name }}-dbup-scripts
+{{- end }}

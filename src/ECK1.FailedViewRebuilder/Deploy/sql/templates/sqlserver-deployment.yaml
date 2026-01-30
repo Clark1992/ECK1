@@ -1,0 +1,145 @@
+{{- if .Values.sqlserver.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.sqlserver.serviceName }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ .Values.sqlserver.serviceName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.sqlserver.serviceName }}
+    spec:
+      {{- if .Values.sqlserver.podSecurityContext }}
+      securityContext: {{- toYaml .Values.sqlserver.podSecurityContext | nindent 8 }}
+      {{- end }}
+      {{- if and .Values.sqlserver.persistence.enabled .Values.sqlserver.persistence.hostPath.enabled }}
+      initContainers:
+        - name: init-permissions
+          image: "{{ .Values.sqlserver.image.repository }}:{{ .Values.sqlserver.image.tag }}"
+          imagePullPolicy: {{ .Values.sqlserver.image.pullPolicy | default "IfNotPresent" }}
+          command:
+            - /bin/bash
+            - -lc
+            - |
+              mkdir -p /var/opt/mssql/data /var/opt/mssql/log /var/opt/mssql/secrets
+              chmod -R 777 /var/opt/mssql
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: sqlserver-data
+              mountPath: /var/opt/mssql
+      {{- end }}
+      containers:
+        - name: sqlserver
+          image: "{{ .Values.sqlserver.image.repository }}:{{ .Values.sqlserver.image.tag }}"
+          imagePullPolicy: {{ .Values.sqlserver.image.pullPolicy | default "IfNotPresent" }}
+          {{- if .Values.sqlserver.securityContext }}
+          securityContext: {{- toYaml .Values.sqlserver.securityContext | nindent 12 }}
+          {{- end }}
+          ports:
+            - containerPort: 1433
+          env:
+            - name: ACCEPT_EULA
+              value: "Y"
+            - name: MSSQL_PID
+              value: {{ .Values.sqlserver.mssqlPid | default "Developer" | quote }}
+            - name: MSSQL_SA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: global-secrets
+                  key: {{ .Values.sqlserver.credentials.appPasswordKey | quote }}
+            - name: SQLSERVER_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: {{ .Values.sqlserver.credentials.dbKey | quote }}
+            - name: SQLSERVER_APP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: global-secrets
+                  key: {{ .Values.sqlserver.credentials.appUserKey | quote }}
+            - name: SQLSERVER_APP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: global-secrets
+                  key: {{ .Values.sqlserver.credentials.appPasswordKey | quote }}
+            - name: SQLSERVER_METRICS_USER
+              valueFrom:
+                secretKeyRef:
+                  name: global-secrets
+                  key: {{ .Values.sqlserver.credentials.metricsUserKey | quote }}
+            - name: SQLSERVER_METRICS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: global-secrets
+                  key: {{ .Values.sqlserver.credentials.metricsPasswordKey | quote }}
+          {{- if .Values.sqlserver.persistence.enabled }}
+          volumeMounts:
+            - name: sqlserver-data
+              mountPath: /var/opt/mssql
+          {{- end }}
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/bash
+                  - -lc
+                  - |
+                    set -uo pipefail
+                    set +H
+                    echo "Waiting for SQL Server to start..."
+                    SQLCMD="/opt/mssql-tools18/bin/sqlcmd"
+                    if [ ! -x "$SQLCMD" ]; then
+                      SQLCMD="/opt/mssql-tools/bin/sqlcmd"
+                    fi
+                    if [ ! -x "$SQLCMD" ]; then
+                      echo "sqlcmd not found"
+                      exit 1
+                    fi
+                    READY=0
+                    for i in {1..360}; do
+                      if $SQLCMD -b -V 16 -C -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -Q "SELECT 1" >/dev/null 2>&1; then
+                        READY=1
+                        break
+                      fi
+                      sleep 2
+                    done
+                    if [ "$READY" -ne 1 ]; then
+                      echo "SQL Server is not ready yet; skipping init."
+                      exit 1
+                    fi
+                    init_sql() {
+                      $SQLCMD -b -V 16 -C -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -Q "IF DB_ID(N'$SQLSERVER_DB') IS NULL CREATE DATABASE [$SQLSERVER_DB];"
+                      $SQLCMD -b -V 16 -C -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -Q "IF NOT EXISTS (SELECT 1 FROM sys.sql_logins WHERE name = N'$SQLSERVER_APP_USER') BEGIN CREATE LOGIN [$SQLSERVER_APP_USER] WITH PASSWORD = N'$SQLSERVER_APP_PASSWORD', CHECK_POLICY = OFF; END; ALTER LOGIN [$SQLSERVER_APP_USER] WITH DEFAULT_DATABASE=[$SQLSERVER_DB];"
+                      $SQLCMD -b -V 16 -C -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -Q "USE [$SQLSERVER_DB]; IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = N'$SQLSERVER_APP_USER') BEGIN CREATE USER [$SQLSERVER_APP_USER] FOR LOGIN [$SQLSERVER_APP_USER]; END; EXEC sp_addrolemember 'db_datareader', N'$SQLSERVER_APP_USER'; EXEC sp_addrolemember 'db_datawriter', N'$SQLSERVER_APP_USER'; EXEC sp_addrolemember 'db_owner', N'$SQLSERVER_APP_USER';"
+                      $SQLCMD -b -V 16 -C -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -Q "IF NOT EXISTS (SELECT 1 FROM sys.sql_logins WHERE name = N'$SQLSERVER_METRICS_USER') BEGIN CREATE LOGIN [$SQLSERVER_METRICS_USER] WITH PASSWORD = N'$SQLSERVER_METRICS_PASSWORD', CHECK_POLICY = OFF; END; ALTER LOGIN [$SQLSERVER_METRICS_USER] WITH DEFAULT_DATABASE=[$SQLSERVER_DB]; GRANT VIEW SERVER STATE TO [$SQLSERVER_METRICS_USER]; GRANT VIEW SERVER PERFORMANCE STATE TO [$SQLSERVER_METRICS_USER];"
+                      $SQLCMD -b -V 16 -C -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -Q "USE [$SQLSERVER_DB]; IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = N'$SQLSERVER_METRICS_USER') BEGIN CREATE USER [$SQLSERVER_METRICS_USER] FOR LOGIN [$SQLSERVER_METRICS_USER]; END; EXEC sp_addrolemember 'db_datareader', N'$SQLSERVER_METRICS_USER';"
+                    }
+                    for i in {1..60}; do
+                      if init_sql; then
+                        echo "SQL init completed."
+                        exit 0
+                      fi
+                      echo "SQL init failed; retrying in 5s..."
+                      sleep 5
+                    done
+                    echo "SQL init failed after retries; exiting with error."
+                    exit 1
+          startupProbe:
+            tcpSocket:
+              port: 1433
+            failureThreshold: 30
+            periodSeconds: 10
+      {{- if .Values.sqlserver.persistence.enabled }}
+      volumes:
+        - name: sqlserver-data
+          persistentVolumeClaim:
+            claimName: {{ .Values.sqlserver.serviceName }}-data
+      {{- end }}
+{{- end }}
