@@ -33,7 +33,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 11,
+  "id": 0,
   "links": [],
   "panels": [
     {
@@ -548,7 +548,7 @@
           "refId": "B"
         }
       ],
-      "title": "Network",
+      "title": "Disk",
       "type": "timeseries"
     },
     {
@@ -1010,5 +1010,5 @@
   "timezone": "browser",
   "title": "Logs/Traces2",
   "uid": "adzf64t2",
-  "version": 121
+  "version": 122
 }
