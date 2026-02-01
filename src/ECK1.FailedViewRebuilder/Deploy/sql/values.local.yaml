@@ -1,8 +1,23 @@
 sqlserver:
+  metricsConnectionString: "Server=localhost,1433;Database=ECK1.FailedViewRebuilder;User Id=eck1_failed_view_rebuilder_metrics;Password=FvrMetrics!S3cure2026;TrustServerCertificate=True;Encrypt=False"
+  credentials:
+    appUser: "eck1_failed_view_rebuilder_app"
+    appPassword: "FvrApp!S3cure2026"
+    metricsUser: "eck1_failed_view_rebuilder_metrics"
+    metricsPassword: "FvrMetrics!S3cure2026"
   persistence:
     hostPath:
       enabled: true
       path: "/var/lib/mssql-data/failed-view-rebuilder"
+  otelCollector:
+    deploymentEnvironment: "local"
+  resources:
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+    requests:
+      cpu: "250m"
+      memory: "1Gi"
   service:
     type: NodePort
     nodePort: 31434

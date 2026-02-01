@@ -18,30 +18,25 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: SQLSERVER_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: global-vars
-                  key: SQLSERVER_FAILED_VIEW_REBUILDER_HOST
+              value: {{ .Values.sqlserver.host | quote }}
+
             - name: SQLSERVER_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: global-vars
-                  key: SQLSERVER_PORT
+              value: {{ .Values.sqlserver.port | quote }}
+
             - name: SQLSERVER_DB
-              valueFrom:
-                configMapKeyRef:
-                  name: global-vars
-                  key: SQLSERVER_FAILED_VIEW_REBUILDER_DB
+              value: {{ .Values.sqlserver.database | quote }}
+
             - name: SQLSERVER_USER
               valueFrom:
                 secretKeyRef:
-                  name: global-secrets
-                  key: SQLSERVER_FAILED_VIEW_REBUILDER_APP_USER
+                  name: {{ .Chart.Name }}-secrets
+                  key: SQLSERVER_APP_USER
+                  
             - name: SQLSERVER_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: global-secrets
-                  key: SQLSERVER_FAILED_VIEW_REBUILDER_APP_PASSWORD
+                  name: {{ .Chart.Name }}-secrets
+                  key: SQLSERVER_APP_PASSWORD
           volumeMounts:
             - name: dbup-scripts
               mountPath: /migrations
@@ -60,6 +55,7 @@ spec:
               $ready = $false
               Write-Host "Waiting for SQL Server at $env:SQLSERVER_HOST:$env:SQLSERVER_PORT..."
               for ($i = 0; $i -lt 60; $i++) {
+                Write-Host ("Attempt {0} to connect to SQL Server..." -f ($i + 1))
                 try {
                   & $sqlcmd -b -V 16 -l 5 -C -S "$env:SQLSERVER_HOST,$env:SQLSERVER_PORT" -U $dbUser -P $dbPass -Q "SELECT 1" | Out-Null
                   if ($LASTEXITCODE -eq 0) {

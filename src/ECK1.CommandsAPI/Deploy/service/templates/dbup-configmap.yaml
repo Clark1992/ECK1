@@ -6,7 +6,6 @@ metadata:
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade
     "helm.sh/hook-weight": "-55"
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 data:
 {{- $files := .Files.Glob "Migrations/*.sql" }}
 {{- range $path, $file := $files }}

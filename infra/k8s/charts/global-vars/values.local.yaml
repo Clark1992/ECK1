@@ -2,14 +2,5 @@ ElasticSearchConfig__ClusterUrl: https://elasticsearch-svc.elasticsearch.svc.clu
 clickhouse:
   compress: "False"
 
-sqlservers:
-  commands:
-    appPassword: "CmdApp!S3cure2026"
-    metricsPassword: "CmdMetrics!S3cure2026"
-
-  failedViewRebuilder:
-    appPassword: "FvrApp!S3cure2026"
-    metricsPassword: "FvrMetrics!S3cure2026"
-
 envSpecific:
   ELASTICSEARCH_PASSWORD: "local"

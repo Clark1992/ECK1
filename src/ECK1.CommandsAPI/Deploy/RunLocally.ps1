@@ -25,16 +25,15 @@ Build-DockerImage -imageNameWithTag $imageNameWithTag -dockerfilePath $dockerfil
 Ensure-Helm
 
 # 5. Deploy using Helm
-
 . ".github\scripts\prepare.global.vars.ps1"
-
-$connectionString = "Server=$env:SQLSERVER_COMMANDS_HOST,$env:SQLSERVER_PORT;Database=$env:SQLSERVER_COMMANDS_DB;User Id=$env:SQLSERVER_COMMANDS_APP_USER;Password=$env:SQLSERVER_COMMANDS_APP_PASSWORD;TrustServerCertificate=True;Encrypt=False"
 
 Write-Host "Deploying SQL Server Helm release..."
 helm upgrade --install $sqlReleaseName $baseDir\Deploy\$sqlChartPath `
     --namespace $env:AppServiceNamespace `
     --set environment=local `
-    --set sqlserver.serviceName="$env:SQLSERVER_COMMANDS_SERVICE_NAME" `
+    --set sqlserver.otelCollector.image.repository="$env:OTEL_COLLECTOR_IMAGE_REPOSITORY" `
+    --set sqlserver.otelCollector.image.tag="$env:OTEL_COLLECTOR_IMAGE_TAG" `
+    --set sqlserver.otelCollector.otlpEndpoint="$env:OTEL_EXPORTER_OTLP_ENDPOINT" `
     -f $baseDir\Deploy\sql\values.local.yaml
 
 if ($LASTEXITCODE -ne 0) {
@@ -45,7 +44,7 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "Deploying app Helm release..."
 helm upgrade --install $appReleaseName $baseDir\Deploy\$serviceChartPath `
     --namespace $env:AppServiceNamespace `
-    --set env.ConnectionStrings__DefaultConnection="$connectionString" `
+    --set environment=local `
     -f $baseDir\Deploy\service\values.local.yaml `
     -f $baseDir\Deploy\service\values.secrets.yaml
 

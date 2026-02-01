@@ -12,6 +12,23 @@ service:
 env:
   ASPNETCORE_ENVIRONMENT: Development
 
+sqlserver:
+  database: "ECK1.Commands"
+  host: "eck1-commandsapi-sql"
+  port: 1433
+  appConnectionString: ""
+  credentials:
+    appUser: ""
+    appPassword: ""
+
+resources:
+  limits:
+    cpu: "1"
+    memory: "1Gi"
+  requests:
+    cpu: "100m"
+    memory: "256Mi"
+
 dbup:
   enabled: true
   image:

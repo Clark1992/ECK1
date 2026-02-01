@@ -17,6 +17,7 @@ spec:
         rollme: {{ now | quote }}
       labels:
         app: {{ .Chart.Name }}
+        environment: {{ .Values.environment }}
         # This label identifies the service to Orleans
         orleans/serviceId: {{ .Chart.Name }}
 
@@ -88,6 +89,10 @@ spec:
                   fieldPath: status.podIP
             - name: DOTNET_SHUTDOWNTIMEOUTSECONDS
               value: "120"
+
+          {{- if .Values.resources }}
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+          {{- end }}
 
           volumeMounts:
             - name: kafka-client-secret

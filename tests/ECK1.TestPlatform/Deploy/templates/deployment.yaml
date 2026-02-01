@@ -13,6 +13,7 @@ spec:
         rollme: {{ now | quote }}
       labels:
         app: {{ .Chart.Name }}
+        environment: {{ .Values.environment }}
     spec:
       containers:
         - name: test-platform

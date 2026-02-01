@@ -21,9 +21,15 @@ sqlserver:
     hostPath:
       enabled: false
       path: "/var/lib/mssql-data/commands"
+  resources: {}
+  database: "ECK1.Commands"
+  metricsConnectionString: ""
   credentials:
-    dbKey: SQLSERVER_COMMANDS_DB
-    appUserKey: SQLSERVER_COMMANDS_APP_USER
-    appPasswordKey: SQLSERVER_COMMANDS_APP_PASSWORD
-    metricsUserKey: SQLSERVER_COMMANDS_METRICS_USER
-    metricsPasswordKey: SQLSERVER_COMMANDS_METRICS_PASSWORD
+    appUser: ""
+    appPassword: ""
+    metricsUser: ""
+    metricsPassword: ""
+  otelCollector:
+    enabled: true
+    collectionInterval: 15s
+    serviceName: "eck1-commandsapi"

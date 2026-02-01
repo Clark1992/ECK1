@@ -1,8 +1,23 @@
 sqlserver:
+  metricsConnectionString: "Server=localhost,1433;Database=ECK1.Commands;User Id=eck1_commands_metrics;Password=CmdMetrics!S3cure2026;TrustServerCertificate=True;Encrypt=False"
+  credentials:
+    appUser: "eck1_commands_app"
+    appPassword: "CmdApp!S3cure2026"
+    metricsUser: "eck1_commands_metrics"
+    metricsPassword: "CmdMetrics!S3cure2026"
   persistence:
     hostPath:
       enabled: true
       path: "/var/lib/mssql-data/commands"
+  otelCollector:
+    deploymentEnvironment: "local"
+  resources:
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+    requests:
+      cpu: "250m"
+      memory: "1Gi"
   service:
     type: NodePort
     nodePort: 31433

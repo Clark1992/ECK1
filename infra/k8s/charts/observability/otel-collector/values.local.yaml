@@ -49,52 +49,7 @@ serviceMonitor:
     - port: metrics
       interval: 15s
 
-extraEnvs:
-  - name: SQLSERVER_COMMANDS_HOST
-    valueFrom:
-      configMapKeyRef:
-        name: global-vars
-        key: SQLSERVER_COMMANDS_HOST
-  - name: SQLSERVER_COMMANDS_DB
-    valueFrom:
-      configMapKeyRef:
-        name: global-vars
-        key: SQLSERVER_COMMANDS_DB
-  - name: SQLSERVER_COMMANDS_METRICS_USER
-    valueFrom:
-      secretKeyRef:
-        name: global-secrets
-        key: SQLSERVER_COMMANDS_METRICS_USER
-  - name: SQLSERVER_COMMANDS_METRICS_PASSWORD
-    valueFrom:
-      secretKeyRef:
-        name: global-secrets
-        key: SQLSERVER_COMMANDS_METRICS_PASSWORD
-  - name: SQLSERVER_COMMANDS_DATASOURCE
-    value: "Server=$(SQLSERVER_COMMANDS_HOST),1433;Database=$(SQLSERVER_COMMANDS_DB);User Id=$(SQLSERVER_COMMANDS_METRICS_USER);Password=$(SQLSERVER_COMMANDS_METRICS_PASSWORD);TrustServerCertificate=True;Encrypt=False"
-
-  - name: SQLSERVER_FAILED_VIEW_REBUILDER_HOST
-    valueFrom:
-      configMapKeyRef:
-        name: global-vars
-        key: SQLSERVER_FAILED_VIEW_REBUILDER_HOST
-  - name: SQLSERVER_FAILED_VIEW_REBUILDER_DB
-    valueFrom:
-      configMapKeyRef:
-        name: global-vars
-        key: SQLSERVER_FAILED_VIEW_REBUILDER_DB
-  - name: SQLSERVER_FAILED_VIEW_REBUILDER_METRICS_USER
-    valueFrom:
-      secretKeyRef:
-        name: global-secrets
-        key: SQLSERVER_FAILED_VIEW_REBUILDER_METRICS_USER
-  - name: SQLSERVER_FAILED_VIEW_REBUILDER_METRICS_PASSWORD
-    valueFrom:
-      secretKeyRef:
-        name: global-secrets
-        key: SQLSERVER_FAILED_VIEW_REBUILDER_METRICS_PASSWORD
-  - name: SQLSERVER_FAILED_VIEW_REBUILDER_DATASOURCE
-    value: "Server=$(SQLSERVER_FAILED_VIEW_REBUILDER_HOST),1433;Database=$(SQLSERVER_FAILED_VIEW_REBUILDER_DB);User Id=$(SQLSERVER_FAILED_VIEW_REBUILDER_METRICS_USER);Password=$(SQLSERVER_FAILED_VIEW_REBUILDER_METRICS_PASSWORD);TrustServerCertificate=True;Encrypt=False"
+extraEnvs: []
 
 config:
   receivers:
@@ -103,13 +58,6 @@ config:
         grpc: {}
         http: {}
 
-    sqlserver/commands:
-      collection_interval: 15s
-      datasource: ${env:SQLSERVER_COMMANDS_DATASOURCE}
-
-    sqlserver/failed:
-      collection_interval: 15s
-      datasource: ${env:SQLSERVER_FAILED_VIEW_REBUILDER_DATASOURCE}
 
   extensions:
     health_check: {}
@@ -130,17 +78,6 @@ config:
           value: local
           action: insert
 
-    resource/sqlserver_commands:
-      attributes:
-        - key: "service.name"
-          value: "eck1-commandsapi"
-          action: upsert
-
-    resource/sqlserver_failed:
-      attributes:
-        - key: "service.name"
-          value: "eck1-failed-view-rebuilder"
-          action: upsert
 
     # Adds k8s.namespace.name, k8s.pod.name, etc. based on the incoming connection/pod IP.
     # This makes our Tempo tracesToMetrics queries (and logs→metrics links) viable.
@@ -162,7 +99,8 @@ config:
         - set(log.attributes["observed_timestamp_ms"], Int(log.observed_time_unix_nano / 1000000)) where log.observed_time_unix_nano != nil
         - set(log.attributes["observed_timestamp"], String(log.observed_time_unix_nano)) where log.observed_time_unix_nano != nil and log.attributes["observed_timestamp"] == nil
         - set(log.attributes["k8s_pod_name"], resource.attributes["k8s.pod.name"]) where log.attributes["k8s_pod_name"] == nil and resource.attributes["k8s.pod.name"] != nil
-        - set(log.attributes["grafana_link_params"], Format("var-ts=%d&var-pod=%s&time=%d", [log.observed_time_unix_nano, log.attributes["k8s_pod_name"], Int(log.observed_time_unix_nano / 1000000)])) where log.observed_time_unix_nano != nil and log.attributes["k8s_pod_name"] != nil
+        - set(log.attributes["service_name"], resource.attributes["service.name"]) where log.attributes["service_name"] == nil and resource.attributes["service.name"] != nil
+        - set(log.attributes["grafana_link_params"], Format("var-ts=%d&var-pod=%s&var-log_service_name=%s&time=%d", [log.observed_time_unix_nano, log.attributes["k8s_pod_name"], log.attributes["service_name"], Int(log.observed_time_unix_nano / 1000000)])) where log.observed_time_unix_nano != nil and log.attributes["k8s_pod_name"] != nil and log.attributes["service_name"] != nil
 
   exporters:
     otlp/tempo:
@@ -193,12 +131,3 @@ config:
         processors: [memory_limiter, resource, k8sattributes, batch]
         exporters: [prometheus]
 
-      metrics/sqlserver/commands:
-        receivers: [sqlserver/commands]
-        processors: [memory_limiter, resource, resource/sqlserver_commands, batch]
-        exporters: [prometheus]
-
-      metrics/sqlserver/failed:
-        receivers: [sqlserver/failed]
-        processors: [memory_limiter, resource, resource/sqlserver_failed, batch]
-        exporters: [prometheus]

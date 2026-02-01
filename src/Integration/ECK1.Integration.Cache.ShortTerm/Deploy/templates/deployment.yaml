@@ -13,6 +13,7 @@ spec:
         rollme: {{ now | quote }}
       labels:
         app: {{ $.Chart.Name }}
+        environment: {{ .Values.environment }}
     spec:
 
       {{- include "config-merge.initConfigAggregator" $ | nindent 6 }}
@@ -28,6 +29,9 @@ spec:
             - name: {{ $key }}
               value: "{{ $value }}"
             {{- end }}
+          {{- if $.Values.resources }}
+          resources: {{- toYaml $.Values.resources | nindent 12 }}
+          {{- end }}
             
           volumeMounts:
             - name: kafka-client-secret

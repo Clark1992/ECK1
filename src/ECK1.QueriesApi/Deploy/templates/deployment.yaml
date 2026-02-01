@@ -13,6 +13,7 @@ spec:
         rollme: {{ now | quote }}
       labels:
         app: {{ .Chart.Name }}
+        environment: {{ .Values.environment }}
     spec:
       containers:
         - name: queries-api
@@ -38,6 +39,9 @@ spec:
               value: "{{ .Values.mongo.connectionString }}"
             - name: MongoDb__DatabaseName
               value: eck1-queries
+          {{- if .Values.resources }}
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+          {{- end }}
 
       volumes:
         - name: {{ .Values.ElasticSearchConfig__CaSecretName }}

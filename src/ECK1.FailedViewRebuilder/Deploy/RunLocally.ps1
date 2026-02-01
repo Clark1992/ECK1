@@ -27,13 +27,13 @@ Ensure-Helm
 # 5. Deploy using Helm
 . ".github\scripts\prepare.global.vars.ps1"
 
-$serviceConnectionString = "Server=$env:SQLSERVER_FAILED_VIEW_REBUILDER_HOST,$env:SQLSERVER_PORT;Database=$env:SQLSERVER_FAILED_VIEW_REBUILDER_DB;User Id=$env:SQLSERVER_FAILED_VIEW_REBUILDER_APP_USER;Password=$env:SQLSERVER_FAILED_VIEW_REBUILDER_APP_PASSWORD;TrustServerCertificate=True;Encrypt=False"
-
 Write-Host "Deploying SQL Server Helm release..."
 helm upgrade --install $sqlReleaseName $baseDir\Deploy\$sqlChartPath `
     --namespace $env:AppServiceNamespace `
-    --set sqlserver.serviceName="$env:SQLSERVER_FAILED_VIEW_REBUILDER_SERVICE_NAME" `
-    --set env.ConnectionStrings__DefaultConnection="$serviceConnectionString" `
+    --set environment=local `
+    --set sqlserver.otelCollector.image.repository="$env:OTEL_COLLECTOR_IMAGE_REPOSITORY" `
+    --set sqlserver.otelCollector.image.tag="$env:OTEL_COLLECTOR_IMAGE_TAG" `
+    --set sqlserver.otelCollector.otlpEndpoint="$env:OTEL_EXPORTER_OTLP_ENDPOINT" `
     -f $baseDir\Deploy\sql\values.local.yaml
 
 if ($LASTEXITCODE -ne 0) {
@@ -44,7 +44,7 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "Deploying app Helm release..."
 helm upgrade --install $appReleaseName $baseDir\Deploy\$serviceChartPath `
     --namespace $env:AppServiceNamespace `
-    --set env.ConnectionStrings__DefaultConnection="$serviceConnectionString" `
+    --set environment=local `
     -f $baseDir\Deploy\service\values.local.yaml `
     -f $baseDir\Deploy\service\values.secrets.yaml
 

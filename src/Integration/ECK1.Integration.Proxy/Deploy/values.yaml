@@ -8,3 +8,11 @@ image:
 env:
   ASPNETCORE_ENVIRONMENT: Development
   Proxy__PluginsDir: "/mnt/plugins"
+
+resources:
+  limits:
+    cpu: "1"
+    memory: "1Gi"
+  requests:
+    cpu: "100m"
+    memory: "256Mi"

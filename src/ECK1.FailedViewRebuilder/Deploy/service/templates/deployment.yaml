@@ -13,6 +13,8 @@ spec:
         rollme: {{ now | quote }}
       labels:
         app: {{ .Chart.Name }}
+        environment: {{ .Values.environment }}
+        service_name: {{ .Chart.Name }}
     spec:
       containers:
         - name: failed-view-rebuilder
@@ -21,10 +23,37 @@ spec:
           ports:
             - containerPort: 80
           env:
-            {{- range $key, $value := .Values.env }}
+            - name: OTEL_SERVICE_NAME
+              value: {{ .Chart.Name | quote }}
+              
+            - name: OTEL_SERVICE_VERSION
+              value: {{ .Chart.AppVersion | quote }}
+
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: OTEL_EXPORTER_OTLP_ENDPOINT
+
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: OTEL_EXPORTER_OTLP_PROTOCOL
+
+            - name: ConnectionStrings__DefaultConnection
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Chart.Name }}-secrets
+                  key: appConnectionString
+
+            {{ range $key, $value := .Values.env }}
             - name: {{ $key }}
               value: "{{ $value }}"
-            {{- end }}
+            {{ end }}
+          {{- if .Values.resources }}
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+          {{- end }}
 
           volumeMounts:
             - name: kafka-client-secret

@@ -2,11 +2,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.sqlserver.serviceName }}
+  name: {{ .Chart.Name }}
 spec:
   type: {{ .Values.sqlserver.service.type | default "ClusterIP" }}
   selector:
-    app: {{ .Values.sqlserver.serviceName }}
+    app: {{ .Chart.Name }}
   ports:
     - protocol: TCP
       port: {{ .Values.sqlserver.service.port }}

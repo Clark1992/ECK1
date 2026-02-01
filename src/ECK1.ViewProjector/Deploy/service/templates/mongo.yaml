@@ -12,6 +12,7 @@ spec:
     metadata:
       labels:
         app: {{ .Chart.Name }}-mongo
+        environment: {{ .Values.environment }}
     spec:
       containers:
         - name: mongo

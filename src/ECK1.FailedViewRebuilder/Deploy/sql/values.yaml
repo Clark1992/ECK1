@@ -21,9 +21,15 @@ sqlserver:
     hostPath:
       enabled: false
       path: "/var/lib/mssql-data/failed-view-rebuilder"
+  resources: {}
+  database: "ECK1.FailedViewRebuilder"
+  metricsConnectionString: ""
   credentials:
-    dbKey: SQLSERVER_FAILED_VIEW_REBUILDER_DB
-    appUserKey: SQLSERVER_FAILED_VIEW_REBUILDER_APP_USER
-    appPasswordKey: SQLSERVER_FAILED_VIEW_REBUILDER_APP_PASSWORD
-    metricsUserKey: SQLSERVER_FAILED_VIEW_REBUILDER_METRICS_USER
-    metricsPasswordKey: SQLSERVER_FAILED_VIEW_REBUILDER_METRICS_PASSWORD
+    appUser: ""
+    appPassword: ""
+    metricsUser: ""
+    metricsPassword: ""
+  otelCollector:
+    enabled: true
+    collectionInterval: 15s
+    serviceName: "eck1-failed-view-rebuilder"

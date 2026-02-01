@@ -13,3 +13,14 @@ prometheus:
   service:
     type: NodePort
     nodePort: 30909  
+
+kube-state-metrics:
+  prometheus:
+    monitor:
+      metricRelabelings:
+        - action: replace
+          sourceLabels: [pod]
+          targetLabel: k8s_pod_name
+  metricLabelsAllowlist:
+    - pods=[service_name,environment]
+

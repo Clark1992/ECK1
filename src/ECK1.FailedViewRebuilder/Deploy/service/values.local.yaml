@@ -9,3 +9,9 @@ service:
   type: NodePort
   port: 80
   nodePort: 30100
+
+sqlserver:
+  appConnectionString: "Server=eck1-failed-view-rebuilder-sql,1433;Database=ECK1.FailedViewRebuilder;User Id=eck1_failed_view_rebuilder_app;Password=FvrApp!S3cure2026;TrustServerCertificate=True;Encrypt=False"
+  credentials:
+    appUser: "eck1_failed_view_rebuilder_app"
+    appPassword: "FvrApp!S3cure2026"

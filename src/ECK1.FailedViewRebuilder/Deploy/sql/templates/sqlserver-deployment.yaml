@@ -2,19 +2,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.sqlserver.serviceName }}
+  name: {{ .Chart.Name }}
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: {{ .Values.sqlserver.serviceName }}
+      app: {{ .Chart.Name }}
   template:
     metadata:
       labels:
-        app: {{ .Values.sqlserver.serviceName }}
+        app: {{ .Chart.Name }}
+        environment: {{ .Values.environment }}
+        service_name: {{ .Values.sqlserver.otelCollector.serviceName }}
     spec:
+      {{- if .Values.sqlserver.otelCollector.enabled }}
+      shareProcessNamespace: true
+      {{- end }}
       {{- if .Values.sqlserver.podSecurityContext }}
       securityContext: {{- toYaml .Values.sqlserver.podSecurityContext | nindent 8 }}
       {{- end }}
@@ -47,38 +52,46 @@ spec:
           env:
             - name: ACCEPT_EULA
               value: "Y"
+
             - name: MSSQL_PID
               value: {{ .Values.sqlserver.mssqlPid | default "Developer" | quote }}
+
             - name: MSSQL_SA_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: global-secrets
-                  key: {{ .Values.sqlserver.credentials.appPasswordKey | quote }}
+                  name: {{ .Chart.Name }}-secrets
+                  key: SQLSERVER_APP_PASSWORD
+
             - name: SQLSERVER_DB
-              valueFrom:
-                configMapKeyRef:
-                  name: global-vars
-                  key: {{ .Values.sqlserver.credentials.dbKey | quote }}
+              value: {{ .Values.sqlserver.database | quote }}
+            
             - name: SQLSERVER_APP_USER
               valueFrom:
                 secretKeyRef:
-                  name: global-secrets
-                  key: {{ .Values.sqlserver.credentials.appUserKey | quote }}
+                  name: {{ .Chart.Name }}-secrets
+                  key: SQLSERVER_APP_USER
+
             - name: SQLSERVER_APP_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: global-secrets
-                  key: {{ .Values.sqlserver.credentials.appPasswordKey | quote }}
+                  name: {{ .Chart.Name }}-secrets
+                  key: SQLSERVER_APP_PASSWORD
+
             - name: SQLSERVER_METRICS_USER
               valueFrom:
                 secretKeyRef:
-                  name: global-secrets
-                  key: {{ .Values.sqlserver.credentials.metricsUserKey | quote }}
+                  name: {{ .Chart.Name }}-secrets
+                  key: SQLSERVER_METRICS_USER
+
             - name: SQLSERVER_METRICS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: global-secrets
-                  key: {{ .Values.sqlserver.credentials.metricsPasswordKey | quote }}
+                  name: {{ .Chart.Name }}-secrets
+                  key: SQLSERVER_METRICS_PASSWORD
+
+          {{- if .Values.sqlserver.resources }}
+          resources: {{- toYaml .Values.sqlserver.resources | nindent 12 }}
+          {{- end }}
           {{- if .Values.sqlserver.persistence.enabled }}
           volumeMounts:
             - name: sqlserver-data
@@ -136,10 +149,49 @@ spec:
               port: 1433
             failureThreshold: 30
             periodSeconds: 10
-      {{- if .Values.sqlserver.persistence.enabled }}
+        {{- if .Values.sqlserver.otelCollector.enabled }}
+        - name: otel-collector
+          image: "{{ .Values.sqlserver.otelCollector.image.repository }}:{{ .Values.sqlserver.otelCollector.image.tag }}"
+          imagePullPolicy: {{ .Values.sqlserver.otelCollector.image.pullPolicy | default "IfNotPresent" }}
+          args:
+            - "--config=/etc/otelcol/sqlserver-otel-collector.yaml"
+          env:
+            - name: K8S_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            
+            - name: K8S_NAMESPACE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            
+            - name: K8S_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+
+            - name: metricsConnectionString
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Chart.Name }}-secrets
+                  key: metricsConnectionString
+
+          volumeMounts:
+            - name: otel-collector-config
+              mountPath: /etc/otelcol
+        {{- end }}
+      {{- if or .Values.sqlserver.persistence.enabled .Values.sqlserver.otelCollector.enabled }}
       volumes:
+        {{- if .Values.sqlserver.persistence.enabled }}
         - name: sqlserver-data
           persistentVolumeClaim:
-            claimName: {{ .Values.sqlserver.serviceName }}-data
+            claimName: {{ .Chart.Name }}-data
+        {{- end }}
+        {{- if .Values.sqlserver.otelCollector.enabled }}
+        - name: otel-collector-config
+          configMap:
+            name: {{ .Chart.Name }}-otel-cm
+        {{- end }}
       {{- end }}
 {{- end }}

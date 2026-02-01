@@ -30,3 +30,6 @@ observability:
   otlpService: "otel-collector-opentelemetry-collector"
   otlpPort: "4317"
   otlpProtocol: grpc
+  otelCollectorImage:
+    repository: otel/opentelemetry-collector-contrib
+    tag: "0.143.0"
