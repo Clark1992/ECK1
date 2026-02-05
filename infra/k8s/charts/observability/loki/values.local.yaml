@@ -1,5 +1,15 @@
 deploymentMode: SingleBinary
 
+# Loki chart (grafana/loki) enables memcached caches by default.
+# Upstream defaults allocate 8Gi for chunks cache which is excessive for local.
+chunksCache:
+  enabled: true
+  allocatedMemory: 256
+
+resultsCache:
+  enabled: true
+  allocatedMemory: 128
+
 loki:
   auth_enabled: false
 

@@ -1,5 +1,6 @@
 ﻿using ECK1.CommonUtils.AspNet;
-
+using ECK1.CommonUtils.OpenTelemetry;
+using ECK1.Kafka.OpenTelemetry;
 using ECK1.Integration.Plugin.Abstractions;
 using ECK1.Integration.Proxy;
 using ECK1.Integration.Proxy.Kafka;
@@ -13,6 +14,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddConfigSources();
 
 var configuration = builder.Configuration;
+
+builder.AddOpenTelemetry(tracingExtraConfig: tracing => tracing
+    .AddKafkaInstrumentation());
 
 var proxyConfig = builder.GetProxyType();
 

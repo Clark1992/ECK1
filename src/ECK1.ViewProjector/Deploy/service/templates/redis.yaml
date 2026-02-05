@@ -13,6 +13,7 @@ spec:
       labels:
         app: {{ .Chart.Name }}-redis
         environment: {{ .Values.environment }}
+        service_name: {{ .Values.redis.otelCollector.serviceName }}
     spec:
       containers:
         - name: redis
@@ -25,6 +26,11 @@ spec:
           env:
           - name: ALLOW_EMPTY_PASSWORD
             value: "yes"
+
+          {{- if .Values.redis.resources }}
+          resources: {{- toYaml .Values.redis.resources | nindent 12 }}
+          {{- end }}
+
       volumes:
 {{- if .Values.redis.persistence }}
   {{- if .Values.redis.hostPath }}

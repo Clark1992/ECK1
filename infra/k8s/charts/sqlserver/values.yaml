@@ -1,0 +1,63 @@
+sqlserver:
+  enabled: false
+
+  image:
+    repository: mcr.microsoft.com/mssql/server
+    tag: "2022-latest"
+    pullPolicy: IfNotPresent
+
+  mssqlPid: "Developer"
+
+  # Hard cap for SQL Server memory inside container/cgroup.
+  # Maps to env var MSSQL_MEMORY_LIMIT_MB.
+  # Example: 1536 (for a 2Gi container limit, leaving headroom).
+  mssqlMemoryLimitMb: null
+
+  podSecurityContext:
+    fsGroup: 10001
+    fsGroupChangePolicy: "OnRootMismatch"
+
+  securityContext:
+    runAsUser: 10001
+    runAsGroup: 10001
+
+  service:
+    port: 1433
+    type: ClusterIP
+    nodePort: null
+
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClassName: ""
+    hostPath:
+      enabled: false
+      path: "/var/lib/mssql-data/eck1"
+
+  resources: {}
+
+  # List of databases and corresponding app login per DB.
+  databases: []
+  # - name: "ECK1.Commands"
+  #   appUser: "eck1_commands_app"
+  #   appPassword: "..."
+
+  credentials:
+    saPassword: ""
+    metricsUser: ""
+    metricsPassword: ""
+
+  # Used by the SQL Server OTel collector sidecar.
+  metricsConnectionString: ""
+
+  otelCollector:
+    enabled: true
+    collectionInterval: 1m
+    serviceName: "eck1-commandsapi.eck1-failed-view-rebuilder"
+    deploymentEnvironment: ""
+    resources: {}
+    image:
+      repository: ""
+      tag: ""
+      pullPolicy: IfNotPresent
+    otlpEndpoint: ""

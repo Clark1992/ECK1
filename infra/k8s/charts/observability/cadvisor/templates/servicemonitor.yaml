@@ -33,6 +33,14 @@ spec:
         - action: replace
           sourceLabels: [container_label_io_kubernetes_container_name]
           targetLabel: container
+
+        # Drop very noisy labels to reduce Prometheus memory usage.
+        # (We keep container_label_service_name and container_label_environment
+        # because dashboards rely on them.)
+        - action: labeldrop
+          regex: "^(id|container_id|name)$"
+        - action: labeldrop
+          regex: "^container_label_io_kubernetes_.*$"
         # Drop series that are not associated with a pod.
         - action: drop
           sourceLabels: [namespace, pod]

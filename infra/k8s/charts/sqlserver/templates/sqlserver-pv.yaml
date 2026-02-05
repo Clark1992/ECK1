@@ -1,0 +1,16 @@
+{{- if and .Values.sqlserver.enabled .Values.sqlserver.persistence.enabled .Values.sqlserver.persistence.hostPath.enabled }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Chart.Name }}-data-pv
+spec:
+  capacity:
+    storage: {{ .Values.sqlserver.persistence.size | quote }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  hostPath:
+    path: {{ .Values.sqlserver.persistence.hostPath.path | quote }}
+    type: DirectoryOrCreate
+{{- end }}

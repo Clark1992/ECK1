@@ -11,7 +11,7 @@ service:
   nodePort: 30080
 
 sqlserver:
-  appConnectionString: "Server=eck1-commandsapi-sql,1433;Database=ECK1.Commands;User Id=eck1_commands_app;Password=CmdApp!S3cure2026;TrustServerCertificate=True;Encrypt=False"
+  appConnectionString: "Server=eck1-sqlserver,1433;Database=ECK1.Commands;User Id=eck1_commands_app;Password=CmdApp!S3cure2026;TrustServerCertificate=True;Encrypt=False"
   credentials:
     appUser: "eck1_commands_app"
     appPassword: "CmdApp!S3cure2026"

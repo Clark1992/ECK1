@@ -14,6 +14,44 @@ prometheus:
     type: NodePort
     nodePort: 30909  
 
+# Local-only trimming: docker-desktop control-plane metrics are very high-cardinality
+# and usually not needed for app development.
+kubeApiServer:
+  enabled: false
+
+kubeEtcd:
+  enabled: false
+
+kubeControllerManager:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+# Reduce kubelet/cAdvisor series count while keeping the container_* metrics used by
+# our dashboards (CPU/memory/network/fs).
+kubelet:
+  serviceMonitor:
+    metricRelabelings:
+      # Drop all histogram buckets (biggest win in local)
+      - action: drop
+        sourceLabels: [__name__]
+        regex: ".*_bucket"
+
+      # Drop container metrics we don't use in dashboards (still keep CPU/mem/net/fs)
+      - action: drop
+        sourceLabels: [__name__]
+        regex: "container_(tasks_state|memory_failures_total|blkio_device_usage_total|last_seen|start_time_seconds|threads|ulimits_.*|spec_.*)"
+
+      # Drop noisy / high-memory labels from cAdvisor series
+      - action: labeldrop
+        regex: "^(id|container_id)$"
+
+      # Keep our custom selectors (container_label_service_name/environment), but
+      # drop the very noisy Kubernetes-internal container labels.
+      - action: labeldrop
+        regex: "^container_label_io_kubernetes_.*$"
+
 kube-state-metrics:
   prometheus:
     monitor:

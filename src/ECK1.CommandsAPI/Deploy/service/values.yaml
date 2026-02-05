@@ -14,7 +14,7 @@ env:
 
 sqlserver:
   database: "ECK1.Commands"
-  host: "eck1-commandsapi-sql"
+  host: "eck1-sqlserver"
   port: 1433
   appConnectionString: ""
   credentials:

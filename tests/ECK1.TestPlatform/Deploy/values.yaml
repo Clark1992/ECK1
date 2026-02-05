@@ -16,3 +16,11 @@ env:
   # CommandsAPI Service name comes from its chart: eck1-commandsapi
   CommandsApi__BaseUrl: "http://eck1-commandsapi:80/"
   CommandsApi__TimeoutSeconds: "300"
+
+resources:
+  limits:
+    cpu: "1"
+    memory: "1Gi"
+  requests:
+    cpu: "100m"
+    memory: "256Mi"

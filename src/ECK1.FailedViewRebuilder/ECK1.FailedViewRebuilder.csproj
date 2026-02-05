@@ -1,32 +1,33 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<UserSecretsId>d10814be-5924-4a00-912b-b6bc05e7980b</UserSecretsId>
-	</PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>d10814be-5924-4a00-912b-b6bc05e7980b</UserSecretsId>
+    </PropertyGroup>
 
-	<ItemGroup>
-	  <Content Include="Deploy\service\Migrations\**\*.sql">
-	    <Link>Migrations\%(RecursiveDir)%(Filename)%(Extension)</Link>
-	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-	  </Content>
-	</ItemGroup>
+    <ItemGroup>
+      <Content Include="Deploy\service\Migrations\**\*.sql">
+        <Link>Migrations\%(RecursiveDir)%(Filename)%(Extension)</Link>
+        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="AutoMapper" />
-		<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Console" />
-		<PackageReference Include="Swashbuckle.AspNetCore" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
-	</ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="AutoMapper" />
+        <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+        <PackageReference Include="Swashbuckle.AspNetCore" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" />
+    </ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\Nuget\ECK1.CommonUtils\ECK1.CommonUtils.csproj" />
-		<ProjectReference Include="..\Nuget\ECK1.Contracts\ECK1.Contracts.csproj" />
-		<ProjectReference Include="..\Nuget\ECK1.Kafka\ECK1.Kafka.csproj" />
-	</ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Nuget\ECK1.CommonUtils\ECK1.CommonUtils.csproj" />
+        <ProjectReference Include="..\Nuget\ECK1.Contracts\ECK1.Contracts.csproj" />
+        <ProjectReference Include="..\Nuget\ECK1.Kafka\ECK1.Kafka.csproj" />
+    </ItemGroup>
 
 </Project>

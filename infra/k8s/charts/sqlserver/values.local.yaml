@@ -1,0 +1,48 @@
+sqlserver:
+  enabled: true
+
+  # Keep SQL Server under the pod memory limit (4Gi) with headroom.
+  mssqlMemoryLimitMb: 3072
+
+  databases:
+    - name: "ECK1.Commands"
+      appUser: "eck1_commands_app"
+      appPassword: "CmdApp!S3cure2026"
+
+    - name: "ECK1.FailedViewRebuilder"
+      appUser: "eck1_failed_view_rebuilder_app"
+      appPassword: "FvrApp!S3cure2026"
+
+  credentials:
+    saPassword: "SqlSa!S3cure2026"
+    metricsUser: "eck1_sql_metrics"
+    metricsPassword: "SqlMetrics!S3cure2026"
+
+  metricsConnectionString: "Server=localhost,1433;Database=master;User Id=eck1_sql_metrics;Password=SqlMetrics!S3cure2026;TrustServerCertificate=True;Encrypt=False"
+
+  persistence:
+    hostPath:
+      enabled: true
+      path: "/var/lib/mssql-data/eck1-shared"
+
+  otelCollector:
+    serviceName: "eck1-sqlserver"
+    resources:
+      limits:
+        cpu: "250m"
+        memory: "256Mi"
+      requests:
+        cpu: "50m"
+        memory: "64Mi"
+
+  resources:
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+    requests:
+      cpu: "250m"
+      memory: "1Gi"
+
+  service:
+    type: NodePort
+    nodePort: 31433

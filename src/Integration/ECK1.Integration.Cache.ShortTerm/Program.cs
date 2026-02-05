@@ -5,6 +5,8 @@ using ECK1.Integration.Cache.ShortTerm.Services;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using ProtoBuf.Grpc.Server;
 using ECK1.Integration.EntityStore.Generated;
+using ECK1.CommonUtils.OpenTelemetry;
+using ECK1.Kafka.OpenTelemetry;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +14,9 @@ builder.AddConfigSources();
 
 var configuration = builder.Configuration;
 var environment = builder.Environment;
+
+builder.AddOpenTelemetry(tracingExtraConfig: tracing => tracing
+    .AddKafkaInstrumentation());
 
 builder.Services.Configure<CacheConfig>(builder.Configuration.GetSection(CacheConfig.Section));
 

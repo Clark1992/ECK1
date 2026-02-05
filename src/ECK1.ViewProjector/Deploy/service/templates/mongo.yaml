@@ -13,6 +13,7 @@ spec:
       labels:
         app: {{ .Chart.Name }}-mongo
         environment: {{ .Values.environment }}
+        service_name: {{ .Values.mongo.otelCollector.serviceName }}
     spec:
       containers:
         - name: mongo
@@ -22,6 +23,10 @@ spec:
           volumeMounts:
             - name: mongo-data
               mountPath: /data/db
+
+          {{- if .Values.mongo.resources }}
+          resources: {{- toYaml .Values.mongo.resources | nindent 12 }}
+          {{- end }}
       volumes:
 {{- if .Values.mongo.persistence }}
   {{- if .Values.mongo.hostPath }}

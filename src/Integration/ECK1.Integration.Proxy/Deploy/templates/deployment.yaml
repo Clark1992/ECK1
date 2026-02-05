@@ -14,7 +14,8 @@ spec:
         rollme: {{ now | quote }}
       labels:
         app: {{ $.Chart.Name }}-{{ .name | lower }}
-        environment: {{ .Values.environment }}
+        environment: {{ $.Values.environment }}
+        service_name: {{ $.Chart.Name }}-{{ .name | lower }}
     spec:
 
       {{- include "config-merge.initConfigAggregator" $ | nindent 6 }}

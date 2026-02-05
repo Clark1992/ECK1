@@ -4,6 +4,8 @@ metadata:
   name: {{ .Values.elasticsearch.resourcePrefix }}-data
   labels:
     app: {{ .Values.elasticsearch.resourcePrefix }}
+    environment: {{ .Values.environment }}
+    service_name: {{ .Values.otelCollector.serviceName }}
 spec:
   serviceName: {{ .Values.elasticsearch.resourcePrefix }}-data
   replicas: {{ .Values.data.replicas }}

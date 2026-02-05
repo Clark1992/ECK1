@@ -47,7 +47,7 @@ serviceMonitor:
     release: prometheus
   metricsEndpoints:
     - port: metrics
-      interval: 15s
+      interval: 1m
 
 extraEnvs: []
 

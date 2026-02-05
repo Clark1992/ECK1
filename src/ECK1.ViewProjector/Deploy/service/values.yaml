@@ -7,6 +7,26 @@ image:
 
 mongo:
   port: 27017
+  otelCollector:
+    serviceName: "eck1-viewprojector.eck1-queriesapi"
+  resources:
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+
+redis:
+  otelCollector:
+    serviceName: "eck1-viewprojector"
+  resources:
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
 
 env:
   ASPNETCORE_ENVIRONMENT: Development

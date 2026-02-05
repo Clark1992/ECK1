@@ -1,0 +1,247 @@
+{{- if .Values.sqlserver.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+        environment: {{ .Values.environment }}
+        service_name: {{ .Values.sqlserver.otelCollector.serviceName }}
+    spec:
+      {{- if .Values.sqlserver.otelCollector.enabled }}
+      shareProcessNamespace: true
+      {{- end }}
+      {{- if .Values.sqlserver.podSecurityContext }}
+      securityContext: {{- toYaml .Values.sqlserver.podSecurityContext | nindent 8 }}
+      {{- end }}
+      {{- if and .Values.sqlserver.persistence.enabled .Values.sqlserver.persistence.hostPath.enabled }}
+      initContainers:
+        - name: init-permissions
+          image: "{{ .Values.sqlserver.image.repository }}:{{ .Values.sqlserver.image.tag }}"
+          imagePullPolicy: {{ .Values.sqlserver.image.pullPolicy | default "IfNotPresent" }}
+          command:
+            - /bin/bash
+            - -lc
+            - |
+              mkdir -p /var/opt/mssql/data /var/opt/mssql/log /var/opt/mssql/secrets
+              chmod -R 777 /var/opt/mssql
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            privileged: true
+          volumeMounts:
+            - name: sqlserver-data
+              mountPath: /var/opt/mssql
+      {{- end }}
+      containers:
+        - name: sqlserver
+          image: "{{ .Values.sqlserver.image.repository }}:{{ .Values.sqlserver.image.tag }}"
+          imagePullPolicy: {{ .Values.sqlserver.image.pullPolicy | default "IfNotPresent" }}
+          {{- if .Values.sqlserver.securityContext }}
+          securityContext: {{- toYaml .Values.sqlserver.securityContext | nindent 12 }}
+          {{- end }}
+          ports:
+            - containerPort: 1433
+          env:
+            - name: ACCEPT_EULA
+              value: "Y"
+
+            - name: MSSQL_PID
+              value: {{ .Values.sqlserver.mssqlPid | default "Developer" | quote }}
+
+            {{- if .Values.sqlserver.mssqlMemoryLimitMb }}
+            - name: MSSQL_MEMORY_LIMIT_MB
+              value: {{ .Values.sqlserver.mssqlMemoryLimitMb | quote }}
+            {{- end }}
+
+            - name: MSSQL_SA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Chart.Name }}-secrets
+                  key: MSSQL_SA_PASSWORD
+
+            - name: SQLSERVER_DB_COUNT
+              value: {{ len .Values.sqlserver.databases | quote }}
+
+            - name: SQLSERVER_METRICS_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Chart.Name }}-secrets
+                  key: SQLSERVER_METRICS_USER
+
+            - name: SQLSERVER_METRICS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Chart.Name }}-secrets
+                  key: SQLSERVER_METRICS_PASSWORD
+
+            {{- range $i, $db := .Values.sqlserver.databases }}
+            - name: SQLSERVER_DB_{{ $i }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Chart.Name }}-secrets
+                  key: SQLSERVER_DB_{{ $i }}
+
+            - name: SQLSERVER_APP_USER_{{ $i }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Chart.Name }}-secrets
+                  key: SQLSERVER_APP_USER_{{ $i }}
+
+            - name: SQLSERVER_APP_PASSWORD_{{ $i }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Chart.Name }}-secrets
+                  key: SQLSERVER_APP_PASSWORD_{{ $i }}
+            {{- end }}
+
+          {{- if .Values.sqlserver.resources }}
+          resources: {{- toYaml .Values.sqlserver.resources | nindent 12 }}
+          {{- end }}
+          {{- if .Values.sqlserver.persistence.enabled }}
+          volumeMounts:
+            - name: sqlserver-data
+              mountPath: /var/opt/mssql
+          {{- end }}
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/bash
+                  - -lc
+                  - |
+                    set -uo pipefail
+                    set +H
+
+                    echo "Waiting for SQL Server to start..."
+                    SQLCMD="/opt/mssql-tools18/bin/sqlcmd"
+                    if [ ! -x "$SQLCMD" ]; then
+                      SQLCMD="/opt/mssql-tools/bin/sqlcmd"
+                    fi
+                    if [ ! -x "$SQLCMD" ]; then
+                      echo "sqlcmd not found"
+                      exit 1
+                    fi
+
+                    READY=0
+                    for i in {1..360}; do
+                      if $SQLCMD -b -V 16 -C -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -Q "SELECT 1" >/dev/null 2>&1; then
+                        READY=1
+                        break
+                      fi
+                      sleep 2
+                    done
+                    if [ "$READY" -ne 1 ]; then
+                      echo "SQL Server is not ready yet; skipping init."
+                      exit 1
+                    fi
+
+                    init_sql() {
+                      # Per-DB app users
+                      if [ "${SQLSERVER_DB_COUNT:-0}" -gt 0 ]; then
+                        for idx in $(seq 0 $((SQLSERVER_DB_COUNT - 1))); do
+                          dbVar="SQLSERVER_DB_${idx}"
+                          userVar="SQLSERVER_APP_USER_${idx}"
+                          passVar="SQLSERVER_APP_PASSWORD_${idx}"
+                          SQLSERVER_DB="${!dbVar}"
+                          SQLSERVER_APP_USER="${!userVar}"
+                          SQLSERVER_APP_PASSWORD="${!passVar}"
+
+                          $SQLCMD -b -V 16 -C -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -Q "IF DB_ID(N'$SQLSERVER_DB') IS NULL CREATE DATABASE [$SQLSERVER_DB];"
+                          $SQLCMD -b -V 16 -C -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -Q "IF NOT EXISTS (SELECT 1 FROM sys.sql_logins WHERE name = N'$SQLSERVER_APP_USER') BEGIN CREATE LOGIN [$SQLSERVER_APP_USER] WITH PASSWORD = N'$SQLSERVER_APP_PASSWORD', CHECK_POLICY = OFF; END; ALTER LOGIN [$SQLSERVER_APP_USER] WITH DEFAULT_DATABASE=[$SQLSERVER_DB];"
+                          $SQLCMD -b -V 16 -C -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -Q "USE [$SQLSERVER_DB]; IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = N'$SQLSERVER_APP_USER') BEGIN CREATE USER [$SQLSERVER_APP_USER] FOR LOGIN [$SQLSERVER_APP_USER]; END; EXEC sp_addrolemember 'db_datareader', N'$SQLSERVER_APP_USER'; EXEC sp_addrolemember 'db_datawriter', N'$SQLSERVER_APP_USER'; EXEC sp_addrolemember 'db_owner', N'$SQLSERVER_APP_USER';"
+                        done
+                      fi
+
+                      # Shared metrics user (server-level + db_datareader on each DB)
+                      if [ -n "${SQLSERVER_METRICS_USER:-}" ] && [ -n "${SQLSERVER_METRICS_PASSWORD:-}" ]; then
+                        $SQLCMD -b -V 16 -C -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -Q "IF NOT EXISTS (SELECT 1 FROM sys.sql_logins WHERE name = N'$SQLSERVER_METRICS_USER') BEGIN CREATE LOGIN [$SQLSERVER_METRICS_USER] WITH PASSWORD = N'$SQLSERVER_METRICS_PASSWORD', CHECK_POLICY = OFF; END; GRANT VIEW SERVER STATE TO [$SQLSERVER_METRICS_USER]; GRANT VIEW SERVER PERFORMANCE STATE TO [$SQLSERVER_METRICS_USER];"
+
+                        if [ "${SQLSERVER_DB_COUNT:-0}" -gt 0 ]; then
+                          for idx in $(seq 0 $((SQLSERVER_DB_COUNT - 1))); do
+                            dbVar="SQLSERVER_DB_${idx}"
+                            SQLSERVER_DB="${!dbVar}"
+                            $SQLCMD -b -V 16 -C -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -Q "USE [$SQLSERVER_DB]; IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = N'$SQLSERVER_METRICS_USER') BEGIN CREATE USER [$SQLSERVER_METRICS_USER] FOR LOGIN [$SQLSERVER_METRICS_USER]; END; EXEC sp_addrolemember 'db_datareader', N'$SQLSERVER_METRICS_USER';"
+                          done
+                        fi
+                      fi
+                    }
+
+                    for i in {1..60}; do
+                      if init_sql; then
+                        echo "SQL init completed."
+                        exit 0
+                      fi
+                      echo "SQL init failed; retrying in 5s..."
+                      sleep 5
+                    done
+
+                    echo "SQL init failed after retries; exiting with error."
+                    exit 1
+
+          startupProbe:
+            tcpSocket:
+              port: 1433
+            failureThreshold: 30
+            periodSeconds: 10
+
+        {{- if .Values.sqlserver.otelCollector.enabled }}
+        - name: otel-collector
+          image: "{{ .Values.sqlserver.otelCollector.image.repository }}:{{ .Values.sqlserver.otelCollector.image.tag }}"
+          imagePullPolicy: {{ .Values.sqlserver.otelCollector.image.pullPolicy | default "IfNotPresent" }}
+          args:
+            - "--config=/etc/otelcol/sqlserver-otel-collector.yaml"
+          env:
+            - name: K8S_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+
+            - name: K8S_NAMESPACE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+
+            - name: K8S_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+
+            - name: metricsConnectionString
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Chart.Name }}-secrets
+                  key: metricsConnectionString
+
+          {{- if .Values.sqlserver.otelCollector.resources }}
+          resources: {{- toYaml .Values.sqlserver.otelCollector.resources | nindent 12 }}
+          {{- end }}
+
+          volumeMounts:
+            - name: otel-collector-config
+              mountPath: /etc/otelcol
+        {{- end }}
+
+      {{- if or .Values.sqlserver.persistence.enabled .Values.sqlserver.otelCollector.enabled }}
+      volumes:
+        {{- if .Values.sqlserver.persistence.enabled }}
+        - name: sqlserver-data
+          persistentVolumeClaim:
+            claimName: {{ .Chart.Name }}-data
+        {{- end }}
+        {{- if .Values.sqlserver.otelCollector.enabled }}
+        - name: otel-collector-config
+          configMap:
+            name: {{ .Chart.Name }}-otel-cm
+        {{- end }}
+      {{- end }}
+{{- end }}

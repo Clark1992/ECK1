@@ -1,0 +1,49 @@
+{{- if .Values.sqlserver.otelCollector.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Chart.Name }}-otel-cm
+data:
+  sqlserver-otel-collector.yaml: |
+    receivers:
+      sqlserver:
+        collection_interval: {{ .Values.sqlserver.otelCollector.collectionInterval | default "15s" }}
+        datasource: ${env:metricsConnectionString}
+        metrics:
+          sqlserver.deadlock.rate:
+            enabled: true
+          sqlserver.os.wait.duration:
+            enabled: true
+
+    processors:
+      resource:
+        attributes:
+          - key: service.name
+            value: "{{ .Values.sqlserver.otelCollector.serviceName }}"
+            action: upsert
+          - key: deployment.environment
+            value: "{{ .Values.environment }}"
+            action: upsert
+          - key: k8s.namespace.name
+            value: "${env:K8S_NAMESPACE_NAME}"
+            action: upsert
+          - key: k8s.pod.name
+            value: "${env:K8S_POD_NAME}"
+            action: upsert
+          - key: k8s.node.name
+            value: "${env:K8S_NODE_NAME}"
+            action: upsert
+
+    exporters:
+      otlp:
+        endpoint: "{{ .Values.sqlserver.otelCollector.otlpEndpoint }}"
+        tls:
+          insecure: true
+
+    service:
+      pipelines:
+        metrics:
+          receivers: [sqlserver]
+          processors: [resource]
+          exporters: [otlp]
+{{- end }}

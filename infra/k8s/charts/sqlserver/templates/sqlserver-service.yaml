@@ -1,0 +1,17 @@
+{{- if .Values.sqlserver.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}
+spec:
+  type: {{ .Values.sqlserver.service.type | default "ClusterIP" }}
+  selector:
+    app: {{ .Chart.Name }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.sqlserver.service.port }}
+      targetPort: 1433
+      {{- if eq (.Values.sqlserver.service.type | default "ClusterIP") "NodePort" }}
+      nodePort: {{ .Values.sqlserver.service.nodePort }}
+      {{- end }}
+{{- end }}

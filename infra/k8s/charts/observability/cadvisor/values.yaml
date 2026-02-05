@@ -9,7 +9,7 @@ service:
 
 serviceMonitor:
   enabled: true
-  interval: 30s
+  interval: 1m
   scrapeTimeout: 10s
   labels:
     release: prometheus
@@ -21,8 +21,8 @@ affinity: {}
 
 args:
   - --port=8080
-  - --housekeeping_interval=10s
-  - --max_housekeeping_interval=15s
+  - --housekeeping_interval=30s
+  - --max_housekeeping_interval=45s
   - --containerd=/run/containerd/containerd.sock
 
 securityContext:

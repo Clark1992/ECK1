@@ -1,5 +1,5 @@
 sqlserver:
-  enabled: true
+  enabled: false
   image:
     repository: mcr.microsoft.com/mssql/server
     tag: "2022-latest"
@@ -31,5 +31,5 @@ sqlserver:
     metricsPassword: ""
   otelCollector:
     enabled: true
-    collectionInterval: 15s
+    collectionInterval: 1m
     serviceName: "eck1-commandsapi"

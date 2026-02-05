@@ -124,6 +124,7 @@
         "y": 1
       },
       "id": 7,
+      "interval": "$interval",
       "options": {
         "legend": {
           "calcs": [],
@@ -146,7 +147,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "100 *\r\n(\r\n  sum by (namespace, pod) (\r\n    container_memory_working_set_bytes{\r\n      namespace=\"$ns\",\r\n      pod=~\"$pod\",\r\n      pod!~\".*-sql.*\",\r\n      container!=\"\",\r\n      container!=\"POD\"\r\n    }\r\n  )\r\n)\r\n/\r\nclamp_min(\r\n  sum by (namespace, pod) (\r\n    kube_pod_container_resource_limits{\r\n      namespace=\"$ns\",\r\n      pod=~\"$pod\",\r\n      resource=\"memory\",\r\n      unit=\"byte\"\r\n    }\r\n  ),\r\n  1\r\n)\r\n* on (namespace, pod) group_left(label_app)\r\n    kube_pod_labels{\r\n      namespace=\"$ns\",\r\n      label_service_name=~\"$service_name\",\r\n      pod=~\"$pod\",\r\n      pod!~\".*-sql.*\"\r\n    }",
+          "expr": "100 *\r\n(\r\n  sum by (namespace, pod) (\r\n    container_memory_working_set_bytes{\r\n      namespace=\"$ns\",\r\n      pod=~\"$pod\",\r\n      pod!~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\",\r\n      container!=\"\",\r\n      container!=\"POD\"\r\n    }\r\n  )\r\n)\r\n/\r\nclamp_min(\r\n  sum by (namespace, pod) (\r\n    kube_pod_container_resource_limits{\r\n      namespace=\"$ns\",\r\n      pod=~\"$pod\",\r\n      resource=\"memory\",\r\n      unit=\"byte\"\r\n    }\r\n  ),\r\n  1\r\n)\r\n* on (namespace, pod) group_left(label_app)\r\n    kube_pod_labels{\r\n      namespace=\"$ns\",\r\n      label_service_name=~\"$service_name\",\r\n      pod=~\"$pod\",\r\n      pod!~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\"\r\n    }",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -231,6 +232,7 @@
         "y": 1
       },
       "id": 6,
+      "interval": "$interval",
       "options": {
         "legend": {
           "calcs": [],
@@ -355,6 +357,7 @@
         "y": 9
       },
       "id": 8,
+      "interval": "$interval",
       "options": {
         "legend": {
           "calcs": [],
@@ -377,7 +380,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "100 *\r\n(\r\n  sum by (pod, namespace) (\r\n    rate(\r\n      container_cpu_usage_seconds_total{\r\n        namespace=\"$ns\",\r\n        pod=~\"$pod\",\r\n        pod!~\".*-sql.*\",\r\n        container!=\"\",\r\n        container!=\"POD\"\r\n      }[$__rate_interval]\r\n    )\r\n  )\r\n  * on (pod, namespace)\r\n    group_left(label_service_name)\r\n    kube_pod_labels{\r\n      namespace=\"$ns\",\r\n      label_service_name=~\"$service_name\",\r\n      label_environment=~\"$env\",\r\n      pod=~\"$pod\",\r\n      pod!~\".*-sql.*\"\r\n    }\r\n  /\r\n  ignoring(label_service_name)\r\n  sum by (pod, namespace) (\r\n    kube_pod_container_resource_limits{\r\n      namespace=\"$ns\",\r\n      pod=~\"$pod\",\r\n      pod!~\".*-sql.*\",\r\n      resource=\"cpu\",\r\n      unit=\"core\"\r\n    }\r\n  )\r\n)\r\n",
+          "expr": "100 *\r\n(\r\n  sum by (pod, namespace) (\r\n    rate(\r\n      container_cpu_usage_seconds_total{\r\n        namespace=\"$ns\",\r\n        pod=~\"$pod\",\r\n        pod!~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\",\r\n        container!=\"\",\r\n        container!=\"POD\"\r\n      }[$__rate_interval]\r\n    )\r\n  )\r\n  * on (pod, namespace)\r\n    group_left(label_service_name)\r\n    kube_pod_labels{\r\n      namespace=\"$ns\",\r\n      label_service_name=~\"$service_name\",\r\n      label_environment=~\"$env\",\r\n      pod=~\"$pod\",\r\n      pod!~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\"\r\n    }\r\n  /\r\n  ignoring(label_service_name)\r\n  sum by (pod, namespace) (\r\n    kube_pod_container_resource_limits{\r\n      namespace=\"$ns\",\r\n      pod=~\"$pod\",\r\n      pod!~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\",\r\n      resource=\"cpu\",\r\n      unit=\"core\"\r\n    }\r\n  )\r\n)\r\n",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -462,6 +465,7 @@
         "y": 9
       },
       "id": 9,
+      "interval": "$interval",
       "options": {
         "legend": {
           "calcs": [],
@@ -586,6 +590,7 @@
         "y": 17
       },
       "id": 14,
+      "interval": "$interval",
       "options": {
         "legend": {
           "calcs": [],
@@ -608,7 +613,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "100 *\r\n(\r\n  sum by (namespace, pod) (\r\n    rate(\r\n      container_cpu_usage_seconds_total{\r\n        namespace=\"$ns\",\r\n        pod=~\".*-sql.*\",\r\n        pod=~\"$pod\",\r\n        container!=\"\",\r\n        container!=\"POD\"\r\n      }[$__rate_interval]\r\n    )\r\n  )\r\n  /\r\n  on (namespace, pod)\r\n  group_left(label_service_name)\r\n  sum by (namespace, pod) (\r\n    kube_pod_container_resource_limits{\r\n      namespace=\"$ns\",\r\n      pod=~\".*-sql.*\",\r\n      pod=~\"$pod\",\r\n      resource=\"cpu\",\r\n      unit=\"core\"\r\n    }\r\n  )\r\n)\r\n* on (namespace, pod)\r\n  group_left(label_service_name)\r\n  kube_pod_labels{\r\n    namespace=\"$ns\",\r\n    pod=~\".*-sql.*\",\r\n    pod=~\"$pod\",\r\n    label_service_name=~\"$log_service_name\",\r\n    label_service_name=~\"$service_name\",\r\n    label_environment=~\"$env\"\r\n  }\r\n",
+          "expr": "100 *\r\n(\r\n  sum by (namespace, pod) (\r\n    rate(\r\n      container_cpu_usage_seconds_total{\r\n        namespace=\"$ns\",\r\n        pod=~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\",\r\n        pod=~\"$pod\",\r\n        container!=\"\",\r\n        container!=\"POD\"\r\n      }[$__rate_interval]\r\n    )\r\n  )\r\n  /\r\n  on (namespace, pod)\r\n  group_left(label_service_name)\r\n  sum by (namespace, pod) (\r\n    kube_pod_container_resource_limits{\r\n      namespace=\"$ns\",\r\n      pod=~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\",\r\n      pod=~\"$pod\",\r\n      resource=\"cpu\",\r\n      unit=\"core\"\r\n    }\r\n  )\r\n)\r\n* on (namespace, pod)\r\n  group_left(label_service_name)\r\n  kube_pod_labels{\r\n    namespace=\"$ns\",\r\n    pod=~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\",\r\n    pod=~\"$pod\",\r\n    label_service_name=~\"$log_service_name\",\r\n    label_service_name=~\"$service_name\",\r\n    label_environment=~\"$env\"\r\n  }\r\n",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -695,6 +700,7 @@
         "y": 17
       },
       "id": 15,
+      "interval": "$interval",
       "options": {
         "legend": {
           "calcs": [],
@@ -717,7 +723,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "100 *\r\n(\r\n  sum by (namespace, pod) (\r\n    container_memory_working_set_bytes{\r\n      namespace=\"$ns\",\r\n      pod=~\".*-sql.*\",\r\n      container!=\"\",\r\n      container!=\"POD\"\r\n    }\r\n  )\r\n)\r\n/\r\nclamp_min(\r\n  sum by (namespace, pod) (\r\n    kube_pod_container_resource_limits{\r\n      namespace=\"$ns\",\r\n      pod=~\".*-sql.*\",\r\n      resource=\"memory\",\r\n      unit=\"byte\"\r\n    }\r\n  ),\r\n  1\r\n)\r\n* on(namespace, pod)\r\ngroup_left(label_service_name)\r\nkube_pod_labels{\r\n  namespace=\"$ns\",\r\n  pod=~\".*-sql.*\",\r\n  label_service_name=~\"$log_service_name\",\r\n  label_service_name=~\"$service_name\",\r\n  label_environment=~\"$env\"\r\n}\r\n",
+          "expr": "100 *\r\n(\r\n  sum by (namespace, pod) (\r\n    container_memory_working_set_bytes{\r\n      namespace=\"$ns\",\r\n      pod=~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\",\r\n      container!=\"\",\r\n      container!=\"POD\"\r\n    }\r\n  )\r\n)\r\n/\r\nclamp_min(\r\n  sum by (namespace, pod) (\r\n    kube_pod_container_resource_limits{\r\n      namespace=\"$ns\",\r\n      pod=~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\",\r\n      resource=\"memory\",\r\n      unit=\"byte\"\r\n    }\r\n  ),\r\n  1\r\n)\r\n* on(namespace, pod)\r\ngroup_left(label_service_name)\r\nkube_pod_labels{\r\n  namespace=\"$ns\",\r\n  pod=~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\",\r\n  label_service_name=~\"$log_service_name\",\r\n  label_service_name=~\"$service_name\",\r\n  label_environment=~\"$env\"\r\n}\r\n",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -803,6 +809,7 @@
         "y": 17
       },
       "id": 11,
+      "interval": "$interval",
       "options": {
         "legend": {
           "calcs": [],
@@ -911,6 +918,7 @@
         "y": 17
       },
       "id": 13,
+      "interval": "$interval",
       "options": {
         "legend": {
           "calcs": [],
@@ -933,7 +941,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by (service_name) (sqlserver_deadlock_rate{service_name=~\"$service_name\", deployment_environment=\"$env\"})",
+          "expr": "sum by (service_name) (sqlserver_deadlock_rate_per_s{service_name=~\"$service_name\", deployment_environment=\"$env\"})",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -948,7 +956,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by (service_name, wait_category) (rate(sqlserver_os_wait_duration{service_name=~\"$service_name\", deployment_environment=\"$env\"}[$__rate_interval]))",
+          "expr": "sum by (service_name, wait_category) (rate(sqlserver_os_wait_duration_seconds_total{service_name=~\"$service_name\", deployment_environment=\"$env\"}[$__rate_interval]))",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -1074,8 +1082,7 @@
         "y": 23
       },
       "id": 1,
-      "interval": "1m",
-      "maxDataPoints": 200,
+      "maxDataPoints": 50,
       "options": {
         "legend": {
           "calcs": [
@@ -1183,6 +1190,7 @@
         "y": 29
       },
       "id": 2,
+      "interval": "$interval",
       "options": {
         "dedupStrategy": "none",
         "detailsMode": "inline",
@@ -1264,6 +1272,7 @@
         "y": 41
       },
       "id": 3,
+      "interval": "$interval",
       "options": {
         "cellHeight": "sm",
         "showHeader": true
@@ -1296,7 +1305,7 @@
       "type": "table"
     },
     {
-      "collapsed": true,
+      "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1304,230 +1313,231 @@
         "y": 48
       },
       "id": 17,
-      "panels": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisBorderShow": false,
-                "axisCenteredZero": false,
-                "axisColorMode": "text",
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "barWidthFactor": 0.6,
-                "drawStyle": "line",
-                "fillOpacity": 0,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "insertNulls": 60000,
-                "lineInterpolation": "smooth",
-                "lineStyle": {
-                  "fill": "solid"
-                },
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "auto",
-                "showValues": false,
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "fieldMinMax": false,
-              "mappings": [],
-              "min": 0,
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": 0
-                  },
-                  {
-                    "color": "red",
-                    "value": 0.8
-                  }
-                ]
-              },
-              "unit": "s"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 6,
-            "w": 5,
-            "x": 0,
-            "y": 55
-          },
-          "id": 12,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom",
-              "showLegend": true
-            },
-            "tooltip": {
-              "hideZeros": false,
-              "mode": "single",
-              "sort": "none"
-            }
-          },
-          "pluginVersion": "12.3.1",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "Prometheus"
-              },
-              "editorMode": "code",
-              "exemplar": false,
-              "expr": "avg by (service_name, performance_counter_object_name) (sqlserver_page_life_expectancy_seconds{service_name=~\"$service_name\", service_name=~\"$log_service_name\", deployment_environment=\"$env\"})",
-              "format": "time_series",
-              "hide": false,
-              "instant": false,
-              "legendFormat": "{{service_name}} ({{performance_counter_object_name}})",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "SQL Page Life Expectancy",
-          "type": "timeseries"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisBorderShow": false,
-                "axisCenteredZero": false,
-                "axisColorMode": "text",
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "barWidthFactor": 0.6,
-                "drawStyle": "line",
-                "fillOpacity": 0,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "insertNulls": 60000,
-                "lineInterpolation": "smooth",
-                "lineStyle": {
-                  "fill": "solid"
-                },
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "auto",
-                "showValues": false,
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "fieldMinMax": false,
-              "mappings": [],
-              "min": 0,
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": 0
-                  },
-                  {
-                    "color": "red",
-                    "value": 0.8
-                  }
-                ]
-              },
-              "unit": "ops/s"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 6,
-            "w": 5,
-            "x": 5,
-            "y": 55
-          },
-          "id": 10,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom",
-              "showLegend": true
-            },
-            "tooltip": {
-              "hideZeros": false,
-              "mode": "single",
-              "sort": "none"
-            }
-          },
-          "pluginVersion": "12.3.1",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "Prometheus"
-              },
-              "editorMode": "code",
-              "exemplar": false,
-              "expr": "sum by (service_name) (sqlserver_batch_request_rate_per_second{service_name=~\"$service_name\", service_name=~\"$log_service_name\",deployment_environment=\"$env\"})",
-              "format": "time_series",
-              "hide": false,
-              "instant": false,
-              "legendFormat": "{{service_name}}",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "SQL Batch Request Rate",
-          "type": "timeseries"
-        }
-      ],
+      "panels": [],
       "title": "Other",
       "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": 60000,
+            "lineInterpolation": "smooth",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "fieldMinMax": false,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 0.8
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 5,
+        "x": 0,
+        "y": 49
+      },
+      "id": 12,
+      "interval": "$interval",
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "avg by (service_name, performance_counter_object_name) (sqlserver_page_life_expectancy_seconds{service_name=~\"$service_name\", service_name=~\"$log_service_name\", deployment_environment=\"$env\"})",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "{{service_name}} ({{performance_counter_object_name}})",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "SQL Page Life Expectancy",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": 60000,
+            "lineInterpolation": "smooth",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "fieldMinMax": false,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 0.8
+              }
+            ]
+          },
+          "unit": "ops/s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 5,
+        "x": 5,
+        "y": 49
+      },
+      "id": 10,
+      "interval": "$interval",
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "sum by (service_name) (sqlserver_batch_request_rate_per_second{service_name=~\"$service_name\", service_name=~\"$log_service_name\",deployment_environment=\"$env\"})",
+          "format": "time_series",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "{{service_name}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "SQL Batch Request Rate",
+      "type": "timeseries"
     }
   ],
   "preload": false,
-  "refresh": "5s",
+  "refresh": "1m",
   "schemaVersion": 42,
   "tags": [],
   "templating": {
@@ -1665,16 +1675,57 @@
         "refresh": 2,
         "regex": "^(?!unknown).*$",
         "type": "query"
+      },
+      {
+        "auto": false,
+        "auto_count": 30,
+        "auto_min": "10s",
+        "current": {
+          "text": "5m",
+          "value": "5m"
+        },
+        "label": "interval",
+        "name": "interval",
+        "options": [
+          {
+            "selected": false,
+            "text": "15s",
+            "value": "15s"
+          },
+          {
+            "selected": false,
+            "text": "30s",
+            "value": "30s"
+          },
+          {
+            "selected": false,
+            "text": "1m",
+            "value": "1m"
+          },
+          {
+            "selected": false,
+            "text": "2m",
+            "value": "2m"
+          },
+          {
+            "selected": true,
+            "text": "5m",
+            "value": "5m"
+          }
+        ],
+        "query": "15s,30s,1m,2m,5m",
+        "refresh": 2,
+        "type": "interval"
       }
     ]
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Logs/Traces2",
-  "uid": "adzf64t2",
-  "version": 48
+  "title": "Logs/Traces",
+  "uid": "adzf64t",
+  "version": 40
 }

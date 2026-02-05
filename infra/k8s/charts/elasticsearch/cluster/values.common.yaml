@@ -17,3 +17,6 @@ data:
     storageClass: ""
 
 resources: {}
+
+otelCollector:
+  serviceName: "eck1-viewprojector.eck1-queriesapi"
