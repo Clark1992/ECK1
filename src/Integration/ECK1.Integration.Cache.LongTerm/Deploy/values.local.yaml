@@ -1,0 +1,16 @@
+replicaCount: 1
+
+image:
+  repository: localhost:5000/cache-long-term
+  tag: dev
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+
+nats:
+  persistence:
+    size: 5Gi
+  service:
+    type: NodePort
+    nodePort: 31222

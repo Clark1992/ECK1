@@ -5,18 +5,16 @@ using ECK1.Integration.Plugin.Abstractions;
 using ECK1.Integration.Proxy;
 using ECK1.Integration.Proxy.Kafka;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using OpenTelemetry.Trace;
 using System.Text.Json;
 
-using static ECK1.Integration.Plugin.Abstractions.ConfigHelpers;
+using static ECK1.Integration.Common.ConfigHelpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddConfigSources();
 
 var configuration = builder.Configuration;
-
-builder.AddOpenTelemetry(tracingExtraConfig: tracing => tracing
-    .AddKafkaInstrumentation());
 
 var proxyConfig = builder.GetProxyType();
 
@@ -51,11 +49,18 @@ builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 builder.Services.SetupKafka(builder.Configuration, integrationConfig, proxyConfig.Plugin);
 
-new IntergationPluginRegistry(logger).LoadPlugin(
-    builder.Services, 
+var pluginRegistry = new IntergationPluginRegistry(logger);
+var pluginLoader = pluginRegistry.LoadPlugin(
+    builder.Services,
     builder.Configuration,
     proxyConfig,
     integrationConfig);
+
+builder.AddOpenTelemetry(tracingExtraConfig: tracing =>
+{
+    tracing.AddKafkaInstrumentation();
+    pluginLoader.SetupTelemetry(tracing);
+});
 
 var app = builder.Build();
 

@@ -1,0 +1,56 @@
+{{- if and .Values.nats.bucketInit.enabled (gt (len .Values.nats.bucketInit.buckets) 0) }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Chart.Name }}-nats-buckets
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    # "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 4
+  ttlSecondsAfterFinished: 60
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}-nats-buckets
+        environment: {{ .Values.environment }}
+        service_name: {{ .Chart.Name }}-nats-buckets
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: nats-bucket-init
+          image: "{{ .Values.nats.bucketInit.image }}"
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -e
+              deadline=$(( $(date +%s) + ${WAIT_TIMEOUT} ))
+              until nats --server "$NATS_URL" rtt >/dev/null 2>&1; do
+                if [ $(date +%s) -gt $deadline ]; then
+                  echo "Timeout waiting for NATS at $NATS_URL"
+                  exit 1
+                fi
+                sleep 2
+              done
+              for bucket in $BUCKETS; do
+                if ! nats --server "$NATS_URL" kv info "$bucket" >/dev/null 2>&1; then
+                  nats --server "$NATS_URL" kv add "$bucket" \
+                    --history "$HISTORY" \
+                    --replicas "$REPLICAS" \
+                    --storage "$STORAGE"
+                fi
+              done
+          env:
+            - name: NATS_URL
+              value: "nats://{{ .Chart.Name }}-nats:{{ .Values.nats.port }}"
+            - name: HISTORY
+              value: "{{ .Values.nats.bucketInit.history }}"
+            - name: REPLICAS
+              value: "{{ .Values.nats.bucketInit.replicas }}"
+            - name: STORAGE
+              value: "{{ .Values.nats.bucketInit.storage }}"
+            - name: WAIT_TIMEOUT
+              value: "{{ .Values.nats.bucketInit.waitTimeoutSeconds }}"
+            - name: BUCKETS
+              value: '{{ join " " .Values.nats.bucketInit.buckets }}'
+{{- end }}

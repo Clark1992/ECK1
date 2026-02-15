@@ -16,6 +16,7 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Serializers;
 using ECK1.Kafka.OpenTelemetry;
+using OpenTelemetry.Trace;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,6 +33,8 @@ var environment = builder.Environment;
 
 builder.AddOpenTelemetry(tracingExtraConfig: tracing => tracing
     .AddKafkaInstrumentation()
+    .AddMongoInstrumentation()
+    .AddRedisInstrumentation()
     .AddSource("Microsoft.Orleans.Runtime")
     .AddSource("Microsoft.Orleans.Application"));
 
@@ -48,9 +51,6 @@ var conventionPack = new ConventionPack {
 
 ConventionRegistry.Register("CamelCase", conventionPack, t => true);
 
-#pragma warning disable CS0618 // Type or member is obsolete
-BsonDefaults.GuidRepresentationMode = GuidRepresentationMode.V3;
-#pragma warning restore CS0618 // Type or member is obsolete
 BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 
 builder.Services.AddSingleton(sp =>

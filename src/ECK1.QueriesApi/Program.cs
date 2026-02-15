@@ -24,7 +24,9 @@ builder.Configuration.AddDopplerSecrets();
 var configuration = builder.Configuration;
 var environment = builder.Environment;
 
-builder.AddOpenTelemetry();
+builder.AddOpenTelemetry(tracingExtraConfig: tracing => tracing
+    .AddMongoInstrumentation()
+    .AddElasticsearchInstrumentation());
 
 builder.Services.AddControllers(options =>
     options.Conventions.Add(new RouteTokenTransformerConvention(new SlugifyParameterTransformer())));
@@ -34,9 +36,6 @@ var conventionPack = new ConventionPack {
 };
 ConventionRegistry.Register("CamelCase", conventionPack, t => true);
 
-#pragma warning disable CS0618 // Type or member is obsolete
-BsonDefaults.GuidRepresentationMode = GuidRepresentationMode.V3;
-#pragma warning restore CS0618 // Type or member is obsolete
 BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 
 builder.Services.AddSingleton(sp =>

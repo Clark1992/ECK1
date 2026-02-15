@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="ClickHouse.Client" />
+    <PackageReference Include="ClickHouse.Extensions.OpenTelemetry" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />

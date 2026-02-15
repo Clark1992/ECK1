@@ -17,6 +17,7 @@ spec:
         environment: {{ $.Values.environment }}
         service_name: {{ $.Chart.Name }}-{{ .name | lower }}
     spec:
+      serviceAccountName: config-aggregator-sa-{{ $.Chart.Name }}
 
       {{- include "config-merge.initConfigAggregator" $ | nindent 6 }}
 
@@ -33,10 +34,27 @@ spec:
             - name: CacheService__ShortTerm__Url
               value: http://{{ include "common-values.cacheShortTermServiceName" . }}
 
+            - name: CacheService__LongTerm__Url
+              value: http://{{ include "common-values.cacheLongTermServiceName" . }}
+
             {{- range $key, $value := $.Values.env }}
             - name: {{ $key }}
               value: "{{ $value }}"
             {{- end }}
+            - name: OTEL_SERVICE_NAME
+              value: {{ printf "%s-%s" $.Chart.Name (.name | lower) | quote }}
+            - name: OTEL_SERVICE_VERSION
+              value: {{ $.Chart.AppVersion | quote }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: OTEL_EXPORTER_OTLP_ENDPOINT
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: OTEL_EXPORTER_OTLP_PROTOCOL
             
             {{- with .spec.config.plain }}
             {{- include "render.env" (list . "") | nindent 12 }}

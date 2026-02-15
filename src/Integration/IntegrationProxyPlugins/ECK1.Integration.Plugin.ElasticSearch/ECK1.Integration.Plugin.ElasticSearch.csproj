@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ECK1.Integration.Plugin.Abstractions\ECK1.Integration.Plugin.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\Nuget\ECK1.CommonUtils\ECK1.CommonUtils.csproj" />
   </ItemGroup>
 
 </Project>

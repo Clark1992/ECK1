@@ -14,6 +14,8 @@ try {
     
     & 'src\Integration\ECK1.Integration.Cache.ShortTerm\Deploy\RunLocally.ps1'
 
+    & 'src\Integration\ECK1.Integration.Cache.LongTerm\Deploy\RunLocally.ps1'
+
     & 'src\Integration\ECK1.Integration.Proxy\Deploy\RunLocally.ps1'
 
     & 'tests\ECK1.TestPlatform\Deploy\RunLocally.ps1'

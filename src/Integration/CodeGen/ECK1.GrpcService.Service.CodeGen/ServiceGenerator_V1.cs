@@ -115,6 +115,10 @@ public class ServiceGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine("            return response;");
         sb.AppendLine("        }");
+        sb.AppendLine("        catch (RpcException)");
+        sb.AppendLine("        {");
+        sb.AppendLine("            throw;");
+        sb.AppendLine("        }");
         sb.AppendLine("        catch (Exception ex)");
         sb.AppendLine("        {");
         sb.AppendLine("            logger.LogError(ex, \"gRPC GetEntity failed for {requestType}:{request}\", request.GetType(), request);");
@@ -143,12 +147,7 @@ public class ServiceGenerator : IIncrementalGenerator
         sb.AppendLine($"            if (entityEntry is null)");
         sb.AppendLine("            {");
         sb.AppendLine($@"                logger.LogWarning(""EntityEntry is missing in Cache ({{type}}: {{id}})"", ""{typeText}"", request.Id);");
-        sb.AppendLine($"                return Task.FromResult(new EntityResponse<{typeText}>");
-        sb.AppendLine("                {");
-        sb.AppendLine("                    Item = null,");
-        sb.AppendLine("                    FieldMaskHash = null,");
-        sb.AppendLine("                    Version = 0");
-        sb.AppendLine("                });");
+        sb.AppendLine("                throw new RpcException(new Status(StatusCode.NotFound, \"Entity not found\"));");
         sb.AppendLine("            }");
         sb.AppendLine();
         sb.AppendLine($"            var (maskedItem, maskHash) = {NsPrefix}.FieldMask.Generated.FieldMaskApplier_{safeId}.ApplyRoot(");

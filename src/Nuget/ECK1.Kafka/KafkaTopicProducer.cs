@@ -1,7 +1,4 @@
 ﻿using Confluent.Kafka;
-using Confluent.SchemaRegistry;
-using Confluent.SchemaRegistry.Serdes;
-using ECK1.Kafka.ProtoBuf;
 using Microsoft.Extensions.Logging;
 
 namespace ECK1.Kafka;

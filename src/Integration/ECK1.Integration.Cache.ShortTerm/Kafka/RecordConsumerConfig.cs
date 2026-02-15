@@ -1,5 +1,6 @@
 ﻿using Confluent.Kafka;
 using Confluent.SchemaRegistry;
+using ECK1.Integration.Common;
 using ECK1.Kafka.Extensions;
 using ECK1.Integration.EntityStore.Configuration.Generated;
 

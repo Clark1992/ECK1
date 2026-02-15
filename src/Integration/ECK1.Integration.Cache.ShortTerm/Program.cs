@@ -2,6 +2,7 @@
 using ECK1.Integration.Cache.ShortTerm;
 using ECK1.Integration.Cache.ShortTerm.Kafka;
 using ECK1.Integration.Cache.ShortTerm.Services;
+using ECK1.Integration.Common;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using ProtoBuf.Grpc.Server;
 using ECK1.Integration.EntityStore.Generated;

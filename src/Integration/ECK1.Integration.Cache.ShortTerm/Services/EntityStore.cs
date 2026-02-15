@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using System.Text;
 using ProtoBuf;
+using ECK1.Integration.Common;
 using ECK1.Integration.EntityStore.Generated;
 using RocksDbSharp;
 

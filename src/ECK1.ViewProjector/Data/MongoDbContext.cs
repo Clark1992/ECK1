@@ -1,4 +1,5 @@
 using MongoDB.Driver;
+using ECK1.CommonUtils.OpenTelemetry;
 using ECK1.ViewProjector.Views;
 
 namespace ECK1.ViewProjector.Data
@@ -8,7 +9,10 @@ namespace ECK1.ViewProjector.Data
         private readonly IMongoDatabase _database;
         public MongoDbContext(string connectionString, string databaseName)
         {
-            var client = new MongoClient(connectionString);
+            var settings = MongoClientSettings
+                .FromConnectionString(connectionString)
+                .AddOpenTelemetryInstrumentation();
+            var client = new MongoClient(settings);
             _database = client.GetDatabase(databaseName);
         }
 

@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 
-namespace ECK1.Integration.Plugin.Abstractions;
+namespace ECK1.Integration.Common;
 
 public static class ConfigHelpers
 {

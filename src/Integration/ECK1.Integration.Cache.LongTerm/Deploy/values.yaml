@@ -1,0 +1,52 @@
+replicaCount: 1
+
+image:
+  repository: myregistry.azurecr.io/cache-long-term
+  tag: latest
+  pullPolicy: IfNotPresent
+
+env:
+  ASPNETCORE_ENVIRONMENT: Development
+  Nats__Url: "nats://eck1-cache-long-term-nats:4222"
+  Nats__MaxHistory: "1"
+
+resources:
+  limits:
+    cpu: "1"
+    memory: "1Gi"
+  requests:
+    cpu: "100m"
+    memory: "256Mi"
+
+service:
+  type: ClusterIP
+  port: 80
+
+nats:
+  image: nats:2.12.4
+  port: 4222
+  monitorPort: 8222
+  service:
+    type: ClusterIP
+  persistence:
+    enabled: true
+    storageClassName: hostpath
+    hostPath: /var/lib/eck1/nats
+    size: 10Gi
+  bucketInit:
+    enabled: true
+    image: natsio/nats-box:0.13.4
+    history: 1
+    replicas: 1
+    storage: file
+    waitTimeoutSeconds: 60
+    buckets:
+      - SampleFullRecord
+      - Sample2FullRecord
+  resources:
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+    requests:
+      cpu: "100m"
+      memory: "256Mi"

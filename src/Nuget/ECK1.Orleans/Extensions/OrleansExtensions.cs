@@ -19,12 +19,14 @@ public static class OrleansExtensions
             if (hostingMode.Equals("local", StringComparison.OrdinalIgnoreCase))
             {
                 siloBuilder
+                    .AddActivityPropagation()
                     .UseLocalhostClustering()
                     .AddMemoryGrainStorage("RedisStore");
             }
             else if (hostingMode.Equals("k8s", StringComparison.OrdinalIgnoreCase))
             {
                 siloBuilder
+                    .AddActivityPropagation()
                     .UseKubernetesHosting()
                     .UseRedisClustering(redisConnection)
                     .AddRedisGrainStorage("RedisStore", options =>

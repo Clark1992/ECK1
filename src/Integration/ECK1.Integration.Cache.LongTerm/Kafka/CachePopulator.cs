@@ -1,0 +1,18 @@
+using ECK1.Integration.EntityStore.Generated;
+using ECK1.IntegrationContracts.Abstractions;
+using ECK1.Kafka;
+
+namespace ECK1.Integration.Cache.LongTerm.Kafka;
+
+public class CachePopulator<TRecord>(IEntityStore store, ILogger<CachePopulator<TRecord>> logger) : IKafkaMessageHandler<TRecord>
+    where TRecord : class, IIntegrationMessage
+{
+    public async Task Handle(string key, TRecord message, KafkaMessageId messageId, CancellationToken ct)
+    {
+        logger.LogInformation("Start handle 'FullRecord:{id}'", message.Id);
+
+        store.Put(message.Id, message.Version, message);
+
+        logger.LogInformation("Handled 'FullRecord:{id}'", message.Id);
+    }
+}

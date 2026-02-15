@@ -1,4 +1,5 @@
 ﻿using Confluent.Kafka;
+using ECK1.Integration.Common;
 using ECK1.Integration.Plugin.Abstractions;
 using ECK1.Kafka.Extensions;
 using ECK1.Integration.EntityStore.Configuration.Generated;
@@ -37,14 +38,21 @@ public static class KafkaSetup
         #endregion
 
         #region Event consumers
+        var cacheSettings = config
+            .GetSection(CacheServiceSettings.Section)
+            .Get<CacheServiceSettings>() ?? new CacheServiceSettings();
+
         var eventConfig = new EventConsumerConfig(
             integrationConfig,
             plugin,
             services,
-            kafkaSettings);
+            kafkaSettings,
+            cacheSettings);
 
-        var grpcUrl = config.GetValue<string>("CacheService:ShortTerm:Url");
-        ClientConsumerConfigurator.AddEventConsumers(grpcUrl, eventConfig);
+        ClientConsumerConfigurator.AddEventConsumers(
+            cacheSettings.ShortTerm.Url,
+            cacheSettings.LongTerm.Url,
+            eventConfig);
         #endregion
 
         return services;

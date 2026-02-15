@@ -1,0 +1,99 @@
+{{- if .Values.nats.persistence.enabled }}
+
+{{- if .Values.nats.persistence.hostPath }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Chart.Name }}-nats-pv
+spec:
+  capacity:
+    storage: {{ .Values.nats.persistence.size | default "5Gi" }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: {{ .Values.nats.persistence.storageClassName | quote }}
+  hostPath:
+    path: {{ .Values.nats.persistence.hostPath | quote }}
+    type: DirectoryOrCreate
+---
+{{- end }}
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Chart.Name }}-nats-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.nats.persistence.storageClassName }}
+  {{- if .Values.nats.persistence.hostPath }}
+  volumeName: {{ .Chart.Name }}-nats-pv
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.nats.persistence.size | default "5Gi" }}
+
+---
+{{- end }}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-nats
+spec:
+  replicas: {{ .Values.nats.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}-nats
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}-nats
+        environment: "{{ .Values.environment }}"
+        service_name: "{{ .Chart.Name }}"
+    spec:
+      containers:
+        - name: nats
+          image: "{{ .Values.nats.image }}"
+          args:
+            - "-js"
+            - "-sd"
+            - "/data"
+            - "-m"
+            - "{{ .Values.nats.monitorPort }}"
+          ports:
+            - containerPort: {{ .Values.nats.port }}
+            - containerPort: {{ .Values.nats.monitorPort }}
+          volumeMounts:
+            - name: nats-data
+              mountPath: /data
+          {{- if .Values.nats.resources }}
+          resources:
+{{ toYaml .Values.nats.resources | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: nats-data
+          persistentVolumeClaim:
+            claimName: {{ .Chart.Name }}-nats-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-nats
+spec:
+  type: {{ .Values.nats.service.type }}
+  selector:
+    app: {{ .Chart.Name }}-nats
+  ports:
+    - name: client
+      port: {{ .Values.nats.port }}
+      targetPort: {{ .Values.nats.port }}
+      protocol: TCP
+      {{- if eq .Values.nats.service.type "NodePort" }}
+      nodePort: {{ .Values.nats.service.nodePort }}
+      {{- end }}
+    - name: monitor
+      port: {{ .Values.nats.monitorPort }}
+      targetPort: {{ .Values.nats.monitorPort }}
+      protocol: TCP

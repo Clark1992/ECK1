@@ -8,6 +8,9 @@ image:
 env:
   ASPNETCORE_ENVIRONMENT: Development
   Proxy__PluginsDir: "/mnt/plugins"
+  CacheService__Retry__MaxAttempts: "3"
+  CacheService__Retry__DelayMs: "200"
+  CacheService__StaleEventThresholdMinutes: "0"
 
 resources:
   limits:

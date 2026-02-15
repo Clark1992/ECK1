@@ -1,7 +1,7 @@
-﻿using System.Buffers;
+using System.Buffers;
 using ProtoBuf;
 
-namespace ECK1.Integration.Cache.ShortTerm.Services;
+namespace ECK1.Integration.Common;
 
 public static class EntitySerializer
 {

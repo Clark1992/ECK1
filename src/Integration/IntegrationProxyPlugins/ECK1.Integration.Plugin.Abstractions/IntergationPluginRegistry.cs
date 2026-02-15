@@ -1,13 +1,14 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ECK1.Integration.Common;
 using System.Reflection;
 
 namespace ECK1.Integration.Plugin.Abstractions;
 
 public interface IIntergationPluginRegistry
 {
-    void LoadPlugin(IServiceCollection services, IConfiguration config, ProxyConfig proxyConfig, IntegrationConfig integrationConfig);
+    IIntergationPluginLoader LoadPlugin(IServiceCollection services, IConfiguration config, ProxyConfig proxyConfig, IntegrationConfig integrationConfig);
 }
 
 public class IntergationPluginRegistry(ILogger<IntergationPluginRegistry> logger) : IIntergationPluginRegistry
@@ -23,7 +24,7 @@ public class IntergationPluginRegistry(ILogger<IntergationPluginRegistry> logger
 #endif
     };
 
-    public void LoadPlugin(
+    public IIntergationPluginLoader LoadPlugin(
         IServiceCollection services,
         IConfiguration config,
         ProxyConfig proxyConfig,
@@ -37,6 +38,7 @@ public class IntergationPluginRegistry(ILogger<IntergationPluginRegistry> logger
 
         var plugin = (IIntergationPluginLoader)Activator.CreateInstance(pluginType)!;
         plugin.Setup(services, config, integrationConfig);
+        return plugin;
     }
 
     private Assembly LoadFromFile(string pluginDir, string pluginName)

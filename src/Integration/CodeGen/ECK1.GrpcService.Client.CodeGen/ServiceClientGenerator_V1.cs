@@ -97,9 +97,10 @@ public class ServiceAbstractionsGenerator : IIncrementalGenerator
         sb.AppendLine("// Auto-generated");
         sb.AppendLine("public static class ClientConsumerConfigurator");
         sb.AppendLine("{");
-        sb.AppendLine("    public static void AddEventConsumers(string grpcServerUrl, AbstractClientConsumerConfigurator config)");
+        sb.AppendLine("    public static void AddEventConsumers(string shortTermGrpcUrl, string longTermGrpcUrl, AbstractClientConsumerConfigurator config)");
         sb.AppendLine("    {");
-        sb.AppendLine("        var svc = EntityStoreGrpcServiceClientFactory.Create(grpcServerUrl);");
+        sb.AppendLine("        var shortTermSvc = EntityStoreGrpcServiceClientFactory.Create(shortTermGrpcUrl);");
+        sb.AppendLine("        var longTermSvc = EntityStoreGrpcServiceClientFactory.Create(longTermGrpcUrl);");
         sb.AppendLine();
 
         foreach (var t in symbols)
@@ -121,7 +122,8 @@ public class ServiceAbstractionsGenerator : IIncrementalGenerator
         sb.AppendLine("public abstract class AbstractClientConsumerConfigurator");
         sb.AppendLine("{");
         sb.AppendLine("    public abstract void SetupConsumer<TContract>(");
-        sb.AppendLine("        Func<GetEntityRequest<TContract>, ValueTask<EntityResponse<TContract>>> getter)");
+        sb.AppendLine("        Func<GetEntityRequest<TContract>, ValueTask<EntityResponse<TContract>>> shortTermGetter,");
+        sb.AppendLine("        Func<GetEntityRequest<TContract>, ValueTask<EntityResponse<TContract>>> longTermGetter)");
         sb.AppendLine($"        where TContract : class, {InterfaceName};");
         sb.AppendLine("}");
 
@@ -134,6 +136,7 @@ public class ServiceAbstractionsGenerator : IIncrementalGenerator
         var typeText = classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
         sb.AppendLine($"        config.SetupConsumer<{typeText}>(");
-        sb.AppendLine($"            svc.{BuildGrpcGetEntityMethodName(safeId)});");
+        sb.AppendLine($"            shortTermSvc.{BuildGrpcGetEntityMethodName(safeId)},");
+        sb.AppendLine($"            longTermSvc.{BuildGrpcGetEntityMethodName(safeId)});");
     }
 }

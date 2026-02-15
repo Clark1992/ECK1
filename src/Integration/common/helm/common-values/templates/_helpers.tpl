@@ -7,3 +7,13 @@ eck1-cache-short-term-svc
 30380
 {{- end -}}
 
+
+{{- define "common-values.cacheLongTermServiceName" -}}
+eck1-cache-long-term-svc
+{{- end -}}
+
+
+{{- define "common-values.cacheLongTermServiceNodePort" -}}
+30381
+{{- end -}}
+

@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>18a05a91-9cc1-4a8b-9b13-9f5f8a6c5f21</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ECK1.Integration.Common\ECK1.Integration.Common.csproj" />
+    <ProjectReference Include="..\..\Nuget\ECK1.CommonUtils\ECK1.CommonUtils.csproj" />
+    <ProjectReference Include="..\..\Nuget\ECK1.Contracts\ECK1.Contracts.csproj" />
+    <ProjectReference Include="..\CodeGen\ECK1.GrpcService.FieldMask.CodeGen\ECK1.GrpcService.FieldMask.CodeGen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\CodeGen\ECK1.GrpcService.Service.CodeGen\ECK1.GrpcService.Service.CodeGen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\CodeGen\ECK1.GrpcService.Abstractions.CodeGen\ECK1.GrpcService.Abstractions.CodeGen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Nuget\ECK1.IntegrationContracts\ECK1.IntegrationContracts.csproj" />
+    <ProjectReference Include="..\..\Nuget\ECK1.Kafka\ECK1.Kafka.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Confluent.Kafka" />
+    <PackageReference Include="Confluent.SchemaRegistry" />
+    <PackageReference Include="AutoMapper" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+    <PackageReference Include="protobuf-net" />
+    <PackageReference Include="protobuf-net.Core" />
+    <PackageReference Include="protobuf-net.Grpc.AspNetCore" />
+    <PackageReference Include="NATS.Client.Core" />
+    <PackageReference Include="NATS.Client.JetStream" />
+    <PackageReference Include="NATS.Client.KeyValueStore" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+  </ItemGroup>
+
+</Project>

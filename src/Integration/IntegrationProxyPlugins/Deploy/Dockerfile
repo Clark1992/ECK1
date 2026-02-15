@@ -8,10 +8,13 @@ COPY ./nuget.config ./*.props  ./
 
 COPY src/Integration/CodeGen/ECK1.Integration.Plugin.Abstractions.CodeGen ./src/Integration/CodeGen/ECK1.Integration.Plugin.Abstractions.CodeGen
 COPY src/Integration/CodeGen/ECK1.CodeGen.Shared ./src/Integration/CodeGen/ECK1.CodeGen.Shared
+COPY src/Integration/ECK1.Integration.Common/*.csproj ./Integration/
 COPY src/Integration/IntegrationProxyPlugins/ECK1.Integration.Plugin.Abstractions/*.csproj ./Integration/IntegrationProxyPlugins/
 COPY src/Integration/IntegrationProxyPlugins/$PLUGIN_PROJ/*.csproj ./Integration/IntegrationProxyPlugins/
 
 RUN for file in $(ls Integration/IntegrationProxyPlugins/*.csproj); do name=$(basename "$file" .csproj); mkdir -p src/Integration/IntegrationProxyPlugins/${name}/ && mv $file src/Integration/IntegrationProxyPlugins/${name}/; done
+
+RUN for file in $(ls Integration/*.csproj); do name=$(basename "$file" .csproj); mkdir -p src/Integration/${name}/ && mv $file src/Integration/${name}/; done
 
 # TODO: remove when will target nuget
 COPY src/Nuget/*/*.csproj ./Nuget/
@@ -21,6 +24,8 @@ RUN dotnet restore src/Integration/IntegrationProxyPlugins/$PLUGIN_PROJ/$PLUGIN_
 
 COPY src/Integration/IntegrationProxyPlugins/ECK1.Integration.Plugin.Abstractions ./src/Integration/IntegrationProxyPlugins/ECK1.Integration.Plugin.Abstractions
 COPY src/Integration/IntegrationProxyPlugins/$PLUGIN_PROJ ./src/Integration/IntegrationProxyPlugins/$PLUGIN_PROJ
+COPY src/Integration/ECK1.Integration.Common ./src/Integration/ECK1.Integration.Common
+COPY src/Nuget ./src/Nuget
 
 WORKDIR /src/src/Integration/IntegrationProxyPlugins/$PLUGIN_PROJ
 

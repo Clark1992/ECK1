@@ -9,7 +9,6 @@ public class KafkaSettings
     public string SchemaRegistryUrl { get; set; }
     public string User { get; set; }
     public string Secret { get; set; }
-    public string SampleFullRecordsTopic { get; set; }
     public string CacheProgressTopic { get; set; }
     public string GroupId { get; set; } = Guid.NewGuid().ToString();
 }
@@ -35,14 +34,4 @@ public class CacheConfig
     public MemoryCacheConfig Memory { get; set; } = new();
 
     public RocksDbConfig RocksDb {  get; set; } = new();
-}
-
-public class IntegrationConfig : Dictionary<string, IntegrationConfigEntry>
-{
-    public static string Section => nameof(IntegrationConfig);
-}
-
-public class IntegrationConfigEntry
-{
-    public string RecordTopic { get; set; }
 }

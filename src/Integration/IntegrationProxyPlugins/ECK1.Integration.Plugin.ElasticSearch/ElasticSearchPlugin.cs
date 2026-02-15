@@ -1,12 +1,15 @@
 ﻿using ECK1.Integration.Plugin.Abstractions;
+using ECK1.Integration.Common;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Transport;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using OpenTelemetry.Trace;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
+using ECK1.CommonUtils.OpenTelemetry;
 
 namespace ECK1.Integration.Plugin.ElasticSearch;
 
@@ -54,6 +57,12 @@ public class ElasticSearchPluginLoader : IIntergationPluginLoader
 
             return new ElasticsearchClient(settings);
         });
+
+    }
+
+    public void SetupTelemetry(TracerProviderBuilder tracing)
+    {
+        tracing.AddElasticsearchInstrumentation();
     }
 }
 
@@ -86,17 +95,17 @@ public class ElasticSearchWriter<TEvent, TMessage> : IIntergationPlugin<TEvent, 
 
     public async Task PushAsync(TEvent _, TMessage message)
     {
-        try
+        await Task.WhenAll([.. this.indexes.Select(async index =>
         {
-            await Task.WhenAll([.. this.indexes.Select(async index =>
+            try
             {
                 var response = await client.IndexAsync(message, i => i.Index(index));
                 this.logger.LogInformation("Response from ElasticSearchPlugin: {res}", response);
-            })]);
-        }
-        catch(Exception e)
-        {
-            this.logger.LogError(e, "Error during calling ES");
-        }
+            }
+            catch (Exception e)
+            {
+                this.logger.LogError(e, "Error during calling ES");
+            }
+        })]);
     }
 }

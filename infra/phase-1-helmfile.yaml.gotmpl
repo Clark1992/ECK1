@@ -30,6 +30,21 @@ releases:
           caSecretName: {{ requiredEnv "ElasticSearchConfig__CaSecretName" }}
           apiKeySecretName: {{ requiredEnv "ElasticSearchConfig__ApiKeySecretName" }}
 
+  - name: sqlserver
+    namespace: {{ requiredEnv "AppServiceNamespace" }}
+    chart: k8s/charts/sqlserver
+    values:
+      - k8s/charts/sqlserver/values.{{ .Environment.Name }}.yaml
+    set:
+      - name: environment
+        value: {{ .Environment.Name }}
+      - name: sqlserver.otelCollector.image.repository
+        value: {{ requiredEnv "OTEL_COLLECTOR_IMAGE_REPOSITORY" }}
+      - name: sqlserver.otelCollector.image.tag
+        value: {{ requiredEnv "OTEL_COLLECTOR_IMAGE_TAG" }}
+      - name: sqlserver.otelCollector.otlpEndpoint
+        value: {{ requiredEnv "OTEL_EXPORTER_OTLP_ENDPOINT" }}
+
   - name: ingress-nginx
     namespace: {{ $default.ingress.namespace }}
     createNamespace: true

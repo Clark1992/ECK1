@@ -9,9 +9,11 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="OpenTelemetry" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\ECK1.Integration.Common\ECK1.Integration.Common.csproj" />
     <ProjectReference Include="..\..\..\Nuget\ECK1.IntegrationContracts\ECK1.IntegrationContracts.csproj" />
   </ItemGroup>
 
