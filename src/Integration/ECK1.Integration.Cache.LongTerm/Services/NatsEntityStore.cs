@@ -41,8 +41,8 @@ public class NatsEntityStore : IDisposable, IEntityStore
 
     public void Put<T>(string key, int version, T obj) where T : class
     {
-        var store = GetStoreForType(typeof(T), out var bucket);
-        using var activity = _natsTelemetry.Start("nats.kv.put", obj is null ? "delete" : "put", bucket, key);
+        var store = GetStoreForType(typeof(T));
+        using var activity = _natsTelemetry.Start("nats.kv.put", obj is null ? "delete" : "put", store.Bucket, key);
 
         try
         {
@@ -69,8 +69,8 @@ public class NatsEntityStore : IDisposable, IEntityStore
     {
         if (items == null) return;
 
-        var store = GetStoreForType(typeof(T), out var bucket);
-        using var activity = _natsTelemetry.Start("nats.kv.put_many", "put_many", bucket);
+        var store = GetStoreForType(typeof(T));
+        using var activity = _natsTelemetry.Start("nats.kv.put_many", "put_many", store.Bucket);
         var count = 0;
 
         foreach (var (key, version, obj) in items)
@@ -102,8 +102,8 @@ public class NatsEntityStore : IDisposable, IEntityStore
 
     public EntityEntry<T> Get<T>(string key, int minVersion) where T : class
     {
-        var store = GetStoreForType(typeof(T), out var bucket);
-        using var activity = _natsTelemetry.Start("nats.kv.get", "get", bucket, key);
+        var store = GetStoreForType(typeof(T));
+        using var activity = _natsTelemetry.Start("nats.kv.get", "get", store.Bucket, key);
 
         try
         {
@@ -144,10 +144,10 @@ public class NatsEntityStore : IDisposable, IEntityStore
     {
         EnsureConnected();
 
-        foreach (var bucket in _config.BucketsByEntityType.Values.Distinct(StringComparer.Ordinal))
+        foreach (var store in _stores.Values)
         {
-            using var activity = _natsTelemetry.Start("nats.kv.delete_bucket", "delete_bucket", bucket);
-            _kvContext.DeleteStoreAsync(bucket).AsTask().GetAwaiter().GetResult();
+            using var activity = _natsTelemetry.Start("nats.kv.delete_bucket", "delete_bucket", store.Bucket);
+            _kvContext.DeleteStoreAsync(store.Bucket).AsTask().GetAwaiter().GetResult();
         }
 
         _stores.Clear();
@@ -168,16 +168,16 @@ public class NatsEntityStore : IDisposable, IEntityStore
         }
     }
 
-    private INatsKVStore GetStoreForType(Type entityType, out string bucket)
+    private INatsKVStore GetStoreForType(Type entityType)
     {
         ArgumentException.ThrowIfNullOrEmpty(entityType.Name);
 
-        if (!_config.BucketsByEntityType.TryGetValue(entityType.Name, out bucket))
-        {
-            throw new InvalidOperationException($"NATS KV bucket not configured for entity type '{entityType}'.");
-        }
+        //if (!_config.BucketsByEntityType.TryGetValue(entityType.Name, out bucket))
+        //{
+        //    throw new InvalidOperationException($"NATS KV bucket not configured for entity type '{entityType}'.");
+        //}
 
-        return GetOrCreateStore(bucket);
+        return GetOrCreateStore(entityType.Name);
     }
 
     private INatsKVStore GetOrCreateStore(string bucket)
