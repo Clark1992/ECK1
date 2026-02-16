@@ -9,11 +9,11 @@
   },
   {
     "assemblyPath": "__BUSINESS_CONTRACTS_ASSEMBLY_PATH__",
-    "typeName": "ECK1.Contracts.Kafka.BusinessEvents.Sample.SampleEventFailure",
-    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.ViewProjector/sample-business-events.dlq",
+    "typeName": "ECK1.Contracts.Kafka.BusinessEvents.EventFailure",
+    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.ViewProjector/failure-events.dlq",
     "format": "json",
-    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.ViewProjector/sample-business-events.dlq",
-    "topic": "sample-business-events.dlq"
+    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.ViewProjector/failure-events.dlq",
+    "topic": "failure-events.dlq"
   },
   {
     "assemblyPath": "__INTEGRATION_CONTRACTS_ASSEMBLY_PATH__",
@@ -37,14 +37,6 @@
     "format": "json",
     "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/sample2-business-events",
     "topic": "sample2-business-events"
-  },
-  {
-    "assemblyPath": "__BUSINESS_CONTRACTS_ASSEMBLY_PATH__",
-    "typeName": "ECK1.Contracts.Kafka.BusinessEvents.Sample2.Sample2EventFailure",
-    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.ViewProjector/sample2-business-events.dlq",
-    "format": "json",
-    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.ViewProjector/sample2-business-events.dlq",
-    "topic": "sample2-business-events.dlq"
   },
   {
     "assemblyPath": "__INTEGRATION_CONTRACTS_ASSEMBLY_PATH__",

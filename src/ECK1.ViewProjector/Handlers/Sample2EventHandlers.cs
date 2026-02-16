@@ -175,9 +175,10 @@ public class Sample2EventHandlers(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error during handling of: {eventType}", data.Event.GetType().FullName);
-            await mediator.Publish(new Sample2EventFailure
+            await mediator.Publish(new EventFailure
             {
                 FailedEventType = data.Event.GetType().Name,
+                EntityType = "Sample2",
                 EntityId = data.Event.Sample2Id,
                 FailureOccurredAt = DateTimeOffset.UtcNow,
                 ErrorMessage = ex.Message,

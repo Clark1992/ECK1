@@ -1,26 +1,18 @@
+using ECK1.Contracts.Kafka.BusinessEvents;
 using ECK1.FailedViewRebuilder.Data;
-using ECK1.FailedViewRebuilder.Data.Models;
 using ECK1.Kafka;
 
 namespace ECK1.FailedViewRebuilder.Kafka;
 
 public class EventFailuresHandler(FailuresDbContext db)
-    : IKafkaMessageHandler<Contracts.Kafka.BusinessEvents.Sample.SampleEventFailure>,
-      IKafkaMessageHandler<Contracts.Kafka.BusinessEvents.Sample2.Sample2EventFailure>
+    : IKafkaMessageHandler<EventFailure>
 {
     public Task Handle(
         string _,
-        ECK1.Contracts.Kafka.BusinessEvents.Sample.SampleEventFailure message,
+        EventFailure message,
         KafkaMessageId __,
         CancellationToken ct) =>
-        UpsertAsync(EntityType.Sample, message.SampleId, message.FailedEventType, message.FailureOccurredAt, message.ErrorMessage, message.StackTrace, ct);
-
-    public Task Handle(
-        string _,
-        ECK1.Contracts.Kafka.BusinessEvents.Sample2.Sample2EventFailure message,
-        KafkaMessageId __,
-        CancellationToken ct) =>
-        UpsertAsync(EntityType.Sample2, message.Sample2Id, message.FailedEventType, message.FailureOccurredAt, message.ErrorMessage, message.StackTrace, ct);
+        UpsertAsync(message.EntityType, message.EntityId, message.FailedEventType, message.FailureOccurredAt, message.ErrorMessage, message.StackTrace, ct);
 
     private async Task UpsertAsync(
         string entityType,
@@ -35,7 +27,7 @@ public class EventFailuresHandler(FailuresDbContext db)
 
         if (existing is null)
         {
-            db.EventFailures.Add(new EventFailure
+            db.EventFailures.Add(new Data.Models.EventFailure
             {
                 EntityType = entityType,
                 EntityId = entityId,

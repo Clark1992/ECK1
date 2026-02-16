@@ -8,8 +8,10 @@ using ECK1.IntegrationContracts.Kafka.IntegrationRecords.Generated;
 using ECK1.Kafka.Extensions;
 using ECK1.IntegrationContracts.Abstractions;
 using Grpc.Core;
+using ECK1.Kafka;
 using Polly;
 using Polly.Retry;
+using ECK1.Contracts.Kafka.BusinessEvents;
 
 namespace ECK1.Integration.Proxy.Kafka;
 
@@ -48,6 +50,7 @@ public class EventConsumerConfig(
                 {
                     var logger = sp.GetRequiredService<ILogger<EventConsumerConfig>>();
                     var plugin = sp.GetRequiredService<IIntergationPlugin<ThinEvent, TMessage>>();
+                    var producer = sp.GetRequiredService<IKafkaTopicProducer<EventFailure>>();
                     int? fieldMaskHash = null;
 
                     return async (key, @event, _, ct) =>
@@ -69,29 +72,46 @@ public class EventConsumerConfig(
 
                         var useLongTerm = ShouldUseLongTerm(occuredAt, threshold);
 
-                        EntityResponse<TMessage> response;
-
-                        if (useLongTerm)
+                        try
                         {
-                            logger.LogInformation("{Topic}: Using long-term cache (stale by {Minutes} minutes)", topic, threshold.TotalMinutes);
-                            response = await GetFromLongTermOrThrow(longTermGetter, request, logger);
-                        }
-                        else
-                        {
-                            response = await GetFromShortTermWithRetry(shortTermGetter, request, logger, cacheSettings, ct);
+                            EntityResponse<TMessage> response;
 
-                            if (response is null)
+                            if (useLongTerm)
                             {
-                                logger.LogInformation("{Topic}: Short-term cache miss. Falling back to long-term cache", topic);
+                                logger.LogInformation("{Topic}: Using long-term cache (stale by {Minutes} minutes)", topic, threshold.TotalMinutes);
                                 response = await GetFromLongTermOrThrow(longTermGetter, request, logger);
                             }
+                            else
+                            {
+                                response = await GetFromShortTermWithRetry(shortTermGetter, request, logger, cacheSettings, ct);
+
+                                if (response is null)
+                                {
+                                    logger.LogInformation("{Topic}: Short-term cache miss. Falling back to long-term cache", topic);
+                                    response = await GetFromLongTermOrThrow(longTermGetter, request, logger);
+                                }
+                            }
+
+                            fieldMaskHash = response.FieldMaskHash;
+
+                            await plugin.PushAsync(@event, response.Item);
+
+                            logger.LogInformation("{Topic}: Handled '{message}:{id}'", topic, @event.EventType, @event.EntityId);
                         }
+                        catch (RpcException ex) when (ex.StatusCode == StatusCode.NotFound)
+                        {
+                            var reason = useLongTerm
+                                ? $"[{plugin}] Entity not found in long-term cache for stale event"
+                                : $"[{plugin}] Entity not found in short-term and long-term caches";
 
-                        fieldMaskHash = response.FieldMaskHash;
-
-                        await plugin.PushAsync(@event, response.Item);
-
-                        logger.LogInformation("{Topic}: Handled '{message}:{id}'", topic, @event.EventType, @event.EntityId);
+                            await PublishToDlqAsync(
+                                producer,
+                                @event,
+                                entry.EntityType,
+                                reason,
+                                logger,
+                                ct);
+                        }
                     };
                 },
                 c =>
@@ -102,11 +122,36 @@ public class EventConsumerConfig(
                 });
     }
 
+    private static async Task PublishToDlqAsync(
+        IKafkaTopicProducer<EventFailure> producer,
+        ThinEvent @event,
+        string entityType,
+        string reason,
+        ILogger logger,
+        CancellationToken ct)
+    {
+        var payload = new EventFailure
+        {
+            EntityId = @event.EntityId,
+            EntityType = entityType,
+            ErrorMessage = reason,
+            FailedEventType = @event.EventType,
+        };
+
+        await producer.ProduceAsync(payload, @event.EntityId.ToString(), ct);
+
+        logger.LogWarning(
+            "Failure: Event '{message}:{id}' sent to DLQ topic. Reason: {Reason}",
+            @event.EventType,
+            @event.EntityId,
+            reason);
+    }
+
     private static TimeSpan GetStaleThreshold(CacheServiceSettings settings)
     {
-        if (settings?.StaleEventThresholdMinutes > 0)
+        if (settings?.StaleEventThresholdSeconds > 0)
         {
-            return TimeSpan.FromMinutes(settings.StaleEventThresholdMinutes);
+            return TimeSpan.FromSeconds(settings.StaleEventThresholdSeconds);
         }
 
         return TimeSpan.Zero;
@@ -116,7 +161,7 @@ public class EventConsumerConfig(
     {
         if (threshold <= TimeSpan.Zero)
         {
-            return false;
+            return true;
         }
 
         return DateTime.UtcNow - occuredAt > threshold;

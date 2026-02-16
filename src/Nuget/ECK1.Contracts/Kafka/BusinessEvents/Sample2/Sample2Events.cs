@@ -121,16 +121,3 @@ public class Sample2LineItem
     public int Quantity { get; set; }
     public Sample2Money UnitPrice { get; set; }
 }
-
-public class Sample2EventFailure
-{
-    public Guid Sample2Id { get; set; }
-
-    public string FailedEventType { get; set; }
-
-    public DateTimeOffset FailureOccurredAt { get; set; } = DateTimeOffset.UtcNow;
-
-    public string ErrorMessage { get; set; }
-
-    public string StackTrace { get; set; }
-}

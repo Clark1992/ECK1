@@ -11,6 +11,7 @@ using Contract = ECK1.Contracts.Kafka;
 using ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample;
 using ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample2;
 using ECK1.IntegrationContracts.Kafka.IntegrationRecords;
+using ECK1.Contracts.Kafka.BusinessEvents;
 
 namespace ECK1.ViewProjector.Kafka;
 
@@ -81,13 +82,8 @@ public static class KafkaSetup
                 c.AllowAutoCreateTopics = true;
             });
 
-        services.ConfigTopicProducer<Contract.BusinessEvents.Sample.SampleEventFailure>(
-            kafkaSettings.SampleFailureEventsTopic,
-            SubjectNameStrategy.Topic,
-            SerializerType.JSON);
-
-        services.ConfigTopicProducer<Contract.BusinessEvents.Sample2.Sample2EventFailure>(
-            kafkaSettings.Sample2FailureEventsTopic,
+        services.ConfigTopicProducer<EventFailure>(
+            kafkaSettings.FailureEventsTopic,
             SubjectNameStrategy.Topic,
             SerializerType.JSON);
 

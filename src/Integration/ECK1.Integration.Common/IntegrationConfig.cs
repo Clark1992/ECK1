@@ -11,5 +11,6 @@ public class IntegrationConfigEntry
 {
     public string EventsTopic { get; set; }
     public string RecordTopic { get; set; }
+    public string EntityType { get; set; }
     public IConfigurationSection PluginConfig { get; set; }
 }

@@ -5,7 +5,8 @@ metadata:
   labels:
     config-type: integration-config
 data:
-  ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample.SampleFullRecord: |
+  Sample: |
+    RecordType: ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample.SampleFullRecord
     EventsTopic: sample-thin-events
     RecordTopic: sample-full-records
     Plugins: 
@@ -80,7 +81,8 @@ data:
                     - fileName: item.FileName
                     - url: item.Url
 
-  ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample2.Sample2FullRecord: |
+  Sample2: |
+    RecordType: ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample2.Sample2FullRecord
     EventsTopic: sample2-thin-events
     RecordTopic: sample2-full-records
     Plugins:

@@ -9,6 +9,5 @@ public class SampleEventsMapping: MapByInterface<Contract.ISampleEvent, ISampleE
 {
     public SampleEventsMapping(): base()
     {
-        this.CreateMap<SampleEventFailure, Contract.SampleEventFailure>();
     }
 }

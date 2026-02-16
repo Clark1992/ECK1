@@ -6,27 +6,25 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ECK1.FailedViewRebuilder.Services;
 
-public interface IJobRunner<TEntity, TMessage> where TEntity : class
+public interface IJobRunner
 {
-    Task RunJob<TKey>(
+    Task RunJob<TOrder>(
         string topic,
-        QueryParams<TEntity, TKey> qParams,
-        Func<TEntity, TMessage> valueMapper,
+        QueryParams<TOrder> qParams,
         int jobId,
         CancellationToken ct);
 }
 
-public class JobRunner<TEntity, TMessage>(
-    IKafkaSimpleProducer<TMessage> producer,
+public class JobRunner(
+    IKafkaSimpleProducer<Guid> producer,
     FailuresDbContext db,
-    ILogger<JobRunner<TEntity, TMessage>> logger) : IJobRunner<TEntity, TMessage> where TEntity : class
+    ILogger<JobRunner> logger) : IJobRunner
 {
     protected readonly int BatchSize = 1000;
 
     public async Task RunJob<TKey>(
         string topic,
-        QueryParams<TEntity, TKey> qParams,
-        Func<TEntity, TMessage> valueMapper,
+        QueryParams<TKey> qParams,
         int jobId,
         CancellationToken ct)
     {
@@ -50,7 +48,7 @@ public class JobRunner<TEntity, TMessage>(
                     return;
                 }
 
-                IQueryable<TEntity> failedEventsQuery = db.Set<TEntity>();
+                IQueryable<EventFailure> failedEventsQuery = db.Set<EventFailure>();
 
                 if (qParams.Filter is not null)
                 {
@@ -68,7 +66,7 @@ public class JobRunner<TEntity, TMessage>(
                 if (failedEvents.Count == 0)
                     break;
 
-                await Process(topic, failedEvents, valueMapper);
+                await Process(topic, failedEvents);
 
                 // run once for the whole count when count is set in params
                 if (qParams.Count.HasValue)
@@ -97,12 +95,12 @@ public class JobRunner<TEntity, TMessage>(
         }
     }
 
-    private async Task Process(string topic, List<TEntity> failedEvents, Func<TEntity, TMessage> msgMapper)
+    private async Task Process(string topic, List<EventFailure> failedEvents)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(topic);
 
-        failedEvents.ForEach(e => producer.ProduceAsync(msgMapper(e), topic, default));
-        db.Set<TEntity>().RemoveRange(failedEvents);
+        failedEvents.ForEach(e => producer.ProduceAsync(e.EntityId, topic, default));
+        db.Set<EventFailure>().RemoveRange(failedEvents);
         await db.SaveChangesAsync();
     }
 }

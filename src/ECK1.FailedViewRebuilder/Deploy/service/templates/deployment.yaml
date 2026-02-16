@@ -16,6 +16,9 @@ spec:
         environment: {{ .Values.environment }}
         service_name: {{ .Chart.Name }}
     spec:
+
+      {{- include "config-merge.initConfigAggregator" $ | nindent 6 }}
+
       containers:
         - name: failed-view-rebuilder
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -59,7 +62,12 @@ spec:
             - name: kafka-client-secret
               mountPath: /etc/secrets
               readOnly: true
+
+            {{- include "config-merge.initConfigVolumeMounts" $ | nindent 12 }}
+
       volumes:
         - name: kafka-client-secret
           secret:
             secretName: kafka-client-secret
+
+        {{- include "config-merge.initConfigVolumes" $ | nindent 8 }}

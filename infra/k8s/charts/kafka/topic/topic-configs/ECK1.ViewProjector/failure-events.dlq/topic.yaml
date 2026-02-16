@@ -1,0 +1,6 @@
+name: failure-events.dlq
+partitions: 1
+replicationFactor: 1
+config:
+  cleanup.policy: delete
+  retention.ms: "604800000"

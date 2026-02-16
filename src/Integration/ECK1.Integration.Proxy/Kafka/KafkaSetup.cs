@@ -1,8 +1,10 @@
 ﻿using Confluent.Kafka;
+using Confluent.SchemaRegistry;
+using ECK1.Contracts.Kafka.BusinessEvents;
 using ECK1.Integration.Common;
+using ECK1.Integration.EntityStore.Configuration.Generated;
 using ECK1.Integration.Plugin.Abstractions;
 using ECK1.Kafka.Extensions;
-using ECK1.Integration.EntityStore.Configuration.Generated;
 
 namespace ECK1.Integration.Proxy.Kafka;
 
@@ -28,14 +30,10 @@ public static class KafkaSetup
             .WithSchemaRegistry(kafkaSettings.SchemaRegistryUrl,
                 c => c.WithAuth(kafkaSettings.User, kafkaSettings.Secret));
 
-        #region Consume progress tracking
-
-        //services.ConfigTopicProducer<ProgressStatusRecord>(
-        //    kafkaSettings.CacheProgressTopic,
-        //    SubjectNameStrategy.Topic,
-        //    SerializerType.JSON);
-
-        #endregion
+        services.ConfigTopicProducer<EventFailure>(
+            kafkaSettings.FailureEventsTopic,
+            SubjectNameStrategy.Topic,
+            SerializerType.JSON);
 
         #region Event consumers
         var cacheSettings = config

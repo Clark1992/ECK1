@@ -1,6 +1,6 @@
 ﻿using Confluent.Kafka;
 using Confluent.SchemaRegistry;
-using ECK1.Contracts.Kafka.BusinessEvents.Sample;
+using ECK1.Contracts.Kafka.BusinessEvents;
 using ECK1.Contracts.Kafka.BusinessEvents.Sample2;
 using ECK1.Kafka;
 using ECK1.Kafka.Extensions;
@@ -21,21 +21,11 @@ public static class ServiceCollectionExtensions
             .WithSchemaRegistry(kafkaSettings.SchemaRegistryUrl,
                 c => c.WithAuth(kafkaSettings.User, kafkaSettings.Secret));
 
-        services.AddScoped<EventFailuresHandler>();
-        services.AddScoped<IKafkaMessageHandler<SampleEventFailure>, EventFailuresHandler>();
-        services.AddScoped<IKafkaMessageHandler<Sample2EventFailure>, EventFailuresHandler>();
+        services.AddScoped<IKafkaMessageHandler<EventFailure>, EventFailuresHandler>();
 
-        services.ConfigTopicConsumer<SampleEventFailure>(
+        services.ConfigTopicConsumer<EventFailure>(
             kafkaSettings.BootstrapServers,
-            kafkaSettings.SampleFailureEventsTopic,
-            kafkaSettings.GroupId,
-            SubjectNameStrategy.Topic,
-            SerializerType.JSON,
-            c => c.WithAuth(kafkaSettings.User, kafkaSettings.Secret));
-
-        services.ConfigTopicConsumer<Sample2EventFailure>(
-            kafkaSettings.BootstrapServers,
-            kafkaSettings.Sample2FailureEventsTopic,
+            kafkaSettings.FailureEventsTopic,
             kafkaSettings.GroupId,
             SubjectNameStrategy.Topic,
             SerializerType.JSON,

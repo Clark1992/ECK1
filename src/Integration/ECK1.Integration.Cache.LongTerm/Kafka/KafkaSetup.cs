@@ -24,15 +24,6 @@ public static class KafkaSetup
             .WithSchemaRegistry(kafkaSettings.SchemaRegistryUrl,
                 c => c.WithAuth(kafkaSettings.User, kafkaSettings.Secret));
 
-        #region Produce progress tracking
-
-        //services.ConfigTopicProducer<ProgressStatusRecord>(
-        //    kafkaSettings.CacheProgressTopic,
-        //    SubjectNameStrategy.Topic,
-        //    SerializerType.JSON);
-
-        #endregion
-
         #region Cache
 
         services.AddSingleton(typeof(IKafkaMessageHandler<>), typeof(CachePopulator<>));

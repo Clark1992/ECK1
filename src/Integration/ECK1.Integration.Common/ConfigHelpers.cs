@@ -10,15 +10,16 @@ public static class ConfigHelpers
 
         var result = new IntegrationConfig();
 
-        foreach (var contractSection in section.GetChildren())
+        foreach (var entitySection in section.GetChildren())
         {
             var entry = new IntegrationConfigEntry
             {
-                EventsTopic = contractSection[nameof(IntegrationConfigEntry.EventsTopic)],
-                RecordTopic = contractSection[nameof(IntegrationConfigEntry.RecordTopic)],
+                EventsTopic = entitySection[nameof(IntegrationConfigEntry.EventsTopic)],
+                RecordTopic = entitySection[nameof(IntegrationConfigEntry.RecordTopic)],
+                EntityType = entitySection.Key,
             };
 
-            var pluginsSection = contractSection.GetSection("Plugins");
+            var pluginsSection = entitySection.GetSection("Plugins");
 
             if (!string.IsNullOrEmpty(targetPlugin))
             {
@@ -26,7 +27,7 @@ public static class ConfigHelpers
                     x.Key.Equals(targetPlugin, StringComparison.OrdinalIgnoreCase));
             }
 
-            result[contractSection.Key] = entry;
+            result[entitySection["RecordType"]] = entry;
         }
 
         return result;
@@ -66,7 +67,8 @@ public static class ConfigHelpers
             var entryDict = new Dictionary<string, object>
             {
                 [nameof(IntegrationConfigEntry.EventsTopic)] = entry.EventsTopic,
-                [nameof(IntegrationConfigEntry.RecordTopic)] = entry.RecordTopic
+                [nameof(IntegrationConfigEntry.RecordTopic)] = entry.RecordTopic,
+                [nameof(IntegrationConfigEntry.EntityType)] = entry.EntityType,
             };
 
             if (entry.PluginConfig != null)

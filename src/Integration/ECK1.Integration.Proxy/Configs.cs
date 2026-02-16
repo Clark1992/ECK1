@@ -1,7 +1,4 @@
-﻿using System.Text.Json;
-using System.Text.Json.Nodes;
-
-namespace ECK1.Integration.Proxy;
+﻿namespace ECK1.Integration.Proxy;
 
 public class KafkaSettings
 {
@@ -10,9 +7,8 @@ public class KafkaSettings
     public string SchemaRegistryUrl { get; set; }
     public string User { get; set; }
     public string Secret { get; set; }
-    public string SampleThinEventsTopic { get; set; }
-    public string CacheProgressTopic { get; set; }
     public string GroupIdPrefix { get; set; }
+    public string FailureEventsTopic { get; set; }
 }
 
 public class CacheServiceSettings
@@ -22,7 +18,7 @@ public class CacheServiceSettings
     public CacheEndpointSettings ShortTerm { get; set; } = new();
     public CacheEndpointSettings LongTerm { get; set; } = new();
     public CacheRetrySettings Retry { get; set; } = new();
-    public int StaleEventThresholdMinutes { get; set; }
+    public int StaleEventThresholdSeconds { get; set; }
 }
 
 public class CacheEndpointSettings

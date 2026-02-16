@@ -24,6 +24,10 @@ public static class ServiceCollectionExtensions
 public interface IQueueRunnerConfig
 {
     IQueueRunnerConfig AddRunner(Type runnerInterfaceType, Type runnerImplementationType);
+
+    IQueueRunnerConfig AddRunner<TService, TImplementation>()
+        where TService : class
+        where TImplementation : class, TService;
 }
 
 public class QueueRunnerConfig(IServiceCollection services) : IQueueRunnerConfig
@@ -31,6 +35,14 @@ public class QueueRunnerConfig(IServiceCollection services) : IQueueRunnerConfig
     public IQueueRunnerConfig AddRunner(Type runnerInterfaceType, Type runnerImplementationType)
     {
         services.AddScoped(runnerInterfaceType, runnerImplementationType);
+        return this;
+    }
+
+    public IQueueRunnerConfig AddRunner<TService, TImplementation>()
+        where TService: class
+        where TImplementation : class, TService
+    {
+        services.AddScoped<TService, TImplementation>();
         return this;
     }
 }

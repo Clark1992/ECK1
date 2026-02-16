@@ -17,7 +17,6 @@ spec:
         environment: {{ $.Values.environment }}
         service_name: {{ $.Chart.Name }}-{{ .name | lower }}
     spec:
-      serviceAccountName: config-aggregator-sa-{{ $.Chart.Name }}
 
       {{- include "config-merge.initConfigAggregator" $ | nindent 6 }}
 

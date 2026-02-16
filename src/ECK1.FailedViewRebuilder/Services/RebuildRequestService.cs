@@ -3,48 +3,58 @@ using ECK1.FailedViewRebuilder.Data;
 using ECK1.FailedViewRebuilder.Data.Models;
 using ECK1.FailedViewRebuilder.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.Extensions.Options;
 
 namespace ECK1.FailedViewRebuilder.Services;
 
-public class FailedViewsResponse<TId>
+public class FailedViewsResponse
 {
     public int Count { get; set; }
-    public List<(TId, string)> TopIdsWithTypes { get; set; }
+    public List<(Guid, string)> TopIdsWithTypes { get; set; }
 }
 
-public interface IRebuildRequestService<TEntity, TMessage> where TEntity : class
+public interface IRebuildRequestService
 {
-    Task<string> StartJob<TKey>(
-        string jobName,
-        QueryParams<TEntity, TKey> qParams,
-        Func<TEntity, TMessage> valueMapper);
+    Task<string> StartJob(
+        string entityType,
+        int? count);
 
-    Task<int> StopJob(string jobName);
+    Task<int> StopJob(string entityType);
 
-    Task<FailedViewsResponse<TId>> GetFailedViewsOverview<TId, TKey>(
-        Func<TEntity, (TId, string)> idSelector,
-        QueryParams<TEntity, TKey> qParams);
+    Task<FailedViewsResponse> GetFailedViewsOverview(string entityType, int? count);
 
-    Task<int> GetStatus(string jobName);
+    Task<FailedViewsResponse> GetFailedViewsOverview(int? count);
+
+    Task<int> GetStatus(string entityType);
 }
 
-public class RebuildRequestService<TEntity, TMessage>(
+public class RebuildRequestService(
     FailuresDbContext db,
-    ILogger<RebuildRequestService<TEntity, TMessage>> logger,
-    IBackgroundTaskQueue taskQueue) : IRebuildRequestService<TEntity, TMessage> where TEntity : class
+    ILogger<RebuildRequestService> logger,
+    IBackgroundTaskQueue taskQueue,
+    IOptionsSnapshot<FailureHandlingConfig> config) : IRebuildRequestService
 {
-    public async Task<string> StartJob<TKey>(
-        string jobName,
-        QueryParams<TEntity, TKey> qParams,
-        Func<TEntity, TMessage> valueMapper)
+    public async Task<string> StartJob(
+        string entityType,
+        int? count)
     {
+        if(!config.Value.TryGetValue(entityType, out var entry))
+        {
+            var msg = "Cannot find failure handling config for {0}";
+            logger.LogWarning(msg, entityType);
+            return string.Format(msg, entityType);
+        }
+
+        var jobName = entry.RebuildRequestTopic;
+
         var job = await db.JobHistories.FirstOrDefaultAsync(j => j.Name == jobName && j.FinishedAt == null);
 
         if (job is not null)
         {
             logger.LogInformation("Previous job ({topic}) is still in progress", jobName);
 
-            return $"Previous job ({jobName}) started at {job.StartedAt} is still in progress.";
+            return $"[{entityType}] Previous job ({jobName}) started at {job.StartedAt} is still in progress.";
         }
 
         job = new JobHistory
@@ -57,16 +67,24 @@ public class RebuildRequestService<TEntity, TMessage>(
 
         await db.SaveChangesAsync();
 
+        var qParams = new QueryParams<DateTimeOffset>
+                    {
+                        Filter = e => e.EntityType == entityType,
+                        OrderBy = e => e.FailureOccurredAt,
+                        IsAsc = true,
+                        Count = count
+                    };
+
         taskQueue.QueueBackgroundWorkItem(async (sp, ct) =>
         {
-            var jobRunner = sp.GetRequiredService<IJobRunner<TEntity, TMessage>>();
-            await jobRunner.RunJob(jobName, qParams, valueMapper, job.Id, ct);
+            var jobRunner = sp.GetRequiredService<IJobRunner>();
+            await jobRunner.RunJob(jobName, qParams, job.Id, ct);
         });
 
-        return $"Started {job.Name} at {job.StartedAt}";
+        return $"[{entityType}] Started {job.Name} at {job.StartedAt}";
     }
 
-    public Task<int> GetStatus(string jobName) => 
+    public Task<int> GetStatus(string jobName) =>
         db.JobHistories.CountAsync(j => j.Name == jobName && j.FinishedAt == null);
 
     public async Task<int> StopJob(string jobName)
@@ -90,11 +108,28 @@ public class RebuildRequestService<TEntity, TMessage>(
         return jobs.Count;
     }
 
-    public async Task<FailedViewsResponse<TId>> GetFailedViewsOverview<TId, TKey>(
-        Func<TEntity, (TId, string)> idAndTypeSelector,
-        QueryParams<TEntity, TKey> qParams)
+    public Task<FailedViewsResponse> GetFailedViewsOverview(
+        string entityType,
+        int? count) => 
+        GetFailedViewsOverview(new QueryParams<DateTimeOffset>
+        {
+            Filter = e => e.EntityType == entityType,
+            OrderBy = e => e.FailureOccurredAt,
+            IsAsc = true,
+            Count = count
+        });
+
+    public Task<FailedViewsResponse> GetFailedViewsOverview(int? count) => 
+        GetFailedViewsOverview(new QueryParams<DateTimeOffset>
+        {
+            OrderBy = e => e.FailureOccurredAt,
+            IsAsc = true,
+            Count = count
+        });
+
+    private async Task<FailedViewsResponse> GetFailedViewsOverview<TKey>(QueryParams<TKey> qParams)
     {
-        IQueryable<TEntity> failedEventsQuery = db.Set<TEntity>();
+        IQueryable<EventFailure> failedEventsQuery = db.Set<EventFailure>();
 
         if (qParams.Filter is not null)
         {
@@ -107,10 +142,10 @@ public class RebuildRequestService<TEntity, TMessage>(
 
         var failedEvents = await failedEventsQuery.ToListAsync();
 
-        return new FailedViewsResponse<TId>
+        return new FailedViewsResponse
         {
             Count = failedEvents.Count,
-            TopIdsWithTypes = [.. failedEvents.Select(e => idAndTypeSelector(e))]
+            TopIdsWithTypes = [.. failedEvents.Select(e => (e.EntityId, e.EntityType))]
         };
     }
 }

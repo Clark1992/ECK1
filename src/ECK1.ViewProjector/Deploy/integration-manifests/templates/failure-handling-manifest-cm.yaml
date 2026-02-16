@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eck1-failure-handling-manifest
+  labels:
+    config-type: failure-handling-config
+data:
+  Sample: |
+    RebuildRequestTopic: sample-business-events.rebuild.request
+
+  Sample2: |
+    RebuildRequestTopic: sample2-business-events.rebuild.request
+  

@@ -7,7 +7,6 @@ public class KafkaSettings
     public string SchemaRegistryUrl { get; set; }
     public string User { get; set; }
     public string Secret { get; set; }
-    public string CacheProgressTopic { get; set; }
     public string GroupId { get; set; } = Guid.NewGuid().ToString();
 }
 
