@@ -1,0 +1,44 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "EventFailure",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "EntityId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "FailedEventType": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    "EntityType": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    "FailureOccurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ErrorMessage": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    "StackTrace": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    }
+  }
+}
