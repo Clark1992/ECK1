@@ -30,12 +30,11 @@ public sealed class InterleavedCreateUpdateRunner(LoadRunner runner)
             return new InterleavedCreateUpdateResult<TId>(empty, empty, []);
         }
 
-        // We enqueue each created ID updatesPerEntity times.
-        // Update ops then just consume IDs from the channel.
-        var updateIds = Channel.CreateUnbounded<TId>(
+        var updateIds = Channel.CreateUnbounded<PendingUpdate<TId>>(
             new UnboundedChannelOptions { SingleReader = false, SingleWriter = false });
 
         var createsRemaining = createCount;
+        var remainingUpdateOperations = updateCount;
         var createdPreview = new List<TId>(Math.Min(previewLimit, createCount));
 
         var createStarted = 0;
@@ -84,17 +83,14 @@ public sealed class InterleavedCreateUpdateRunner(LoadRunner runner)
                                 createdPreview.Add(createdId!.Value);
                         }
 
-                        // Feed update IDs.
-                        for (var i = 0; i < updatesPerEntity; i++)
-                        {
-                            await updateIds.Writer.WriteAsync(createdId!.Value, token);
-                        }
+                        await updateIds.Writer.WriteAsync(new PendingUpdate<TId>(createdId!.Value, updatesPerEntity), token);
 
                         return true;
                     }
                     catch
                     {
                         Interlocked.Increment(ref createFailed);
+                        Interlocked.Add(ref remainingUpdateOperations, -updatesPerEntity);
                         return false;
                     }
                     finally
@@ -106,7 +102,7 @@ public sealed class InterleavedCreateUpdateRunner(LoadRunner runner)
                                 createLatenciesMs.Add(opSw.ElapsedMilliseconds);
                         }
 
-                        if (Interlocked.Decrement(ref createsRemaining) == 0)
+                        if (Interlocked.Decrement(ref createsRemaining) == 0 && Volatile.Read(ref remainingUpdateOperations) == 0)
                         {
                             updateIds.Writer.TryComplete();
                         }
@@ -120,16 +116,49 @@ public sealed class InterleavedCreateUpdateRunner(LoadRunner runner)
                 {
                     while (await updateIds.Reader.WaitToReadAsync(token))
                     {
-                        if (updateIds.Reader.TryRead(out var id))
+                        if (updateIds.Reader.TryRead(out var pendingUpdate))
                         {
-                            var ok = await updateAsync(id, token);
-                            if (ok) Interlocked.Increment(ref updateSucceeded);
-                            else Interlocked.Increment(ref updateFailed);
+                            var ok = false;
+
+                            try
+                            {
+                                ok = await updateAsync(pendingUpdate.Id, token);
+                            }
+                            catch
+                            {
+                                ok = false;
+                            }
+
+                            if (ok)
+                            {
+                                Interlocked.Increment(ref updateSucceeded);
+
+                                if (pendingUpdate.RemainingCount > 1)
+                                {
+                                    await updateIds.Writer.WriteAsync(
+                                        new PendingUpdate<TId>(pendingUpdate.Id, pendingUpdate.RemainingCount - 1),
+                                        token);
+                                }
+                            }
+                            else
+                            {
+                                Interlocked.Increment(ref updateFailed);
+
+                                if (pendingUpdate.RemainingCount > 1)
+                                {
+                                    Interlocked.Add(ref remainingUpdateOperations, -(pendingUpdate.RemainingCount - 1));
+                                }
+                            }
+
+                            if (Interlocked.Decrement(ref remainingUpdateOperations) == 0 && Volatile.Read(ref createsRemaining) == 0)
+                            {
+                                updateIds.Writer.TryComplete();
+                            }
+
                             return ok;
                         }
                     }
 
-                    // No more IDs (e.g. all creates failed)
                     Interlocked.Increment(ref updateFailed);
                     return false;
                 }
@@ -246,6 +275,9 @@ public sealed class InterleavedCreateUpdateRunner(LoadRunner runner)
         return plan;
     }
 }
+
+file readonly record struct PendingUpdate<TId>(TId Id, int RemainingCount)
+    where TId : struct;
 
 public sealed record InterleavedCreateUpdateResult<TId>(
     LoadRunSummary CreateSummary,

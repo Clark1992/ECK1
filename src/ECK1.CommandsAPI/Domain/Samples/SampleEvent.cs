@@ -11,7 +11,7 @@ namespace ECK1.CommandsAPI.Domain.Samples;
 [JsonDerivedType(typeof(SampleAttachmentAddedEvent), nameof(SampleAttachmentAddedEvent))]
 [JsonDerivedType(typeof(SampleAttachmentRemovedEvent), nameof(SampleAttachmentRemovedEvent))]
 [JsonDerivedType(typeof(SampleAttachmentUpdatedEvent), nameof(SampleAttachmentUpdatedEvent))]
-public interface ISampleEvent
+public interface ISampleEvent: IDomainEvent
 {
     Guid SampleId { get; }
     Guid EventId { get; }

@@ -35,13 +35,14 @@ public sealed class LoadRunner
 
             await semaphore.WaitAsync(ct);
             Interlocked.Increment(ref started);
+            var opIndex = i;
 
             tasks.Add(Task.Run(async () =>
             {
                 var opSw = Stopwatch.StartNew();
                 try
                 {
-                    var ok = await operation(i, ct);
+                    var ok = await operation(opIndex, ct);
                     if (ok) Interlocked.Increment(ref succeeded);
                     else Interlocked.Increment(ref failed);
                 }

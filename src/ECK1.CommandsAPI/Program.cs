@@ -1,5 +1,8 @@
 ﻿using ECK1.CommandsAPI;
 using ECK1.CommandsAPI.Data;
+using ECK1.CommandsAPI.Data.Models;
+using ECK1.CommandsAPI.Domain.Sample2s;
+using ECK1.CommandsAPI.Domain.Samples;
 using ECK1.CommandsAPI.Kafka;
 using ECK1.CommandsAPI.Startup;
 using ECK1.CommonUtils.AspNet;
@@ -51,8 +54,8 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Progr
 builder.Services.Configure<EventsStoreConfig>(
     builder.Configuration.GetSection(nameof(EventsStoreConfig))
 );
-builder.Services.AddScoped<SampleRepo>();
-builder.Services.AddScoped<Sample2Repo>();
+builder.Services.AddScoped<IRootRepository<Sample>, RootRepository<Sample, SampleEventEntity, SampleSnapshotEntity>>();
+builder.Services.AddScoped<IRootRepository<Sample2>, RootRepository<Sample2, Sample2EventEntity, Sample2SnapshotEntity>>();
 
 builder.Services.SetupKafka(builder.Configuration);
 

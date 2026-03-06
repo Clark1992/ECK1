@@ -13,7 +13,7 @@ namespace ECK1.CommandsAPI.Domain.Sample2s;
 [JsonDerivedType(typeof(Sample2TagAddedEvent), nameof(Sample2TagAddedEvent))]
 [JsonDerivedType(typeof(Sample2TagRemovedEvent), nameof(Sample2TagRemovedEvent))]
 [JsonDerivedType(typeof(Sample2RebuiltEvent), nameof(Sample2RebuiltEvent))]
-public interface ISample2Event
+public interface ISample2Event : IDomainEvent
 {
     Guid Sample2Id { get; }
     Guid EventId { get; }

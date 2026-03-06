@@ -27,10 +27,10 @@ public static class AggregateHandlerBootstrapper
             var baseType = GetGenericBaseType(aggregateType, typeof(AggregateRoot<>));
             var eventType = baseType.GetGenericArguments()[0];
 
-            var factoryType = typeof(AggregateFactory<,>).MakeGenericType(aggregateType, eventType);
+            var factoryType = typeof(AggregateFactory<>).MakeGenericType(aggregateType);
             RuntimeHelpers.RunClassConstructor(factoryType.TypeHandle);
 
-            var baseHandlerType =  typeof(GenericHandler<>).MakeGenericType(eventType);
+            var baseHandlerType = typeof(GenericHandler<>).MakeGenericType(eventType);
             RuntimeHelpers.RunClassConstructor(baseHandlerType.TypeHandle);
         }
     }

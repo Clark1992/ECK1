@@ -60,13 +60,15 @@ public sealed class InterleavedTwoPoolCreateUpdateRunner(LoadRunner runner)
         var createLatenciesMs = new List<long>(Math.Min(createCount, 10_000));
         var updateLatenciesMs = new List<long>(Math.Min(updateCountA + updateCountB, 10_000));
 
-        var updateAIds = Channel.CreateUnbounded<Guid>(
+        var updateAIds = Channel.CreateUnbounded<PendingUpdate>(
             new UnboundedChannelOptions { SingleReader = false, SingleWriter = false });
-        var updateBIds = Channel.CreateUnbounded<Guid>(
+        var updateBIds = Channel.CreateUnbounded<PendingUpdate>(
             new UnboundedChannelOptions { SingleReader = false, SingleWriter = false });
 
         var remainingCreatesA = createCountA;
         var remainingCreatesB = createCountB;
+        var remainingUpdateOperationsA = updateCountA;
+        var remainingUpdateOperationsB = updateCountB;
 
         var plan = BuildInterleavedTwoPoolPlan(createCountA, createCountB, updateCountA, updateCountB, concurrency);
 
@@ -104,16 +106,14 @@ public sealed class InterleavedTwoPoolCreateUpdateRunner(LoadRunner runner)
                                 aPreview.Add(id!.Value);
                         }
 
-                        for (var i = 0; i < updatesPerEntity; i++)
-                        {
-                            await updateAIds.Writer.WriteAsync(id!.Value, token);
-                        }
+                        await updateAIds.Writer.WriteAsync(new PendingUpdate(id!.Value, updatesPerEntity), token);
 
                         return true;
                     }
                     catch
                     {
                         Interlocked.Increment(ref createFailed);
+                        Interlocked.Add(ref remainingUpdateOperationsA, -updatesPerEntity);
                         return false;
                     }
                     finally
@@ -125,7 +125,7 @@ public sealed class InterleavedTwoPoolCreateUpdateRunner(LoadRunner runner)
                                 createLatenciesMs.Add(opSw.ElapsedMilliseconds);
                         }
 
-                        if (Interlocked.Decrement(ref remainingCreatesA) == 0)
+                        if (Interlocked.Decrement(ref remainingCreatesA) == 0 && Volatile.Read(ref remainingUpdateOperationsA) == 0)
                             updateAIds.Writer.TryComplete();
                     }
                 }
@@ -153,16 +153,14 @@ public sealed class InterleavedTwoPoolCreateUpdateRunner(LoadRunner runner)
                                 bPreview.Add(id!.Value);
                         }
 
-                        for (var i = 0; i < updatesPerEntity; i++)
-                        {
-                            await updateBIds.Writer.WriteAsync(id!.Value, token);
-                        }
+                        await updateBIds.Writer.WriteAsync(new PendingUpdate(id!.Value, updatesPerEntity), token);
 
                         return true;
                     }
                     catch
                     {
                         Interlocked.Increment(ref createFailed);
+                        Interlocked.Add(ref remainingUpdateOperationsB, -updatesPerEntity);
                         return false;
                     }
                     finally
@@ -174,7 +172,7 @@ public sealed class InterleavedTwoPoolCreateUpdateRunner(LoadRunner runner)
                                 createLatenciesMs.Add(opSw.ElapsedMilliseconds);
                         }
 
-                        if (Interlocked.Decrement(ref remainingCreatesB) == 0)
+                        if (Interlocked.Decrement(ref remainingCreatesB) == 0 && Volatile.Read(ref remainingUpdateOperationsB) == 0)
                             updateBIds.Writer.TryComplete();
                     }
                 }
@@ -186,21 +184,82 @@ public sealed class InterleavedTwoPoolCreateUpdateRunner(LoadRunner runner)
                 {
                     while (true)
                     {
-                        if (updateAIds.Reader.TryRead(out var aId))
+                        if (updateAIds.Reader.TryRead(out var aPending))
                         {
-                            var ok = await updateAAsync(aId, token);
-                            if (ok) Interlocked.Increment(ref updateSucceeded);
-                            else Interlocked.Increment(ref updateFailed);
+                            var ok = false;
+
+                            try
+                            {
+                                ok = await updateAAsync(aPending.Id, token);
+                            }
+                            catch
+                            {
+                                ok = false;
+                            }
+
+                            if (ok)
+                            {
+                                Interlocked.Increment(ref updateSucceeded);
+
+                                if (aPending.RemainingCount > 1)
+                                {
+                                    await updateAIds.Writer.WriteAsync(new PendingUpdate(aPending.Id, aPending.RemainingCount - 1), token);
+                                }
+                            }
+                            else
+                            {
+                                Interlocked.Increment(ref updateFailed);
+
+                                if (aPending.RemainingCount > 1)
+                                {
+                                    Interlocked.Add(ref remainingUpdateOperationsA, -(aPending.RemainingCount - 1));
+                                }
+                            }
+
+                            if (Interlocked.Decrement(ref remainingUpdateOperationsA) == 0 && Volatile.Read(ref remainingCreatesA) == 0)
+                            {
+                                updateAIds.Writer.TryComplete();
+                            }
 
                             return ok;
                         }
 
-                        if (updateBIds.Reader.TryRead(out var bId))
+                        if (updateBIds.Reader.TryRead(out var bPending))
                         {
-                            var ok = await updateBAsync(bId, token);
+                            var ok = false;
 
-                            if (ok) Interlocked.Increment(ref updateSucceeded);
-                            else Interlocked.Increment(ref updateFailed);
+                            try
+                            {
+                                ok = await updateBAsync(bPending.Id, token);
+                            }
+                            catch
+                            {
+                                ok = false;
+                            }
+
+                            if (ok)
+                            {
+                                Interlocked.Increment(ref updateSucceeded);
+
+                                if (bPending.RemainingCount > 1)
+                                {
+                                    await updateBIds.Writer.WriteAsync(new PendingUpdate(bPending.Id, bPending.RemainingCount - 1), token);
+                                }
+                            }
+                            else
+                            {
+                                Interlocked.Increment(ref updateFailed);
+
+                                if (bPending.RemainingCount > 1)
+                                {
+                                    Interlocked.Add(ref remainingUpdateOperationsB, -(bPending.RemainingCount - 1));
+                                }
+                            }
+
+                            if (Interlocked.Decrement(ref remainingUpdateOperationsB) == 0 && Volatile.Read(ref remainingCreatesB) == 0)
+                            {
+                                updateBIds.Writer.TryComplete();
+                            }
 
                             return ok;
                         }
@@ -209,7 +268,6 @@ public sealed class InterleavedTwoPoolCreateUpdateRunner(LoadRunner runner)
                         if (updateAIds.Reader.Completion.IsCompleted && updateBIds.Reader.Completion.IsCompleted)
                             break;
 
-                        // Wait until either pool has something to read (or completes).
                         var waitA = updateAIds.Reader.WaitToReadAsync(token).AsTask();
                         var waitB = updateBIds.Reader.WaitToReadAsync(token).AsTask();
                         await Task.WhenAny(waitA, waitB);
@@ -375,6 +433,8 @@ public sealed class InterleavedTwoPoolCreateUpdateRunner(LoadRunner runner)
         return OpKind.CreateA;
     }
 }
+
+file readonly record struct PendingUpdate(Guid Id, int RemainingCount);
 
 public sealed record InterleavedTwoPoolCreateUpdateResult(
     LoadRunSummary CreateSummary,

@@ -6,6 +6,8 @@ using ClickHouse.Client.Copy;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Text.Json;
+using ECK1.Integration.Common;
+using OpenTelemetry.Trace;
 
 namespace ECK1.Integration.Plugin.Clickhouse;
 
@@ -21,6 +23,11 @@ public class ClickhousePluginLoader : IIntergationPluginLoader
         services.AddSingleton(typeof(IIntergationPlugin<,>), typeof(ClickhouseWriter<,>));
 
         services.AddSingleton<IClickhouseConnectionFactory, ClickhouseConnectionFactory>();
+    }
+
+    public void SetupTelemetry(TracerProviderBuilder tracing)
+    {
+        tracing.AddClickHouse();
     }
 }
 

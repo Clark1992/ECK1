@@ -8,6 +8,7 @@ namespace ECK1.CommandsAPI.Controllers;
 [Route("api/[controller]")]
 [ProducesResponseType(typeof(Success), StatusCodes.Status202Accepted)]
 [ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
+[ProducesResponseType(typeof(ConcurrencyConflict), StatusCodes.Status409Conflict)]
 [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
 public class SampleController : ControllerBase
 {

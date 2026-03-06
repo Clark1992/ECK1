@@ -9,6 +9,8 @@ namespace ECK1.TestPlatform.Services;
 public sealed class CommandsApiClient
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private const int MaxConflictRetries = 3;
+    private const int MaxAllowedTimeoutSeconds = 30;
 
     private readonly HttpClient _http;
 
@@ -20,66 +22,95 @@ public sealed class CommandsApiClient
 
         _http = http;
         _http.BaseAddress = new Uri(opt.BaseUrl, UriKind.Absolute);
-        _http.Timeout = TimeSpan.FromSeconds(Math.Max(1, opt.TimeoutSeconds));
+        _http.Timeout = TimeSpan.FromSeconds(Math.Clamp(opt.TimeoutSeconds, 1, MaxAllowedTimeoutSeconds));
     }
 
     public async Task<CommandsApiAccepted?> CreateSampleAsync(CreateSampleRequest request, CancellationToken ct)
     {
-        using var response = await _http.PostAsJsonAsync("api/sample", request, JsonOptions, ct);
-        return await ReadAcceptedAsync(response, ct);
+        return await SendWithConflictRetryAsync(
+            token => _http.PostAsJsonAsync("api/sample", request, JsonOptions, token),
+            ct);
     }
 
     public async Task<CommandsApiAccepted?> CreateSample2Async(CreateSample2Request request, CancellationToken ct)
     {
-        using var response = await _http.PostAsJsonAsync("api/sample2", request, JsonOptions, ct);
-        return await ReadAcceptedAsync(response, ct);
+        return await SendWithConflictRetryAsync(
+            token => _http.PostAsJsonAsync("api/sample2", request, JsonOptions, token),
+            ct);
     }
 
     public async Task<CommandsApiAccepted?> ChangeSample2CustomerEmailAsync(Guid id, string newEmail, CancellationToken ct)
     {
-        // CommandsAPI expects a raw JSON string, not an object
-        using var content = new StringContent(JsonSerializer.Serialize(newEmail, JsonOptions), Encoding.UTF8, "application/json");
-        using var response = await _http.PutAsync($"api/sample2/{id}/customer-email", content, ct);
-        return await ReadAcceptedAsync(response, ct);
+        return await SendWithConflictRetryAsync(async token =>
+        {
+            using var content = new StringContent(JsonSerializer.Serialize(newEmail, JsonOptions), Encoding.UTF8, "application/json");
+            return await _http.PutAsync($"api/sample2/{id}/customer-email", content, token);
+        }, ct);
     }
 
     public async Task<CommandsApiAccepted?> ChangeSample2StatusAsync(Guid id, int newStatus, string reason, CancellationToken ct)
     {
         var request = new ChangeSample2StatusRequest(newStatus, reason);
-        using var response = await _http.PutAsJsonAsync($"api/sample2/{id}/status", request, JsonOptions, ct);
-        return await ReadAcceptedAsync(response, ct);
+        return await SendWithConflictRetryAsync(
+            token => _http.PutAsJsonAsync($"api/sample2/{id}/status", request, JsonOptions, token),
+            ct);
     }
 
     public async Task<CommandsApiAccepted?> ChangeSample2ShippingAddressAsync(Guid id, Sample2AddressDto newAddress, CancellationToken ct)
     {
-        using var response = await _http.PutAsJsonAsync($"api/sample2/{id}/shipping-address", newAddress, JsonOptions, ct);
-        return await ReadAcceptedAsync(response, ct);
+        return await SendWithConflictRetryAsync(
+            token => _http.PutAsJsonAsync($"api/sample2/{id}/shipping-address", newAddress, JsonOptions, token),
+            ct);
     }
 
     public async Task<CommandsApiAccepted?> ChangeSampleNameAsync(Guid id, string newName, CancellationToken ct)
     {
-        // CommandsAPI expects a raw JSON string, not an object
-        using var content = new StringContent(JsonSerializer.Serialize(newName, JsonOptions), Encoding.UTF8, "application/json");
-        using var response = await _http.PutAsync($"api/sample/{id}/name", content, ct);
-        return await ReadAcceptedAsync(response, ct);
+        return await SendWithConflictRetryAsync(async token =>
+        {
+            using var content = new StringContent(JsonSerializer.Serialize(newName, JsonOptions), Encoding.UTF8, "application/json");
+            return await _http.PutAsync($"api/sample/{id}/name", content, token);
+        }, ct);
     }
 
     public async Task<CommandsApiAccepted?> ChangeSampleDescriptionAsync(Guid id, string newDescription, CancellationToken ct)
     {
-        using var content = new StringContent(JsonSerializer.Serialize(newDescription, JsonOptions), Encoding.UTF8, "application/json");
-        using var response = await _http.PutAsync($"api/sample/{id}/description", content, ct);
-        return await ReadAcceptedAsync(response, ct);
+        return await SendWithConflictRetryAsync(async token =>
+        {
+            using var content = new StringContent(JsonSerializer.Serialize(newDescription, JsonOptions), Encoding.UTF8, "application/json");
+            return await _http.PutAsync($"api/sample/{id}/description", content, token);
+        }, ct);
     }
 
-    private static async Task<CommandsApiAccepted?> ReadAcceptedAsync(HttpResponseMessage response, CancellationToken ct)
+    private async Task<CommandsApiAccepted?> SendWithConflictRetryAsync(
+        Func<CancellationToken, Task<HttpResponseMessage>> send,
+        CancellationToken ct)
     {
-        if (response.StatusCode == HttpStatusCode.Accepted)
+        for (var attempt = 0; attempt <= MaxConflictRetries; attempt++)
         {
-            return await response.Content.ReadFromJsonAsync<CommandsApiAccepted>(JsonOptions, ct);
+            using var response = await send(ct);
+
+            if (response.StatusCode == HttpStatusCode.Accepted)
+            {
+                return await response.Content.ReadFromJsonAsync<CommandsApiAccepted>(JsonOptions, ct);
+            }
+
+            if (response.StatusCode != HttpStatusCode.Conflict || attempt == MaxConflictRetries)
+            {
+                return null;
+            }
+
+            var delayMs = ComputeRetryDelayMs(attempt);
+            await Task.Delay(delayMs, ct);
         }
 
-        // For load testing we mainly care about status; caller can count failures.
         return null;
+    }
+
+    private static int ComputeRetryDelayMs(int attempt)
+    {
+        var baseDelay = 25 * (1 << Math.Min(attempt, 5));
+        var jitter = Random.Shared.Next(0, 30);
+        return baseDelay + jitter;
     }
 }
 

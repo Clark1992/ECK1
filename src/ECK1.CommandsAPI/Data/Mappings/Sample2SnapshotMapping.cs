@@ -12,11 +12,11 @@ public class Sample2SnapshotMapping : IEntityTypeConfiguration<Sample2SnapshotEn
 
         builder.HasKey(x => x.SnapshotId);
 
-        builder.Property(x => x.Sample2Id).IsRequired();
+        builder.Property(x => x.AggregateId).HasColumnName("Sample2Id").IsRequired();
         builder.Property(x => x.Version).IsRequired();
         builder.Property(x => x.SnapshotData).HasColumnType("nvarchar(max)").IsRequired();
         builder.Property(x => x.CreatedAt).IsRequired();
 
-        builder.HasIndex(x => new { x.Sample2Id, x.Version }).IsUnique();
+        builder.HasIndex(x => new { x.AggregateId, x.Version }).IsUnique();
     }
 }

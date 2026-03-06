@@ -12,12 +12,12 @@ public class Sample2EventMapping : IEntityTypeConfiguration<Sample2EventEntity>
 
         builder.HasKey(e => e.EventId);
 
-        builder.Property(e => e.Sample2Id).IsRequired();
+        builder.Property(e => e.AggregateId).HasColumnName("Sample2Id").IsRequired();
         builder.Property(e => e.EventType).HasMaxLength(256).IsRequired();
         builder.Property(e => e.EventData).HasColumnType("nvarchar(max)").IsRequired();
         builder.Property(e => e.OccurredAt).IsRequired();
         builder.Property(e => e.Version).IsRequired();
 
-        builder.HasIndex(e => new { e.Sample2Id, e.Version }).IsUnique();
+            builder.HasIndex(e => new { e.AggregateId, e.Version }).IsUnique();
     }
 }

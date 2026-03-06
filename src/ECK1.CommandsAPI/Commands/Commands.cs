@@ -22,6 +22,24 @@ public class NotFound : ICommandResult { }
 
 public class Error : ICommandResult { public string ErrorMessage { get; set; } }
 
+public class ConcurrencyConflict : ICommandResult
+{
+    public ConcurrencyConflict() { }
+
+    public ConcurrencyConflict(string aggregate, Guid aggregateId, string message, bool retryable)
+    {
+        Aggregate = aggregate;
+        AggregateId = aggregateId;
+        Message = message;
+        Retryable = retryable;
+    }
+
+    public string Aggregate { get; set; } = string.Empty;
+    public Guid AggregateId { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public bool Retryable { get; set; } = true;
+}
+
 public interface IRebuildViewCommandBase
 {
     Guid Id { get; set; }
