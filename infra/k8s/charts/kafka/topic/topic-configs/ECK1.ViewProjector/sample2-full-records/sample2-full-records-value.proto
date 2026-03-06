@@ -1,0 +1,45 @@
+﻿syntax = "proto3";
+package ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample2.Generated;
+import "protobuf-net/bcl.proto"; // schema for protobuf-net's handling of core .NET types
+
+message Sample2Address {
+   .bcl.Guid Id = 1; // default value could not be applied: 00000000-0000-0000-0000-000000000000
+   string Street = 2;
+   string City = 3;
+   string Country = 4;
+}
+message Sample2Customer {
+   .bcl.Guid CustomerId = 1; // default value could not be applied: 00000000-0000-0000-0000-000000000000
+   string Email = 2;
+   string Segment = 3;
+}
+message Sample2FullRecord {
+   .bcl.Guid Sample2Id = 1; // default value could not be applied: 00000000-0000-0000-0000-000000000000
+   Sample2Customer Customer = 2;
+   Sample2Address ShippingAddress = 3;
+   repeated Sample2LineItem LineItems = 4;
+   repeated Sample2Tag Tags = 5;
+   Sample2Status Status = 6;
+   int32 Version = 7;
+   .bcl.DateTime OccuredAt = 8;
+}
+message Sample2LineItem {
+   .bcl.Guid ItemId = 1; // default value could not be applied: 00000000-0000-0000-0000-000000000000
+   string Sku = 2;
+   int32 Quantity = 3;
+   Sample2Money UnitPrice = 4;
+}
+message Sample2Money {
+   .bcl.Decimal Amount = 1;
+   string Currency = 2;
+}
+enum Sample2Status {
+   Draft = 0;
+   Submitted = 1;
+   Paid = 2;
+   Shipped = 3;
+   Cancelled = 4;
+}
+message Sample2Tag {
+   string Value = 1;
+}
