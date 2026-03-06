@@ -613,7 +613,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "100 *\r\n(\r\n  sum by (namespace, pod) (\r\n    rate(\r\n      container_cpu_usage_seconds_total{\r\n        namespace=\"$ns\",\r\n        pod=~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\",\r\n        pod=~\"$pod\",\r\n        container!=\"\",\r\n        container!=\"POD\"\r\n      }[$__rate_interval]\r\n    )\r\n  )\r\n  /\r\n  on (namespace, pod)\r\n  group_left(label_service_name)\r\n  sum by (namespace, pod) (\r\n    kube_pod_container_resource_limits{\r\n      namespace=\"$ns\",\r\n      pod=~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\",\r\n      pod=~\"$pod\",\r\n      resource=\"cpu\",\r\n      unit=\"core\"\r\n    }\r\n  )\r\n)\r\n* on (namespace, pod)\r\n  group_left(label_service_name)\r\n  kube_pod_labels{\r\n    namespace=\"$ns\",\r\n    pod=~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\",\r\n    pod=~\"$pod\",\r\n    label_service_name=~\"$log_service_name\",\r\n    label_service_name=~\"$service_name\",\r\n    label_environment=~\"$env\"\r\n  }\r\n",
+          "expr": "100 *\r\n(\r\n  sum by (namespace, pod) (\r\n    rate(\r\n      container_cpu_usage_seconds_total{\r\n        namespace=\"$ns\",\r\n        pod=~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\"\r\n      }[$__rate_interval]\r\n    )\r\n  )\r\n  /\r\n  on (namespace, pod)\r\n  group_left(label_service_name)\r\n  sum by (namespace, pod) (\r\n    kube_pod_container_resource_limits{\r\n      namespace=\"$ns\",\r\n      pod=~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\",\r\n      resource=\"cpu\",\r\n      unit=\"core\"\r\n    }\r\n  )\r\n)\r\n* on (namespace, pod)\r\n  group_left(label_service_name)\r\n  kube_pod_labels{\r\n    namespace=\"$ns\",\r\n    pod=~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\",\r\n    label_service_name=~\".*$log_service_name.*\",\r\n    label_service_name=~\"$service_name\",\r\n    label_environment=~\"$env\"\r\n  }\r\n",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -723,7 +723,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "100 *\r\n(\r\n  sum by (namespace, pod) (\r\n    container_memory_working_set_bytes{\r\n      namespace=\"$ns\",\r\n      pod=~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\",\r\n      container!=\"\",\r\n      container!=\"POD\"\r\n    }\r\n  )\r\n)\r\n/\r\nclamp_min(\r\n  sum by (namespace, pod) (\r\n    kube_pod_container_resource_limits{\r\n      namespace=\"$ns\",\r\n      pod=~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\",\r\n      resource=\"memory\",\r\n      unit=\"byte\"\r\n    }\r\n  ),\r\n  1\r\n)\r\n* on(namespace, pod)\r\ngroup_left(label_service_name)\r\nkube_pod_labels{\r\n  namespace=\"$ns\",\r\n  pod=~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\",\r\n  label_service_name=~\"$log_service_name\",\r\n  label_service_name=~\"$service_name\",\r\n  label_environment=~\"$env\"\r\n}\r\n",
+          "expr": "100 *\r\n(\r\n  sum by (namespace, pod) (\r\n    container_memory_working_set_bytes{\r\n      namespace=\"$ns\",\r\n      pod=~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\"\r\n    }\r\n  )\r\n)\r\n/\r\nclamp_min(\r\n  sum by (namespace, pod) (\r\n    kube_pod_container_resource_limits{\r\n      namespace=\"$ns\",\r\n      pod=~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\",\r\n      resource=\"memory\",\r\n      unit=\"byte\"\r\n    }\r\n  ),\r\n  1\r\n)\r\n* on(namespace, pod)\r\ngroup_left(label_service_name)\r\nkube_pod_labels{\r\n  namespace=\"$ns\",\r\n  pod=~\".*-sql.*|.*-mongo.*|.*-redis.*|.*-clickhouse.*\",\r\n  label_service_name=~\".*$log_service_name.*\",\r\n  label_service_name=~\"$service_name\",\r\n  label_environment=~\"$env\"\r\n}\r\n",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -832,7 +832,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by (service_name) (sqlserver_lock_wait_rate_per_second{service_name=~\"$service_name\", service_name=~\"$log_service_name\",deployment_environment=\"$env\"})",
+          "expr": "sum by (service_name) (sqlserver_lock_wait_rate_per_second{service_name=~\"$service_name\", service_name=~\".*$log_service_name.*\",deployment_environment=\"$env\"})",
           "format": "time_series",
           "hide": false,
           "instant": false,
@@ -1727,5 +1727,5 @@
   "timezone": "browser",
   "title": "Logs/Traces",
   "uid": "adzf64t",
-  "version": 40
+  "version": 47
 }
