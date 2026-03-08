@@ -1,7 +1,6 @@
 ﻿using Confluent.Kafka;
 using Confluent.SchemaRegistry;
 using ECK1.Contracts.Kafka.BusinessEvents;
-using ECK1.Contracts.Kafka.BusinessEvents.Sample2;
 using ECK1.Kafka;
 using ECK1.Kafka.Extensions;
 
