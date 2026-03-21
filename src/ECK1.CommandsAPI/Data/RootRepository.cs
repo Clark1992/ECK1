@@ -12,37 +12,25 @@ public interface IRootRepository<TAggregate>
     Task<List<Guid>> SaveAsync(TAggregate aggregate, CancellationToken ct);
 }
 
-public class RootRepository<TAggregate, TEventEntity, TSnapshotEntity> :
-    IRootRepository<TAggregate>
-    where TAggregate : class, IAggregateRoot
-    where TEventEntity : class, IEventEntity
-    where TSnapshotEntity : SnapshotEntity, new()
+internal class RootRepository<TAggregate, TEventEntity, TSnapshotEntity>(
+    CommandsDbContext db, 
+    IOptionsSnapshot<EventsStoreConfig> config) :
+        IRootRepository<TAggregate>
+        where TAggregate : class, IAggregateRootInternal, IAggregateRoot
+        where TEventEntity : class, IEventEntity
+        where TSnapshotEntity : SnapshotEntity, new()
 {
-    private readonly int _snapshotInterval;
+    private readonly int _snapshotInterval = config.Value.SnapshotInterval;
 
-    public RootRepository(CommandsDbContext db, IOptionsSnapshot<EventsStoreConfig> config)
-    {
-        Db = db;
-        _snapshotInterval = config.Value.SnapshotInterval;
-    }
-
-    protected CommandsDbContext Db { get; }
+    protected CommandsDbContext Db { get; } = db;
 
     public async Task<List<Guid>> SaveAsync(TAggregate aggregate, CancellationToken ct)
     {
-        var currentVersion = await GetCurrentVersionAsync(aggregate.Id, ct);
-        OptimisticEventStoreSaveHelper.ThrowIfUnexpectedVersion(
-            aggregate,
-            currentVersion);
-
-        var version = currentVersion;
         List<TEventEntity> persistedEntities = [];
 
         foreach (var domainEvent in aggregate.UncommittedEvents)
         {
-            version++;
-
-            var eventEntity = TEventEntity.FromDomainEvent(domainEvent, version) is TEventEntity e ?
+            var eventEntity = TEventEntity.FromDomainEvent(domainEvent) is TEventEntity e ?
                                 e :
                                 throw new InvalidOperationException("Wrong event entity type.");
 
@@ -54,19 +42,24 @@ public class RootRepository<TAggregate, TEventEntity, TSnapshotEntity> :
         {
             await Db.SaveChangesAsync(ct);
         }
-        catch (DbUpdateException ex) when (OptimisticEventStoreSaveHelper.IsDuplicateVersionConflict(ex))
+        catch (DbUpdateException ex) when (IsDuplicateVersionConflict(ex))
         {
             Db.ChangeTracker.Clear();
-            throw OptimisticEventStoreSaveHelper.CreateConflictException(aggregate, currentVersion, "append");
+            throw new ConcurrencyConflictException(aggregate, ex.Message);
         }
 
         List<Guid> eventIds = [.. persistedEntities.Select(e => e.EventId)];
 
-        aggregate.CommitEvents(version);
-
-        if (_snapshotInterval > 0 && version % _snapshotInterval == 0)
+        if (_snapshotInterval > 0)
         {
-            await SaveSnapshotAsync(aggregate, ct);
+            var initialVersion = aggregate.Untouched.Version;
+            var versionsCountToLeftToSnapshot = _snapshotInterval - initialVersion % _snapshotInterval;
+            var shouldBuildSnapshot = persistedEntities.Count > versionsCountToLeftToSnapshot;
+
+            if (shouldBuildSnapshot)
+            {
+                await SaveSnapshotAsync(aggregate, ct);
+            }
         }
 
         return eventIds;
@@ -88,21 +81,23 @@ public class RootRepository<TAggregate, TEventEntity, TSnapshotEntity> :
             snapshotVersion = snapshotEntity.Version;
         }
 
-        var events = await Db.Set<TEventEntity>()
+        var domainEvents = await Db.Set<TEventEntity>()
             .Where(e => e.AggregateId == aggregateId && e.Version > snapshotVersion)
             .OrderBy(e => e.Version)
+            .Select(e => e.ToDomainEvent())
             .ToListAsync(ct);
-
-        var domainEvents = events.Select(e => e.ToDomainEvent()).ToList();
 
         if (aggregate is null && domainEvents.Count == 0)
         {
             return null;
         }
 
-        return aggregate is not null
+        var loaded = aggregate is not null
             ? AggregateRoot.ReplayHistory(aggregate, domainEvents)
             : AggregateRoot.FromHistory<TAggregate>(domainEvents, aggregateId);
+
+        loaded.InitUntouched();
+        return loaded;
     }
 
     private async Task SaveSnapshotAsync(TAggregate aggregate, CancellationToken ct)
@@ -120,18 +115,17 @@ public class RootRepository<TAggregate, TEventEntity, TSnapshotEntity> :
         await Db.SaveChangesAsync(ct);
     }
 
-    protected virtual async Task<int> GetCurrentVersionAsync(Guid aggregateId, CancellationToken ct)
-    {
-        var version = await Db.Set<TEventEntity>()
-            .Where(e => e.AggregateId == aggregateId)
-            .OrderByDescending(e => e.Version)
-            .Select(e => (int?)e.Version)
-            .FirstOrDefaultAsync(ct);
-
-        return version ?? 0;
-    }
-
     protected virtual TAggregate DeserializeSnapshot(TSnapshotEntity snapshotEntity) =>
         JsonSerializer.Deserialize<TAggregate>(snapshotEntity.SnapshotData)
            ?? throw new InvalidOperationException("Failed to deserialize snapshot");
+
+    private static bool IsDuplicateVersionConflict(DbUpdateException ex)
+    {
+        if (ex.InnerException is not Microsoft.Data.SqlClient.SqlException sqlEx)
+        {
+            return false;
+        }
+
+        return sqlEx.Number is 2601 or 2627;
+    }
 }

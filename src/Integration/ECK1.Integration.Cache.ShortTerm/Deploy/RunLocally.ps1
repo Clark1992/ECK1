@@ -13,23 +13,20 @@ $releaseName = "$imageName-release"
 # 1. Ensure local registry
 Start-LocalDockerRegistry
 
-# 2 & 3. Build and push API image to local registry
-Build-DockerImage -imageNameWithTag $imageNameWithTag -dockerfilePath $dockerfilePath
-
-# 4. Check if Helm is installed
-Ensure-Helm
-
-# 5. Deploy using Helm
+# 2. Load global vars
 . ".github\scripts\prepare.global.vars.ps1"
 
-# Ensure helm dependencies for the chart are present (copies library charts into charts/)
-Write-Host "Updating Helm chart dependencies for $baseDir/Deploy"
-helm dependency update "$baseDir/Deploy"
+# 3. Ensure tools
+Ensure-Tools
 
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Helm deployment failed."
-    throw
-}
+# 4. Build and push API image to local registry
+Build-DockerImage -imageNameWithTag $imageNameWithTag -dockerfilePath $dockerfilePath
+
+# 5. Check if Helm is installed
+Ensure-Helm
+
+# Ensure helm dependencies for the chart are present (copies library charts into charts/)
+Resolve-HelmDependencies -ChartDir "$baseDir/Deploy"
 
 # helm template $baseDir\Deploy\$chartPath `
 #     --namespace $env:AppServiceNamespace `

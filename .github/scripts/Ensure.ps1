@@ -159,6 +159,43 @@ function Ensure-DbUpImage {
 }
 
 # ===========================================
+# Ensure ConfigWatcher Chart
+# ===========================================
+function Ensure-ConfigWatcherChart {
+    param(
+        [string]$Registry = $(if ($env:HELM_CHART_REGISTRY) { $env:HELM_CHART_REGISTRY } else { "localhost:5000" })
+    )
+
+    $chartRef = "$Registry/helm/config-watcher"
+    $chartVersion = "0.1.0"
+
+    $exists = helm show chart "oci://$chartRef" --version $chartVersion 2>$null
+    if ($LASTEXITCODE -eq 0 -and $exists) {
+        Write-Host "✅ config-watcher chart found in registry: oci://$chartRef:$chartVersion" -ForegroundColor Green
+        return
+    }
+
+    Write-Host "⚠ config-watcher chart not found. Packaging and pushing..." -ForegroundColor Yellow
+    & "$PSScriptRoot\..\..\tools\config-watcher\build-config-watcher-chart.ps1" -Registry $Registry
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "❌ Failed to build/push config-watcher chart"
+        throw
+    }
+}
+
+# ===========================================
+# Ensure Tools
+# ===========================================
+function Ensure-Tools {
+    param(
+        [string]$Registry = $(if ($env:HELM_CHART_REGISTRY) { $env:HELM_CHART_REGISTRY } else { "localhost:5000" })
+    )
+
+    Ensure-DbUpImage -Registry $Registry
+    Ensure-ConfigWatcherChart -Registry $Registry
+}
+
+# ===========================================
 # Ensure Helmfile
 # ===========================================
 function Ensure-Helmfile {

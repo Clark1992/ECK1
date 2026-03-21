@@ -21,6 +21,7 @@
         <PackageReference Include="Microsoft.EntityFrameworkCore" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
+        <PackageReference Include="NetEscapades.Configuration.Yaml" />
         <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" />
     </ItemGroup>
 

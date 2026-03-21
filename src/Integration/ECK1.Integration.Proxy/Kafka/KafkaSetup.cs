@@ -2,6 +2,7 @@
 using Confluent.SchemaRegistry;
 using ECK1.Contracts.Kafka.BusinessEvents;
 using ECK1.Integration.Common;
+using ECK1.Integration.Config;
 using ECK1.Integration.EntityStore.Configuration.Generated;
 using ECK1.Integration.Plugin.Abstractions;
 using ECK1.Kafka.Extensions;

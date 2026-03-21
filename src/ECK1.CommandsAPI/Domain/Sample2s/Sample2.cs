@@ -1,3 +1,5 @@
+using ECK1.CommandsAPI.Domain.Shared;
+
 namespace ECK1.CommandsAPI.Domain.Sample2s;
 
 public class Sample2 : AggregateRoot<ISample2Event>
@@ -5,7 +7,7 @@ public class Sample2 : AggregateRoot<ISample2Event>
     public Guid Sample2Id => Id;
 
     public Sample2Customer Customer { get; private set; } = default!;
-    public Sample2Address ShippingAddress { get; private set; } = default!;
+    public Address ShippingAddress { get; private set; } = default!;
     public Sample2Status Status { get; private set; }
 
     private readonly List<Sample2LineItem> _lineItems = new();
@@ -18,7 +20,7 @@ public class Sample2 : AggregateRoot<ISample2Event>
 
     public static Sample2 Create(
         Sample2Customer customer,
-        Sample2Address shippingAddress,
+        Address shippingAddress,
         List<Sample2LineItem> lineItems,
         List<string> tags)
     {
@@ -28,17 +30,18 @@ public class Sample2 : AggregateRoot<ISample2Event>
         lineItems ??= [];
         tags ??= [];
 
-        var aggregate = new Sample2();
+        var root = new Sample2();
+        root.InitUntouched();
 
-        aggregate.ApplyChange(new Sample2CreatedEvent(
-            aggregate.Id,
+        root.ApplyChange(new Sample2CreatedEvent(
+            root.Id,
             customer,
             shippingAddress,
             lineItems,
             tags,
             Sample2Status.Draft));
 
-        return aggregate;
+        return root;
     }
 
     public void ChangeCustomerEmail(string newEmail)
@@ -47,7 +50,7 @@ public class Sample2 : AggregateRoot<ISample2Event>
         ApplyChange(new Sample2CustomerEmailChangedEvent(Id, newEmail));
     }
 
-    public void ChangeShippingAddress(Sample2Address newAddress)
+    public void ChangeShippingAddress(Address newAddress)
     {
         ArgumentNullException.ThrowIfNull(newAddress);
         ApplyChange(new Sample2ShippingAddressChangedEvent(Id, newAddress));
@@ -92,13 +95,13 @@ public class Sample2 : AggregateRoot<ISample2Event>
     private void Apply(Sample2CreatedEvent @event)
     {
         Id = @event.Sample2Id;
-        Customer = @event.Customer;
-        ShippingAddress = @event.ShippingAddress;
+        Customer = @event.Customer.DeepClone();
+        ShippingAddress = @event.ShippingAddress.DeepClone();
         Status = @event.Status;
 
         _lineItems.Clear();
         if (@event.LineItems is not null)
-            _lineItems.AddRange(@event.LineItems);
+            _lineItems.AddRange(@event.LineItems.Select(x => x.DeepClone()));
 
         _tags.Clear();
         if (@event.Tags is not null)
@@ -113,17 +116,17 @@ public class Sample2 : AggregateRoot<ISample2Event>
 
     private void Apply(Sample2CustomerEmailChangedEvent @event)
     {
-        Customer.Email = @event.NewEmail;
+        Customer.ChangeEmail(@event.NewEmail);
     }
 
     private void Apply(Sample2ShippingAddressChangedEvent @event)
     {
-        ShippingAddress = @event.NewAddress;
+        ShippingAddress = @event.NewAddress.DeepClone();
     }
 
     private void Apply(Sample2LineItemAddedEvent @event)
     {
-        _lineItems.Add(@event.Item);
+        _lineItems.Add(@event.Item.DeepClone());
     }
 
     private void Apply(Sample2LineItemRemovedEvent @event)
@@ -151,4 +154,25 @@ public class Sample2 : AggregateRoot<ISample2Event>
     }
 
     private void Apply(Sample2RebuiltEvent @event) { }
+
+    protected override IAggregateRoot DeepClone()
+    {
+        var copy = new Sample2
+        {
+            Id = Id,
+            Version = Version,
+            Customer = Customer?.DeepClone(),
+            ShippingAddress = ShippingAddress?.DeepClone(),
+            Status = Status,
+        };
+
+        copy._lineItems.AddRange(_lineItems.Select(x => x.DeepClone()));
+
+        foreach (var tag in _tags)
+        {
+            copy._tags.Add(tag);
+        }
+
+        return copy;
+    }
 }

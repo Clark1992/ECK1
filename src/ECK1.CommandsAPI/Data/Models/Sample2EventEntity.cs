@@ -22,7 +22,7 @@ public class Sample2EventEntity : IEventEntity
         return @event;
     }
 
-    public static IEventEntity FromDomainEvent(IDomainEvent domainEvent, int version)
+    public static IEventEntity FromDomainEvent(IDomainEvent domainEvent)
     {
         if (domainEvent is not ISample2Event ev)
         {
@@ -36,7 +36,7 @@ public class Sample2EventEntity : IEventEntity
             EventType = ev.GetType().Name,
             EventData = JsonSerializer.Serialize(ev),
             OccurredAt = ev.OccurredAt,
-            Version = version
+            Version = ev.Version
         };
     }
 }

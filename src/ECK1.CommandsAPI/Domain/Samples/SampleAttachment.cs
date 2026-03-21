@@ -8,11 +8,12 @@ public class SampleAttachment
 
     private SampleAttachment() { }
 
-    public SampleAttachment(Guid id, string fileName, string url)
+    public SampleAttachment(string fileName, string url)
     {
-        Id = id;
-        FileName = fileName ?? throw new ArgumentNullException(nameof(fileName));
-        Url = url ?? throw new ArgumentNullException(nameof(url));
+        ArgumentException.ThrowIfNullOrWhiteSpace(fileName, nameof(fileName));
+
+        FileName = fileName;
+        Url = url;
     }
 
     public void ValidateUpdate(string newFileName, string newUrl)
@@ -26,5 +27,12 @@ public class SampleAttachment
         FileName = newFileName;
         Url = newUrl;
     }
+
+    public SampleAttachment DeepClone() => new()
+    {
+        FileName = FileName,
+        Url = Url,
+        Id = Id
+    };
 }
 

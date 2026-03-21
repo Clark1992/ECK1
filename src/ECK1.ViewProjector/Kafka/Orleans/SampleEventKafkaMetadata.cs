@@ -1,10 +1,10 @@
 ﻿using ECK1.Orleans;
-using ECK1.Orleans.Kafka;
+using ECK1.Orleans.Grains;
 using ECK1.ViewProjector.Events;
 
 namespace ECK1.ViewProjector.Kafka.Orleans;
 
-public class SampleEventKafkaMetadata: KafkaGrainMetadata,
+public class SampleEventKafkaMetadata: GrainMetadata,
     IDupChecker<ISampleEvent, SampleEventKafkaMetadata>,
     IMetadataUpdater<ISampleEvent, SampleEventKafkaMetadata>,
     IFaultedStateReset<ISampleEvent>

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using OpenTelemetry.Trace;
 using System.Text.Json;
 
-using static ECK1.Integration.Common.ConfigHelpers;
+using static ECK1.Integration.Config.ConfigHelpers;
 
 var builder = WebApplication.CreateBuilder(args);
 

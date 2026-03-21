@@ -1,0 +1,5 @@
+apiVersion: v2
+name: config-watcher
+version: 0.1.0
+description: Watch integration ConfigMaps by label and sync to /config directory (init + sidecar)
+type: library

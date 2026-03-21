@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using ECK1.Integration.Common;
+using ECK1.Integration.Config;
 using ECK1.Integration.EntityStore.Generated;
 using Microsoft.Extensions.Options;
 using NATS.Client.Core;

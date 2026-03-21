@@ -1,0 +1,17 @@
+redis:
+  enabled: false
+
+  image: redis:7
+
+  service:
+    type: ClusterIP
+    nodePort: null
+
+  persistence:
+    enabled: true
+    size: 5Gi
+    hostPath:
+      enabled: false
+      path: ""
+
+  resources: {}

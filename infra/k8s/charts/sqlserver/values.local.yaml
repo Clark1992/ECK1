@@ -26,7 +26,6 @@ sqlserver:
       path: "/var/lib/mssql-data/eck1-shared"
 
   otelCollector:
-    serviceName: "eck1-sqlserver"
     resources:
       limits:
         cpu: "250m"

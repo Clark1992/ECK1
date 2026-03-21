@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Chart.Name }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  ttlSecondsAfterFinished: 600 
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: mapping-upload
+          image: alpine:3.22.2
+          command: ["sh", "-c"]
+          args:
+            - apk add --no-cache curl jq && /scripts/upsert-mappings.sh
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ES_HOST
+              value: {{ .Values.elasticsearch.clusterUrl }}
+            - name: ES_USER
+              value: elastic
+            - name: ES_PASSWORD
+              value: {{ .Values.elasticsearch.password }}
+            - name: MAX_RETRIES
+              value: '30'
+              
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+            - name: schema-files
+              mountPath: /schemas
+
+      volumes:
+        - name: scripts
+          configMap:
+            name: upsert-mappings-script-source
+            defaultMode: 0755
+        - name: schema-files
+          configMap:
+            name: "mappings-source"

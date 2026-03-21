@@ -2,5 +2,11 @@ ElasticSearchConfig__ClusterUrl: https://elasticsearch-svc.elasticsearch.svc.clu
 clickhouse:
   compress: "False"
 
+redis:
+  serviceName: "eck1-redis"
+  port: 6379
+
+helmChartRegistry: "localhost:5000"
+
 envSpecific:
   ELASTICSEARCH_PASSWORD: "local"

@@ -1,5 +1,8 @@
 replicaCount: 1
 
+configWatcher:
+  label: "config-type=failure-handling-config"
+
 image:
   repository: myregistry.azurecr.io/commands-api
   tag: latest

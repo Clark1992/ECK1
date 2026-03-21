@@ -45,6 +45,19 @@ releases:
       - name: sqlserver.otelCollector.otlpEndpoint
         value: {{ requiredEnv "OTEL_EXPORTER_OTLP_ENDPOINT" }}
 
+  - name: redis
+    namespace: {{ requiredEnv "AppServiceNamespace" }}
+    chart: k8s/charts/redis
+    values:
+      - k8s/charts/redis/values.{{ .Environment.Name }}.yaml
+      - redis:
+          service:
+            name: {{ requiredEnv "REDIS_HOST" }}
+            port: {{ requiredEnv "REDIS_PORT" }}
+    set:
+      - name: environment
+        value: {{ .Environment.Name }}
+
   - name: ingress-nginx
     namespace: {{ $default.ingress.namespace }}
     createNamespace: true

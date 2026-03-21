@@ -3,8 +3,6 @@ using ECK1.FailedViewRebuilder.Data;
 using ECK1.FailedViewRebuilder.Data.Models;
 using ECK1.FailedViewRebuilder.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.Extensions.Options;
 
 namespace ECK1.FailedViewRebuilder.Services;
 
@@ -33,13 +31,13 @@ public class RebuildRequestService(
     FailuresDbContext db,
     ILogger<RebuildRequestService> logger,
     IBackgroundTaskQueue taskQueue,
-    IOptionsSnapshot<FailureHandlingConfig> config) : IRebuildRequestService
+    FailureHandlingConfig config) : IRebuildRequestService
 {
     public async Task<string> StartJob(
         string entityType,
         int? count)
     {
-        if(!config.Value.TryGetValue(entityType, out var entry))
+        if(!config.TryGetValue(entityType, out var entry))
         {
             var msg = "Cannot find failure handling config for {0}";
             logger.LogWarning(msg, entityType);

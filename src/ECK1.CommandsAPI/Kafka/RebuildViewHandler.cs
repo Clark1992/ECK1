@@ -1,13 +1,15 @@
 ﻿using ECK1.CommandsAPI.Commands;
 using ECK1.Kafka;
-using MediatR;
+using ECK1.Orleans.Grains;
 
 namespace ECK1.CommandsAPI.Kafka;
 
 public interface IRebuildHandler: IKafkaMessageHandler<Guid>;
 
-public class RebuildHandler<TCommand>(IMediator mediator, ILogger<RebuildHandler<TCommand>> logger) : IRebuildHandler
-    where TCommand: IRebuildViewCommandBase, new()
+public class RebuildHandler<TCommand>(
+    IGrainRouter<TCommand, NullGrainMetadata, ICommandResult> grainRouter,
+    ILogger<RebuildHandler<TCommand>> logger) : IRebuildHandler
+    where TCommand: RebuildViewCommandBase, new()
 {
     public async Task Handle(string key, Guid message, KafkaMessageId messageId, CancellationToken ct)
     {
@@ -15,7 +17,8 @@ public class RebuildHandler<TCommand>(IMediator mediator, ILogger<RebuildHandler
         {
             Id = message
         };
-        var res = await mediator.Send(cmd, ct);
+
+        var res = await grainRouter.RouteToGrain(cmd, ct);
 
         if (res is not Success)
         {

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: eck1-redis
+description: Shared Redis chart (mainly for ECK1 Orleans clustering and grain storage)
+version: 0.1.0
+appVersion: "1.0"

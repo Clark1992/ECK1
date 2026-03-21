@@ -1,0 +1,19 @@
+redis:
+  enabled: true
+
+  persistence:
+    hostPath:
+      enabled: true
+      path: "/run/desktop/mnt/host/f/SelfPostEdu/Programming/cs_test_db/ECK1/redis"
+
+  service:
+    type: NodePort
+    nodePort: 30079
+
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "100m"
+      memory: "256Mi"

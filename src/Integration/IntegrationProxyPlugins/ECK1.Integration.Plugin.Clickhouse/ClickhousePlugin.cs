@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using ECK1.Integration.Common;
+using ECK1.Integration.Config;
 using OpenTelemetry.Trace;
 
 namespace ECK1.Integration.Plugin.Clickhouse;

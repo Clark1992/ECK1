@@ -9,15 +9,16 @@ public interface IAggregateRoot
 {
     Guid Id { get; }
     int Version { get; }
+    void ReplayEvent(IDomainEvent @event);
     IReadOnlyCollection<IDomainEvent> UncommittedEvents { get; }
-    void CommitEvents(int version);
+    void CommitEvents();
 }
 
-internal interface IAggregateRootInternal
+public interface IAggregateRootInternal
 {
+    IAggregateRoot Untouched { get; }
     void SetId(Guid id);
-    void IncrementVersion();
-    void Apply(IDomainEvent @event);
+    void InitUntouched();
 }
 
 [HandlerMethod(nameof(Apply))]
@@ -31,66 +32,65 @@ public abstract class AggregateRoot<TEvent> : GenericHandler<TEvent>, IAggregate
     public int Version { get; protected set; } = 0;
 
     [JsonIgnore]
+    public IAggregateRoot Untouched { get; protected set; }
+
+    [JsonIgnore]
     public IReadOnlyCollection<IDomainEvent> UncommittedEvents => _uncommittedEvents.AsReadOnly();
+
+    public void InitUntouched() => Untouched = DeepClone();
 
     protected void ApplyChange(TEvent @event)
     {
         Apply(@event);
+        Version++;
+        @event.Version = Version;
         _uncommittedEvents.Add(@event);
     }
 
-    public void CommitEvents(int version)
+    public void CommitEvents()
     {
         _uncommittedEvents.Clear();
-        Version = version;
+        Untouched = DeepClone();
     }
 
-    void IAggregateRootInternal.SetId(Guid id) => Id = id;
+    public void SetId(Guid id) => Id = id;
 
-    void IAggregateRootInternal.IncrementVersion() => Version++;
-
-    void IAggregateRootInternal.Apply(IDomainEvent @event) => Handle(@event as TEvent);
+    public void ReplayEvent(IDomainEvent @event)
+    {
+        Apply((TEvent)@event);
+        Version++;
+    }
 
     void Apply(TEvent @event) => Handle(@event);
+
+    protected abstract IAggregateRoot DeepClone();
 }
 
-public static class AggregateRoot
+internal static class AggregateRoot
 {
-    public static TAggregate ReplayHistory<TAggregate>(TAggregate aggregate, IEnumerable<IDomainEvent> history)
+    internal static TAggregate ReplayHistory<TAggregate>(TAggregate aggregate, IEnumerable<IDomainEvent> history)
         where TAggregate : class, IAggregateRoot
     {
-        if (aggregate is not IAggregateRootInternal root)
-            throw new InvalidOperationException($"Type {typeof(TAggregate).Name} must inherit from AggregateRoot<TEvent>");
+        foreach (var e in history)
+        {
+            aggregate.ReplayEvent(e);
+        }
 
-        ReplayHistoryCore(root, history);
         return aggregate;
     }
 
     public static TAggregate FromHistory<TAggregate>(IEnumerable<IDomainEvent> history, Guid id)
-        where TAggregate : class, IAggregateRoot
+        where TAggregate : class, IAggregateRoot, IAggregateRootInternal
     {
-        var aggregate = AggregateFactory<TAggregate>.Create();
-
-        if (aggregate is not IAggregateRootInternal root)
-            throw new InvalidOperationException($"Type {typeof(TAggregate).Name} must inherit from AggregateRoot<TEvent>");
+        var root = AggregateFactory<TAggregate>.Create();
 
         root.SetId(id);
-        return ReplayHistory(aggregate, history);
-    }
-
-    private static void ReplayHistoryCore<TAggregate>(TAggregate root, IEnumerable<IDomainEvent> history)
-        where TAggregate : class, IAggregateRootInternal
-    {
-        foreach (var e in history)
-        {
-            root.Apply(e);
-            root.IncrementVersion();
-        }
+        return ReplayHistory(root, history);
     }
 }
 
-public static class AggregateFactory<TAggregate>
-    where TAggregate : IAggregateRoot
+internal static class AggregateFactory<TAggregate>
+    where TAggregate : class, IAggregateRootInternal
 {
     private static readonly Func<TAggregate> _factory;
 

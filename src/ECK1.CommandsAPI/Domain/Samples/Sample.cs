@@ -1,25 +1,29 @@
-﻿namespace ECK1.CommandsAPI.Domain.Samples;
+﻿using ECK1.CommandsAPI.Domain.Shared;
+
+namespace ECK1.CommandsAPI.Domain.Samples;
 
 public class Sample : AggregateRoot<ISampleEvent>
 {
     public Guid SampleId => Id;
     public string Name { get; private set; } = default;
     public string Description { get; private set; } = default;
-    public SampleAddress Address { get; private set; }
+    public Address Address { get; private set; }
 
     private readonly List<SampleAttachment> _attachments = new();
     public IReadOnlyCollection<SampleAttachment> Attachments => _attachments.AsReadOnly();
 
     private Sample() { }
 
-    public static Sample Create(string name, string description, SampleAddress address = null)
+    public static Sample Create(string name, string description, Address address = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrEmpty(description);
 
-        var sample = new Sample();
-        sample.ApplyChange(new SampleCreatedEvent(sample.Id, name, description, address));
-        return sample;
+        var root = new Sample();
+        root.InitUntouched();
+
+        root.ApplyChange(new SampleCreatedEvent(root.Id, name, description, address));
+        return root;
     }
 
     public void ChangeName(string name)
@@ -36,7 +40,7 @@ public class Sample : AggregateRoot<ISampleEvent>
         ApplyChange(new SampleDescriptionChangedEvent(Id, description));
     }
 
-    public void ChangeAddress(SampleAddress address)
+    public void ChangeAddress(Address address)
     {
         ArgumentNullException.ThrowIfNull(address);
 
@@ -74,7 +78,7 @@ public class Sample : AggregateRoot<ISampleEvent>
         this.Id = @event.SampleId;
         this.Name = @event.Name;
         this.Description = @event.Description;
-        this.Address = @event.Address;
+        this.Address = @event.Address?.DeepClone();
 
         this._attachments.Clear();
     }
@@ -91,12 +95,12 @@ public class Sample : AggregateRoot<ISampleEvent>
 
     private void Apply(SampleAddressChangedEvent @event)
     {
-        this.Address = @event.NewAddress;
+        this.Address = @event.NewAddress.DeepClone();
     }
 
     private void Apply(SampleAttachmentAddedEvent @event)
     {
-        this._attachments.Add(@event.Attachment);
+        this._attachments.Add(@event.Attachment.DeepClone());
     }
 
     private void Apply(SampleAttachmentRemovedEvent @event)
@@ -115,4 +119,20 @@ public class Sample : AggregateRoot<ISampleEvent>
     }
 
     private void Apply(SampleRebuiltEvent @event) { }
+
+    protected override IAggregateRoot DeepClone()
+    {
+        var copy = new Sample
+        {
+            Id = Id,
+            Version = Version,
+            Name = Name,
+            Description = Description,
+            Address = Address?.DeepClone(),
+        };
+
+        copy._attachments.AddRange(_attachments.Select(x => x.DeepClone()));
+
+        return copy;
+    }
 }

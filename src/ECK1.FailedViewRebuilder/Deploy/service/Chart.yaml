@@ -3,3 +3,8 @@ name: eck1-failed-view-rebuilder
 description: Service chart for ECK1 Failed View Rebuilder
 version: 0.1.0
 appVersion: "1.0"
+
+dependencies:
+  - name: config-watcher
+    version: 0.1.0
+    repository: "oci://localhost:5000/helm"

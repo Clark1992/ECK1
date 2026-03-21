@@ -13,17 +13,20 @@ $appReleaseName = "$imageName-release"
 # 1. Ensure local registry
 Start-LocalDockerRegistry
 
-# 1.1 Ensure DbUp image
-Ensure-DbUpImage
+# 2. Load global vars (sets HELM_CHART_REGISTRY and other env vars from k8s ConfigMap)
+. ".github\scripts\prepare.global.vars.ps1"
 
-# 2 & 3. Build and push API image to local registry
+# 3. Ensure tools (DbUp image + config-watcher chart)
+Ensure-Tools
+
+# 4. Build and push API image to local registry
 Build-DockerImage -imageNameWithTag $imageNameWithTag -dockerfilePath $dockerfilePath
 
-# 4. Check if Helm is installed
+# 5. Check if Helm is installed
 Ensure-Helm
 
-# 5. Deploy using Helm
-. ".github\scripts\prepare.global.vars.ps1"
+# Ensure helm dependencies for the chart are present (copies library charts into charts/)
+Resolve-HelmDependencies -ChartDir "$baseDir/Deploy/$serviceChartPath"
 
 Write-Host "Deploying app Helm release..."
 helm upgrade --install $appReleaseName $baseDir\Deploy\$serviceChartPath `

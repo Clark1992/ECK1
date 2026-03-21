@@ -1,4 +1,5 @@
-﻿using Confluent.Kafka;
+﻿using System.Reflection;
+using Confluent.Kafka;
 using Confluent.SchemaRegistry;
 using Confluent.SchemaRegistry.Serdes;
 using ECK1.Kafka.ProtoBuf;
@@ -81,51 +82,89 @@ public static class KafkaServiceCollectionExtensions
         where T : class
     {
         services.AddSingleton<IKafkaTopicProducer<T>>(sp =>
-        {
-            var schemaRegistry = sp.GetRequiredService<ISchemaRegistryClient>();
-            var producerConfig = sp.GetRequiredKeyedService<ProducerConfig>(ProducerConfigServiceKey);
-
-            IAsyncSerializer<T> serializer = format switch
-            {
-                SerializerType.JSON => new JsonSerializer<T>(
-                        schemaRegistry,
-                        new JsonSerializerConfig
-                        {
-                            AutoRegisterSchemas = false,
-                            UseLatestVersion = true,
-                            SubjectNameStrategy = strategy
-                        }),
-
-                SerializerType.AVRO => new AvroSerializer<T>(
-                        schemaRegistry,
-                        new()
-                        {
-                            AutoRegisterSchemas = false,
-                            UseLatestVersion = true,
-                            SubjectNameStrategy = strategy
-                        }),
-
-                SerializerType.PROTO => new ProtobufNetSerializer<T>(
-                        schemaRegistry,
-                        sp.GetRequiredService<ILogger<ProtobufNetSerializer<T>>>()),
-
-                _ => throw new InvalidOperationException(UnkwonFormat)
-            };
-
-            var producer = new ProducerBuilder<string, T>(producerConfig)
-                .SetValueSerializer(serializer)
-                .BuildWithInstrumentation();
-
-            return format switch
-            {
-                SerializerType.JSON => new KafkaJsonTopicProducer<T>(producer, topic, sp.GetRequiredService<ILogger<KafkaJsonTopicProducer<T>>>()),
-                SerializerType.AVRO => new KafkaAvroTopicProducer<T>(producer, topic, sp.GetRequiredService<ILogger<KafkaAvroTopicProducer<T>>>()),
-                SerializerType.PROTO => new KafkaProtoTopicProducer<T>(producer, topic, sp.GetRequiredService<ILogger<KafkaProtoTopicProducer<T>>>()),
-                _ => throw new InvalidOperationException(UnkwonFormat)
-            }; 
-        });
+            BuildTopicProducer<T>(sp, topic, strategy, format));
 
         return services;
+    }
+
+    public static IServiceCollection ConfigKeyedTopicProducer<T>(
+        this IServiceCollection services,
+        object serviceKey,
+        string topic,
+        SubjectNameStrategy strategy,
+        SerializerType format)
+        where T : class
+    {
+        services.AddKeyedSingleton<IKafkaTopicProducer<T>>(serviceKey, (sp, _) =>
+            BuildTopicProducer<T>(sp, topic, strategy, format));
+
+        return services;
+    }
+
+    private static readonly MethodInfo ConfigTopicProducerGenericMethod =
+        typeof(KafkaServiceCollectionExtensions)
+            .GetMethods()
+            .Single(m => m.Name == nameof(ConfigTopicProducer) && m.IsGenericMethod);
+
+    public static IServiceCollection ConfigTopicProducer(
+        this IServiceCollection services,
+        Type messageType,
+        string topic,
+        SubjectNameStrategy strategy,
+        SerializerType format)
+    {
+        ConfigTopicProducerGenericMethod
+            .MakeGenericMethod(messageType)
+            .Invoke(null, [services, topic, strategy, format]);
+
+        return services;
+    }
+
+    private static IKafkaTopicProducer<T> BuildTopicProducer<T>(
+        IServiceProvider sp, string topic, SubjectNameStrategy strategy, SerializerType format)
+        where T : class
+    {
+        var schemaRegistry = sp.GetRequiredService<ISchemaRegistryClient>();
+        var producerConfig = sp.GetRequiredKeyedService<ProducerConfig>(ProducerConfigServiceKey);
+
+        IAsyncSerializer<T> serializer = format switch
+        {
+            SerializerType.JSON => new JsonSerializer<T>(
+                    schemaRegistry,
+                    new JsonSerializerConfig
+                    {
+                        AutoRegisterSchemas = false,
+                        UseLatestVersion = true,
+                        SubjectNameStrategy = strategy
+                    }),
+
+            SerializerType.AVRO => new AvroSerializer<T>(
+                    schemaRegistry,
+                    new()
+                    {
+                        AutoRegisterSchemas = false,
+                        UseLatestVersion = true,
+                        SubjectNameStrategy = strategy
+                    }),
+
+            SerializerType.PROTO => new ProtobufNetSerializer<T>(
+                    schemaRegistry,
+                    sp.GetRequiredService<ILogger<ProtobufNetSerializer<T>>>()),
+
+            _ => throw new InvalidOperationException(UnkwonFormat)
+        };
+
+        var producer = new ProducerBuilder<string, T>(producerConfig)
+            .SetValueSerializer(serializer)
+            .BuildWithInstrumentation();
+
+        return format switch
+        {
+            SerializerType.JSON => new KafkaJsonTopicProducer<T>(producer, topic, sp.GetRequiredService<ILogger<KafkaJsonTopicProducer<T>>>()),
+            SerializerType.AVRO => new KafkaAvroTopicProducer<T>(producer, topic, sp.GetRequiredService<ILogger<KafkaAvroTopicProducer<T>>>()),
+            SerializerType.PROTO => new KafkaProtoTopicProducer<T>(producer, topic, sp.GetRequiredService<ILogger<KafkaProtoTopicProducer<T>>>()),
+            _ => throw new InvalidOperationException(UnkwonFormat)
+        };
     }
 
     public static IServiceCollection ConfigSimpleTopicProducer<T>(this IServiceCollection services)

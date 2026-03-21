@@ -1,5 +1,6 @@
 ﻿using ECK1.CommonUtils.Secrets.Doppler;
 using ECK1.CommonUtils.Secrets.K8s;
+using ECK1.Integration.Config;
 
 namespace ECK1.Integration.Cache.ShortTerm;
 
@@ -14,6 +15,6 @@ public static class AppBuilerExtensions
 #endif
 
         builder.Configuration.AddDopplerSecrets();
-        builder.Configuration.AddJsonFile("/config/merged.json", optional: true);
+        builder.Configuration.AddIntegrationManifest();
     }
 }

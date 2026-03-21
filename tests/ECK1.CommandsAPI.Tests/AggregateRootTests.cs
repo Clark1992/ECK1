@@ -1,6 +1,7 @@
 using ECK1.CommandsAPI.Domain;
 using ECK1.CommandsAPI.Domain.Sample2s;
 using ECK1.CommandsAPI.Domain.Samples;
+using ECK1.CommandsAPI.Domain.Shared;
 using FluentAssertions;
 
 namespace ECK1.CommandsAPI.Tests;
@@ -12,21 +13,20 @@ public class AggregateRootTests
     {
         // Arrange
         var sampleId = Guid.NewGuid();
-        var initialAddress = new SampleAddress("Street 1", "City 1", "Country 1");
-        var changedAddress = new SampleAddress("Street 2", "City 2", "Country 2");
-        var attachmentId = Guid.NewGuid();
-        var attachment = new SampleAttachment(attachmentId, "invoice-v1.pdf", "https://cdn/files/invoice-v1.pdf");
-
+        var initialAddress = new Address("Street 1", "City 1", "Country 1");
+        var changedAddress = new Address("Street 2", "City 2", "Country 2");
+        var attachment = new SampleAttachment("invoice-v1.pdf", "https://cdn/files/invoice-v1.pdf");
+        var version = 1;
         List<ISampleEvent> history =
         [
-            new SampleCreatedEvent(sampleId, "Name-1", "Description-1", initialAddress),
-            new SampleNameChangedEvent(sampleId, "Name-2"),
-            new SampleDescriptionChangedEvent(sampleId, "Description-2"),
-            new SampleAddressChangedEvent(sampleId, changedAddress),
-            new SampleAttachmentAddedEvent(sampleId, attachment),
-            new SampleAttachmentUpdatedEvent(sampleId, attachmentId, "invoice-v2.pdf", "https://cdn/files/invoice-v2.pdf"),
-            new SampleAttachmentRemovedEvent(sampleId, attachmentId),
-            new SampleRebuiltEvent(sampleId, "Ignored", "Ignored", changedAddress, []),
+            new SampleCreatedEvent(sampleId, "Name-1", "Description-1", initialAddress) { Version = version++ },
+            new SampleNameChangedEvent(sampleId, "Name-2") { Version = version++ },
+            new SampleDescriptionChangedEvent(sampleId, "Description-2") { Version = version++ },
+            new SampleAddressChangedEvent(sampleId, changedAddress) { Version = version++ },
+            new SampleAttachmentAddedEvent(sampleId, attachment) { Version = version++ },
+            new SampleAttachmentUpdatedEvent(sampleId, attachment.Id, "invoice-v2.pdf", "https://cdn/files/invoice-v2.pdf") { Version = version++ },
+            new SampleAttachmentRemovedEvent(sampleId, attachment.Id) { Version = version++ },
+            new SampleRebuiltEvent(sampleId, "Ignored", "Ignored", changedAddress, []) {  Version = version++ },
         ];
 
         // Act
@@ -50,62 +50,33 @@ public class AggregateRootTests
         // Arrange
         var sample2Id = Guid.NewGuid();
 
-        var createdCustomer = new Sample2Customer
-        {
-            CustomerId = Guid.NewGuid(),
-            Email = "old@example.com",
-            Segment = "B2C",
-        };
+        var createdCustomer = new Sample2Customer("old@example.com", "B2C");
 
-        var createdAddress = new Sample2Address
-        {
-            Id = Guid.NewGuid(),
-            Street = "Old street",
-            City = "Old city",
-            Country = "US",
-        };
+        var createdAddress = new Address("Old street", "Old city", "US");
 
-        var changedAddress = new Sample2Address
-        {
-            Id = Guid.NewGuid(),
-            Street = "New street",
-            City = "New city",
-            Country = "DE",
-        };
 
-        var initialLineItemId = Guid.NewGuid();
-        var addedLineItemId = Guid.NewGuid();
+        var changedAddress = new Address("New street", "New city", "DE");
+
 
         var initialLineItems = new List<Sample2LineItem>
         {
-            new()
-            {
-                ItemId = initialLineItemId,
-                Sku = "SKU-1",
-                Quantity = 1,
-                UnitPrice = new Sample2Money { Amount = 10m, Currency = "USD" },
-            },
+            new("SKU-1", 1, new Sample2Money (10m, "USD"))
         };
 
-        var addedLineItem = new Sample2LineItem
-        {
-            ItemId = addedLineItemId,
-            Sku = "SKU-2",
-            Quantity = 2,
-            UnitPrice = new Sample2Money { Amount = 25m, Currency = "USD" },
-        };
+        var addedLineItem = new Sample2LineItem("SKU-2", 2, new Sample2Money(25m, "USD"));
 
+        var version = 1;
         List<ISample2Event> history =
         [
             new Sample2CreatedEvent(sample2Id, createdCustomer, createdAddress, initialLineItems, ["alpha"], Sample2Status.Draft),
-            new Sample2CustomerEmailChangedEvent(sample2Id, "new@example.com"),
-            new Sample2ShippingAddressChangedEvent(sample2Id, changedAddress),
-            new Sample2LineItemAddedEvent(sample2Id, addedLineItem),
-            new Sample2LineItemRemovedEvent(sample2Id, initialLineItemId),
-            new Sample2StatusChangedEvent(sample2Id, Sample2Status.Paid, "Payment received"),
-            new Sample2TagAddedEvent(sample2Id, "beta"),
-            new Sample2TagRemovedEvent(sample2Id, "alpha"),
-            new Sample2RebuiltEvent(sample2Id, createdCustomer, changedAddress, [], [], Sample2Status.Cancelled),
+            new Sample2CustomerEmailChangedEvent(sample2Id, "new@example.com") { Version = version++ },
+            new Sample2ShippingAddressChangedEvent(sample2Id, changedAddress) { Version = version++ },
+            new Sample2LineItemAddedEvent(sample2Id, addedLineItem) { Version = version++ },
+            new Sample2LineItemRemovedEvent(sample2Id, initialLineItems[0].ItemId) { Version = version++ },
+            new Sample2StatusChangedEvent(sample2Id, Sample2Status.Paid, "Payment received") { Version = version++ },
+            new Sample2TagAddedEvent(sample2Id, "beta" ) { Version = version++ },
+            new Sample2TagRemovedEvent(sample2Id, "alpha") { Version = version++ },
+            new Sample2RebuiltEvent(sample2Id, createdCustomer, changedAddress, [], [], Sample2Status.Cancelled) { Version = version++ },
         ];
 
         // Act
@@ -119,7 +90,7 @@ public class AggregateRootTests
         sample2.ShippingAddress.Country.Should().Be("DE");
 
         sample2.LineItems.Should().HaveCount(1);
-        sample2.LineItems.Single().ItemId.Should().Be(addedLineItemId);
+        sample2.LineItems.Single().ItemId.Should().Be(addedLineItem.ItemId);
 
         sample2.Status.Should().Be(Sample2Status.Paid);
         sample2.Tags.Should().ContainSingle(tag => tag == "beta");

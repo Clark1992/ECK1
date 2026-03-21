@@ -1,5 +1,6 @@
 ﻿using ECK1.Integration.Plugin.Abstractions;
 using ECK1.Integration.Common;
+using ECK1.Integration.Config;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Transport;
 using Microsoft.Extensions.Configuration;

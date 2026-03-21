@@ -27,22 +27,18 @@ public static class KafkaSetup
             typeof(IKafkaMessageHandler<Contract.BusinessEvents.Sample2.ISample2Event>),
             typeof(OrleansKafkaAdapter<Contract.BusinessEvents.Sample2.ISample2Event, ISample2Event, Sample2EventKafkaMetadata>));
 
-        services.AddKafkaGrainRouter<
-            ISampleEvent,
-            SampleEventKafkaMetadata,
-            SampleView,
-            KafkaGrainHandler<ISampleEvent, SampleView>>(
-            ev => ev.SampleId.ToString())
+        services.AddGrain<ISampleEvent>()
+            .WithGrainKey(ev => ev.SampleId.ToString())
+            .AsStateful<SampleView>()
+            .HandledBy<KafkaGrainHandler<ISampleEvent, SampleView>, SampleEventKafkaMetadata>()
             .AddDupChecker<SampleEventKafkaMetadata>()
             .AddMetadataUpdater<SampleEventKafkaMetadata>()
             .AddFaultedStateReset<SampleEventKafkaMetadata>();
 
-        services.AddKafkaGrainRouter<
-            ISample2Event,
-            Sample2EventKafkaMetadata,
-            Sample2View,
-            KafkaGrainHandler<ISample2Event, Sample2View>>(
-            ev => ev.Sample2Id.ToString())
+        services.AddGrain<ISample2Event>()
+            .WithGrainKey(ev => ev.Sample2Id.ToString())
+            .AsStateful<Sample2View>()
+            .HandledBy<KafkaGrainHandler<ISample2Event, Sample2View>, Sample2EventKafkaMetadata>()
             .AddDupChecker<Sample2EventKafkaMetadata>()
             .AddMetadataUpdater<Sample2EventKafkaMetadata>()
             .AddFaultedStateReset<Sample2EventKafkaMetadata>();

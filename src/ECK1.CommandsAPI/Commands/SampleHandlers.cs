@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ECK1.CommandsAPI.Data;
 using ECK1.CommandsAPI.Domain.Samples;
+using ECK1.CommandsAPI.Domain.Shared;
 using ECK1.CommandsAPI.Kafka;
 using MediatR;
 
@@ -8,14 +9,14 @@ namespace ECK1.CommandsAPI.Commands;
 
 public class SampleCommandHandlers :
     AggregateCommandHandlerBase<Sample>,
-    IRequestHandler<CreateSampleCommand, ICommandResult>,
-    IRequestHandler<ChangeSampleNameCommand, ICommandResult>,
-    IRequestHandler<ChangeSampleDescriptionCommand, ICommandResult>,
-    IRequestHandler<ChangeSampleAddressCommand, ICommandResult>,
-    IRequestHandler<AddSampleAttachmentCommand, ICommandResult>,
-    IRequestHandler<RemoveSampleAttachmentCommand, ICommandResult>,
-    IRequestHandler<UpdateSampleAttachmentCommand, ICommandResult>,
-    IRequestHandler<RebuildSampleViewCommand, ICommandResult>
+    IRequestHandler<CommandRequest<CreateSampleCommand, Sample>, (ICommandResult, Sample)>,
+    IRequestHandler<CommandRequest<ChangeSampleNameCommand, Sample>, (ICommandResult, Sample)>,
+    IRequestHandler<CommandRequest<ChangeSampleDescriptionCommand, Sample>, (ICommandResult, Sample)>,
+    IRequestHandler<CommandRequest<ChangeSampleAddressCommand, Sample>, (ICommandResult, Sample)>,
+    IRequestHandler<CommandRequest<AddSampleAttachmentCommand, Sample>, (ICommandResult, Sample)>,
+    IRequestHandler<CommandRequest<RemoveSampleAttachmentCommand, Sample>, (ICommandResult, Sample)>,
+    IRequestHandler<CommandRequest<UpdateSampleAttachmentCommand, Sample>, (ICommandResult, Sample)>,
+    IRequestHandler<CommandRequest<RebuildSampleViewCommand, Sample>, (ICommandResult, Sample)>
 {
     private readonly IMapper mapper;
     private readonly ILogger<SampleCommandHandlers> logger;
@@ -31,55 +32,65 @@ public class SampleCommandHandlers :
         this.logger = logger;
     }
 
-    public async Task<ICommandResult> Handle(CreateSampleCommand command, CancellationToken ct)
+    public async Task<(ICommandResult, Sample)> Handle(CommandRequest<CreateSampleCommand, Sample> command, CancellationToken ct)
     {
-        this.logger.LogInformation("Handling {Type} command (Name = '{Name}').", command.GetType(), command.Name);
+        this.logger.LogInformation("Handling {Type} command (Name = '{Name}').", command.Command.GetType(), command.Command.Name);
+
+        var cmd = command.Command;
+        var address = new Address(cmd.Address.Street, cmd.Address.City, cmd.Address.Country);
         return await SaveAndNotify(
-            () => Sample.Create(command.Name, command.Description, command.Address),
+            () => Sample.Create(command.Command.Name, command.Command.Description, address),
             ct);
     }
 
-    public async Task<ICommandResult> Handle(ChangeSampleNameCommand command, CancellationToken ct)
+    public async Task<(ICommandResult, Sample)> Handle(CommandRequest<ChangeSampleNameCommand, Sample> command, CancellationToken ct)
     {
-        return await SaveAndNotify(command.Id, sample => sample.ChangeName(command.NewName), ct);
+        return await SaveAndNotify(command.Command.Id, command.State, sample => sample.ChangeName(command.Command.NewName), ct);
     }
 
-    public async Task<ICommandResult> Handle(ChangeSampleDescriptionCommand command, CancellationToken ct)
+    public async Task<(ICommandResult, Sample)> Handle(CommandRequest<ChangeSampleDescriptionCommand, Sample> command, CancellationToken ct)
     {
-        return await SaveAndNotify(command.Id, sample => sample.ChangeDescription(command.NewDescription), ct);
+        return await SaveAndNotify(command.Command.Id, command.State, sample => sample.ChangeDescription(command.Command.NewDescription), ct);
     }
 
-    public async Task<ICommandResult> Handle(ChangeSampleAddressCommand command, CancellationToken ct)
+    public async Task<(ICommandResult, Sample)> Handle(CommandRequest<ChangeSampleAddressCommand, Sample> command, CancellationToken ct)
     {
-        return await SaveAndNotify(command.Id, sample => sample.ChangeAddress(command.NewAddress), ct);
+        var dto = command.Command.NewAddress;
+        var newAddress = new Address(dto.Street, dto.City, dto.Country);
+        return await SaveAndNotify(command.Command.Id, command.State, sample => sample.ChangeAddress(newAddress), ct);
     }
 
-    public async Task<ICommandResult> Handle(AddSampleAttachmentCommand command, CancellationToken ct)
+    public async Task<(ICommandResult, Sample)> Handle(CommandRequest<AddSampleAttachmentCommand, Sample> command, CancellationToken ct)
     {
-        return await SaveAndNotify(command.Id, sample => sample.AddAttachment(command.Attachment), ct);
+        var dto = command.Command.Attachment;
+        var attachment = new SampleAttachment(dto.FileName, dto.Url);
+        return await SaveAndNotify(command.Command.Id, command.State, sample => sample.AddAttachment(attachment), ct);
     }
 
-    public async Task<ICommandResult> Handle(RemoveSampleAttachmentCommand command, CancellationToken ct)
+    public async Task<(ICommandResult, Sample)> Handle(CommandRequest<RemoveSampleAttachmentCommand, Sample> command, CancellationToken ct)
     {
-        return await SaveAndNotify(command.Id, sample => sample.RemoveAttachment(command.AttachmentId), ct);
+        return await SaveAndNotify(command.Command.Id, command.State, sample => sample.RemoveAttachment(command.Command.AttachmentId), ct);
     }
 
-    public async Task<ICommandResult> Handle(UpdateSampleAttachmentCommand command, CancellationToken ct)
+    public async Task<(ICommandResult, Sample)> Handle(CommandRequest<UpdateSampleAttachmentCommand, Sample> command, CancellationToken ct)
     {
         return await SaveAndNotify(
-            command.Id,
-            sample => sample.UpdateAttachment(command.AttachmentId, command.NewFileName, command.NewUrl),
+            command.Command.Id,
+            command.State,
+            sample => sample.UpdateAttachment(command.Command.AttachmentId, command.Command.NewFileName, command.Command.NewUrl),
             ct);
     }
 
-    public async Task<ICommandResult> Handle(RebuildSampleViewCommand command, CancellationToken ct)
+    public async Task<(ICommandResult, Sample)> Handle(CommandRequest<RebuildSampleViewCommand, Sample> command, CancellationToken ct)
     {
-        var sample = await Repository.LoadAsync(command.Id, ct);
+        var sample = await Repository.LoadAsync(command.Command.Id, ct);
 
-        if (sample is null) return new NotFound();
+        if (sample is null) return (new NotFound(), null);
 
-        await Mediator.Publish(new EventNotification<ISampleEvent>(mapper.Map<SampleRebuiltEvent>(sample), sample.Version), ct);
+        await Mediator.Publish(
+            new AggregateSavedNotification<Sample>(sample, [mapper.Map<SampleRebuiltEvent>(sample)]),
+            ct);
 
-        return new Success(sample.Id, []);
+        return (new Success(sample.Id, []), sample);
     }
 }

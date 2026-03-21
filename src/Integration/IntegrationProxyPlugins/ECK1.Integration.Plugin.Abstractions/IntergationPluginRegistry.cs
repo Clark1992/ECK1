@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ECK1.Integration.Common;
+using ECK1.Integration.Config;
 using System.Reflection;
 
 namespace ECK1.Integration.Plugin.Abstractions;

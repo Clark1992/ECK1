@@ -11,7 +11,6 @@ using ECK1.Kafka.OpenTelemetry;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Trace;
-using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddK8sSecrets();
@@ -21,11 +20,9 @@ builder.Configuration.AddUserSecrets<Program>();
 #endif
 
 builder.Configuration.AddDopplerSecrets();
+builder.Configuration.AddFailureHandlingManifest();
 
 var configuration = builder.Configuration;
-var environment = builder.Environment;
-
-var failureHandlingConfig = ConfigHelpers.LoadConfig(builder.Configuration);
 
 builder.AddOpenTelemetry(tracingExtraConfig: tracing => tracing
     .AddKafkaInstrumentation()
@@ -43,6 +40,7 @@ builder.Services.AddDbContext<FailuresDbContext>(options =>
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 builder.Services.SetupKafka(builder.Configuration);
+builder.Services.SetupFailureHandling(builder.Configuration);
 
 builder.Services.AddScoped<IRebuildRequestService, RebuildRequestService>();
 
@@ -55,18 +53,10 @@ builder.Services.AddCors(options =>
 builder.Services.AddLogging();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 builder.Services.AddQueueProcessing(c => c.AddRunner<IJobRunner, JobRunner>());
 
 var app = builder.Build();
-
-var logger = app.Services.GetRequiredService<ILogger<Program>>();
-var normalized = ConfigHelpers.Normalize(failureHandlingConfig);
-
-var json = JsonSerializer.Serialize(normalized, new JsonSerializerOptions { WriteIndented = true });
-
-logger.LogInformation("Starting with failureHandlingConfig:\n {config}", json);
 
 if (app.Environment.IsDevelopment())
 {
@@ -83,7 +73,6 @@ app.UseRouting();
 app.UseCors("AllowAllOrigins");
 app.UseAuthorization();
 
-// Swagger
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -93,16 +82,13 @@ app.UseSwaggerUI(c =>
 
 app.MapControllers();
 
-foreach (var entry in failureHandlingConfig)
+app.MapFailureHandlingEndpoints(entityType =>
 {
-    var entityType = entry.Key;
-
     app.MapPost($"/api/jobs/rebuild-failed/{entityType.ToLower()}s", async (
         IRebuildRequestService service,
         int? count) =>
     {
         var result = await service.StartJob(entityType, count);
-
         return Results.Accepted(null, result);
     });
 
@@ -110,7 +96,6 @@ foreach (var entry in failureHandlingConfig)
         IRebuildRequestService service) =>
     {
         var result = await service.StopJob(entityType);
-
         return Results.Ok(result == 0 ? $"[{entityType}] No job(s) in progress" : $"[{entityType}] stopped {result} job(s).");
     });
 
@@ -118,7 +103,6 @@ foreach (var entry in failureHandlingConfig)
         IRebuildRequestService service) =>
     {
         var result = await service.GetStatus(entityType);
-
         return Results.Ok($"[{entityType}] {result} job(s) in progress.");
     });
 
@@ -127,9 +111,8 @@ foreach (var entry in failureHandlingConfig)
         int? count) =>
     {
         var result = await service.GetFailedViewsOverview(entityType, count);
-
         return Results.Ok(result);
     });
-}
+});
 
 app.Run();

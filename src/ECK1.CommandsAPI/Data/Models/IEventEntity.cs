@@ -9,5 +9,5 @@ public interface IEventEntity
     int Version { get; }
     IDomainEvent ToDomainEvent();
 
-    static abstract IEventEntity FromDomainEvent(IDomainEvent domainEvent, int version);
+    static abstract IEventEntity FromDomainEvent(IDomainEvent domainEvent);
 }

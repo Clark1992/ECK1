@@ -37,4 +37,5 @@ public partial class Parent : IIntegrationMessage
     public List<InnerItem> InnerCollection { get; set; }
     public int Version { get; set; }
     public string Id => ParentId;
+    public DateTime OccuredAt { get; set; }
 }

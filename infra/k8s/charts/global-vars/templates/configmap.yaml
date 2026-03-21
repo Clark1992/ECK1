@@ -19,6 +19,11 @@ data:
 
   AppServiceNamespace: {{ .Values.appServiceNamespace | default "app-services" | quote }}
 
+  REDIS_HOST: {{ .Values.redis.serviceName | quote }}
+  REDIS_PORT: {{ .Values.redis.port | quote }}
+
+  HELM_CHART_REGISTRY: {{ .Values.helmChartRegistry | quote }}
+
   {{- if .Values.envSpecific }}
   {{- range $key, $value := .Values.envSpecific }}
   {{ $key }}: {{ $value | quote }}

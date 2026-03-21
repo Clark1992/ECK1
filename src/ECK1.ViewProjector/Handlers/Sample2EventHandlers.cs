@@ -178,7 +178,7 @@ public class Sample2EventHandlers(
             await mediator.Publish(new EventFailure
             {
                 FailedEventType = data.Event.GetType().Name,
-                EntityType = "Sample2",
+                EntityType = "ECK1.Sample2",
                 EntityId = data.Event.Sample2Id,
                 FailureOccurredAt = DateTimeOffset.UtcNow,
                 ErrorMessage = ex.Message,

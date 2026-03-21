@@ -13,26 +13,23 @@ $releaseName = "$imageName-release"
 # 1. Ensure local registry
 Start-LocalDockerRegistry
 
-# 2 & 3. Build and push API image to local registry
+# 2. Load global vars (sets HELM_CHART_REGISTRY and other env vars from k8s ConfigMap)
+. ".github\scripts\prepare.global.vars.ps1"
+
+# 3. Ensure tools
+Ensure-Tools
+
+# 4. Build and push API image to local registry
 Build-DockerImage -imageNameWithTag $imageNameWithTag -dockerfilePath $dockerfilePath
 
-# 4. Check if Helm is installed
+# 5. Check if Helm is installed
 Ensure-Helm
-
-# 5. Deploy using Helm
-. ".github\scripts\prepare.global.vars.ps1"
 
 Ensure-Gomplate
 
 try {
     # Ensure helm dependencies for the chart are present (copies library charts into charts/)
-    Write-Host "Updating Helm chart dependencies for $baseDir/Deploy"
-    helm dependency update "$baseDir/Deploy"
-
-    if ($LASTEXITCODE -ne 0) {
-        Write-Error "Helm deployment failed."
-        throw
-    }
+    Resolve-HelmDependencies -ChartDir "$baseDir/Deploy"
 
     gomplate -f $baseDir\Deploy\values.plugins.yaml -o $baseDir\Deploy\values.plugins.rendered.yaml
 

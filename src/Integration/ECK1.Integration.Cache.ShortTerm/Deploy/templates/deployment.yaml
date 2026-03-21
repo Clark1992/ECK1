@@ -17,7 +17,7 @@ spec:
         service_name: {{ $.Chart.Name }}
     spec:
 
-      {{- include "config-merge.initConfigAggregator" $ | nindent 6 }}
+      {{- include "config-watcher.podSpec" $ | nindent 6 }}
 
       containers:
         - name: cache-short-term
@@ -57,13 +57,13 @@ spec:
               mountPath: /etc/secrets
               readOnly: true
 
-            {{- include "config-merge.initConfigVolumeMounts" $ | nindent 12 }}
+            {{- include "config-watcher.volumeMounts" $ | nindent 12 }}
+
+        {{- include "config-watcher.sidecar" $ | nindent 8 }}
 
       volumes:
         - name: kafka-client-secret
           secret:
             secretName: kafka-client-secret
             
-        {{- include "config-merge.initConfigVolumes" $ | nindent 8 }}
----
-{{- include "config-merge.initConfigRbac" . }}
+        {{- include "config-watcher.volumes" $ | nindent 8 }}

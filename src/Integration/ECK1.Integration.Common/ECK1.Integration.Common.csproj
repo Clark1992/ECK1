@@ -11,4 +11,8 @@
     <PackageReference Include="protobuf-net.Core" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Nuget\ECK1.Integration.Config\ECK1.Integration.Config.csproj" />
+  </ItemGroup>
+
 </Project>

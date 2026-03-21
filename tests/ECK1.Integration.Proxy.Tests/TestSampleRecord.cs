@@ -17,6 +17,8 @@ public sealed class TestSampleRecord : IIntegrationMessage
     public Attachment[] Attachments { get; set; }
 
     public string Id => SampleId.ToString();
+
+    public DateTime OccuredAt { get; set; }
 }
 
 public sealed class Attachment

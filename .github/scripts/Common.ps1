@@ -192,6 +192,41 @@ function Get-YamlValue {
     return $current
 }
 
+function Resolve-HelmDependencies {
+    param(
+        [Parameter(Mandatory)]
+        [string]$ChartDir
+    )
+
+    $registry = if ($env:HELM_CHART_REGISTRY) { $env:HELM_CHART_REGISTRY } else { "localhost:5000" }
+    $chartFile = Join-Path $ChartDir "Chart.yaml"
+    $patched = $false
+    $originalContent = $null
+
+    if (Test-Path $chartFile) {
+        $originalContent = Get-Content $chartFile -Raw
+        $updated = $originalContent -replace 'oci://[^"]+/helm', "oci://$registry/helm"
+        if ($originalContent -ne $updated) {
+            Set-Content $chartFile $updated -NoNewline
+            $patched = $true
+        }
+    }
+
+    try {
+        Write-Host "Updating Helm chart dependencies for $ChartDir"
+        helm dependency update $ChartDir
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "Helm dependency update failed."
+            throw
+        }
+    }
+    finally {
+        if ($patched -and $originalContent) {
+            Set-Content $chartFile $originalContent -NoNewline
+        }
+    }
+}
+
 function Clean-Secret {
     param (
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]

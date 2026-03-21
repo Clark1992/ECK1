@@ -5,7 +5,7 @@ using MediatR;
 
 namespace ECK1.CommandsAPI.Commands;
 public abstract class AggregateCommandHandlerBase<TAggregate>
-    where TAggregate : IAggregateRoot
+    where TAggregate : class, IAggregateRootInternal, IAggregateRoot
 {
     private const int MaxSaveRetries = 2;
 
@@ -23,12 +23,7 @@ public abstract class AggregateCommandHandlerBase<TAggregate>
     protected IMediator Mediator { get; }
     protected ILogger Logger { get; }
 
-    protected async Task<ICommandResult> SaveAndNotify(TAggregate aggregate, CancellationToken ct)
-    {
-        return await TrySaveAndNotify(aggregate, ct);
-    }
-
-    protected async Task<ICommandResult> SaveAndNotify(Func<TAggregate> aggregateFactory, CancellationToken ct)
+    protected async Task<(ICommandResult, TAggregate)> SaveAndNotify(Func<TAggregate> aggregateFactory, CancellationToken ct)
     {
         for (var attempt = 0; attempt <= MaxSaveRetries; attempt++)
         {
@@ -41,20 +36,20 @@ public abstract class AggregateCommandHandlerBase<TAggregate>
                 continue;
             }
 
-            return result;
+            return (result, aggregate);
         }
 
         throw new InvalidOperationException("Unexpected retry loop termination.");
     }
 
-    protected async Task<ICommandResult> SaveAndNotify(Guid aggregateId, Action<TAggregate> applyCommand, CancellationToken ct)
+    protected async Task<(ICommandResult, TAggregate)> SaveAndNotify(Guid aggregateId, TAggregate state, Action<TAggregate> applyCommand, CancellationToken ct)
     {
         for (var attempt = 0; attempt <= MaxSaveRetries; attempt++)
         {
-            var aggregate = await Repository.LoadAsync(aggregateId, ct);
+            var aggregate = state ?? await Repository.LoadAsync(aggregateId, ct);
             if (aggregate is null)
             {
-                return new NotFound();
+                return (new NotFound(), null);
             }
 
             applyCommand(aggregate);
@@ -66,7 +61,7 @@ public abstract class AggregateCommandHandlerBase<TAggregate>
                 continue;
             }
 
-            return result;
+            return (result, aggregate);
         }
 
         throw new InvalidOperationException("Unexpected retry loop termination.");
@@ -80,11 +75,9 @@ public abstract class AggregateCommandHandlerBase<TAggregate>
         {
             var eventIds = await Repository.SaveAsync(aggregate, ct);
 
-            foreach (var domainEvent in events)
-            {
-                await Mediator.Publish(new EventNotification<IDomainEvent>(domainEvent, aggregate.Version), ct);
-            }
+            await Mediator.Publish(new AggregateSavedNotification<TAggregate>(aggregate.Untouched, events), ct);
 
+            aggregate.CommitEvents();
             return new Success(aggregate.Id, eventIds);
         }
         catch (ConcurrencyConflictException ex)

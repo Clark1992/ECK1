@@ -1,0 +1,4 @@
+apiVersion: v2
+name: eck1-commands-integration-manifests
+version: 0.1.0
+description: ECK1 Commands API - Integration manifests (ConfigMap)

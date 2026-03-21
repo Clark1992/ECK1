@@ -1,0 +1,62 @@
+{
+  "mappings": {
+    "dynamic": "false",
+    "properties": {
+      "sampleId": {
+        "type": "keyword"
+      },
+      "name": {
+        "type": "text",
+        "fields": {
+          "keyword": { "type": "keyword" }
+        }
+      },
+      "description": {
+        "type": "text",
+        "fields": {
+          "keyword": { "type": "keyword" }
+        }
+      },
+
+      "address": {
+        "type": "object",
+        "dynamic": "false",
+        "properties": {
+          "street": {
+            "type": "text",
+            "fields": {
+              "keyword": { "type": "keyword" }
+            }
+          },
+          "city": {
+            "type": "text",
+            "fields": {
+              "keyword": { "type": "keyword" }
+            }
+          },
+          "country": {
+            "type": "text",
+            "fields": {
+              "keyword": { "type": "keyword" }
+            }
+          }
+        }
+      },
+
+      "attachments": {
+        "type": "nested",
+        "dynamic": "false",
+        "properties": {
+          "id": { "type": "keyword" },
+          "fileName": {
+            "type": "text",
+            "fields": {
+              "keyword": { "type": "keyword" }
+            }
+          },
+          "url": { "type": "keyword" }
+        }
+      }
+    }
+  }
+}

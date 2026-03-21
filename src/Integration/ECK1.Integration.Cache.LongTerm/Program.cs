@@ -3,6 +3,7 @@ using ECK1.Integration.Cache.LongTerm;
 using ECK1.Integration.Cache.LongTerm.Kafka;
 using ECK1.Integration.Cache.LongTerm.Services;
 using ECK1.Integration.Common;
+using ECK1.Integration.Config;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using ProtoBuf.Grpc.Server;
 using ECK1.Integration.EntityStore.Generated;

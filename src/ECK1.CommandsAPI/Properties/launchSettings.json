@@ -4,7 +4,9 @@
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "REDIS_CONNECTION": "localhost:30079",
+        "ORLEANS_HOSTING": "local"
       },
       "applicationUrl": "https://localhost:63350;http://localhost:63351"
     }

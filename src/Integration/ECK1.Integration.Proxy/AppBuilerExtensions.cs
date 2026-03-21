@@ -1,9 +1,10 @@
 ﻿using ECK1.CommonUtils.Secrets.Doppler;
 using ECK1.CommonUtils.Secrets.K8s;
 using ECK1.Integration.Common;
+using ECK1.Integration.Config;
 using ECK1.Integration.Plugin.Abstractions;
 
-using static ECK1.Integration.Common.ConfigHelpers;
+using static ECK1.Integration.Config.ConfigHelpers;
 
 namespace ECK1.Integration.Proxy;
 
@@ -18,7 +19,7 @@ public static class AppBuilerExtensions
 #endif
 
         builder.Configuration.AddDopplerSecrets();
-        builder.Configuration.AddJsonFile("/config/merged.json", optional: true);
+        builder.Configuration.AddIntegrationManifest();
     }
 
     public static ProxyConfig GetProxyType(this WebApplicationBuilder builder)

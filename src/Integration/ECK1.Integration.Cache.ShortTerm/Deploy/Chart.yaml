@@ -5,9 +5,9 @@ version: 0.1.0
 appVersion: "1.0"
 
 dependencies:
-  - name: config-merge
+  - name: config-watcher
     version: 0.1.0
-    repository: "file://../../common/helm/config-merge"
+    repository: "oci://localhost:5000/helm"
 
   - name: common-values
     version: 0.1.0

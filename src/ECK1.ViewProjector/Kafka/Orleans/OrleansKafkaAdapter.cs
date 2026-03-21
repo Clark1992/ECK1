@@ -2,7 +2,7 @@ using AutoMapper;
 using ECK1.CommonUtils.Mapping;
 using ECK1.Kafka;
 using ECK1.Orleans;
-using ECK1.Orleans.Kafka;
+using ECK1.Orleans.Grains;
 using ECK1.ViewProjector.Notifications;
 using MediatR;
 
@@ -13,10 +13,10 @@ public class OrleansKafkaAdapter<TValue, TOrleansSerializableValue, TMetadata> :
     where TValue : class
     where TOrleansSerializableValue : class
 {
-    private readonly IKafkaGrainRouter<TOrleansSerializableValue, TMetadata> router;
+    private readonly IGrainRouter<TOrleansSerializableValue, TMetadata> router;
     private readonly IMapper mapper;
 
-    public OrleansKafkaAdapter(IKafkaGrainRouter<TOrleansSerializableValue, TMetadata> router, IMapper mapper)
+    public OrleansKafkaAdapter(IGrainRouter<TOrleansSerializableValue, TMetadata> router, IMapper mapper)
     {
         this.router = router;
         this.mapper = mapper;
