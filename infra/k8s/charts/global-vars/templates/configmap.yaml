@@ -23,6 +23,7 @@ data:
   REDIS_PORT: {{ .Values.redis.port | quote }}
 
   HELM_CHART_REGISTRY: {{ .Values.helmChartRegistry | quote }}
+  DOCKER_REGISTRY: {{ .Values.dockerRegistry | quote }}
 
   {{- if .Values.envSpecific }}
   {{- range $key, $value := .Values.envSpecific }}

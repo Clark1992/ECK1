@@ -16,10 +16,16 @@ $mongoPort = 32017 # container port 27017 mapped to host port 32017
 # 1. Ensure local registry
 Start-LocalDockerRegistry
 
-# 2 & 3. Build and push API image to local registry
+# 2. Load global vars (sets HELM_CHART_REGISTRY and other env vars from k8s ConfigMap)
+. ".github\scripts\prepare.global.vars.ps1"
+
+# 3. Ensure tools
+Ensure-Tools
+
+# 4. Build and push API image to local registry
 Build-DockerImage -imageNameWithTag $imageNameWithTag -dockerfilePath $dockerfilePath
 
-# 4. Check if Helm is installed
+# 5. Check if Helm is installed
 Ensure-Helm
 
 # 5. Decide whether Helm should shutdown local mongo under docker before deploy to k8s
@@ -36,8 +42,6 @@ try {
 Write-Host "Mongo port $mongoPort is not in use. Helm will deploy mongo inside k8s alongside the API."
 
 # 6. Deploy using Helm
-
-. ".github\scripts\prepare.global.vars.ps1"
 
 helm upgrade --install $releaseName $baseDir\Deploy\service\$chartPath `
     --namespace $env:AppServiceNamespace `

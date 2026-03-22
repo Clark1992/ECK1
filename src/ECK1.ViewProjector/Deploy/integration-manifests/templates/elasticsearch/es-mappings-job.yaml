@@ -13,10 +13,10 @@ spec:
       restartPolicy: Never
       containers:
         - name: mapping-upload
-          image: alpine:3.22.2
+          image: {{ .Values.toolbox.image }}
           command: ["sh", "-c"]
           args:
-            - apk add --no-cache curl jq && /scripts/upsert-mappings.sh
+            - /scripts/upsert-mappings.sh
           imagePullPolicy: IfNotPresent
           env:
             - name: ES_HOST

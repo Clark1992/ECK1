@@ -54,7 +54,7 @@ spec:
       serviceAccountName: pv-cleaner
       containers:
         - name: pv-cleaner
-          image: bitnami/kubectl:latest
+          image: {{ .Values.toolbox.image }}
           command:
             - bash
             - -c

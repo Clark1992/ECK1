@@ -1,6 +1,5 @@
 apiKeyGenJob:
   name: es-api-key-generate
-  image: "bitnami/kubectl:latest"
   daysBeforeRenew: 2
   rbac:
     serviceAccountName: es-api-key-gen

@@ -171,7 +171,7 @@ function Ensure-ConfigWatcherChart {
 
     $exists = helm show chart "oci://$chartRef" --version $chartVersion 2>$null
     if ($LASTEXITCODE -eq 0 -and $exists) {
-        Write-Host "✅ config-watcher chart found in registry: oci://$chartRef:$chartVersion" -ForegroundColor Green
+        Write-Host "✅ config-watcher chart found in registry: oci://$($chartRef):$chartVersion" -ForegroundColor Green
         return
     }
 
@@ -179,6 +179,32 @@ function Ensure-ConfigWatcherChart {
     & "$PSScriptRoot\..\..\tools\config-watcher\build-config-watcher-chart.ps1" -Registry $Registry
     if ($LASTEXITCODE -ne 0) {
         Write-Error "❌ Failed to build/push config-watcher chart"
+        throw
+    }
+}
+
+# ===========================================
+# Ensure AlpineToolbox Image
+# ===========================================
+function Ensure-AlpineToolboxImage {
+    param(
+        [string]$ImageName = "alpine-toolbox",
+        [string]$ImageTag = "dev",
+        [string]$Registry = "localhost:5000"
+    )
+
+    $fullImage = "$Registry/${ImageName}:$ImageTag"
+
+    $exists = docker images --format "{{.Repository}}:{{.Tag}}" | Where-Object { $_ -eq $fullImage }
+    if ($exists) {
+        Write-Host "✅ AlpineToolbox image found locally: $fullImage" -ForegroundColor Green
+        return
+    }
+
+    Write-Host "⚠ AlpineToolbox image not found. Building and pushing: $fullImage" -ForegroundColor Yellow
+    & "$PSScriptRoot\..\..\tools\alpine-toolbox\build-alpine-toolbox-image.ps1" -ImageName $ImageName -ImageTag $ImageTag -Registry $Registry
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "❌ Failed to build/push AlpineToolbox image"
         throw
     }
 }
@@ -192,6 +218,7 @@ function Ensure-Tools {
     )
 
     Ensure-DbUpImage -Registry $Registry
+    Ensure-AlpineToolboxImage -Registry $Registry
     Ensure-ConfigWatcherChart -Registry $Registry
 }
 

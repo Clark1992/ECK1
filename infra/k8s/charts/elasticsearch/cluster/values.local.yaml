@@ -8,6 +8,9 @@ data:
   persistence:
     storageClass: "hostpath"
 
+toolbox:
+  image: localhost:5000/alpine-toolbox:dev
+
 resources:
   requests:
     cpu: 200m

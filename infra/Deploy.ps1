@@ -13,6 +13,7 @@ try {
     Ensure-Helm
     Ensure-HelmDiff
     Ensure-HelmFile
+    Ensure-Tools
 
     # 2 - Deploy Phase 0 (Prepare global config)
 

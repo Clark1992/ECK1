@@ -1,0 +1,2 @@
+apiKeyGenJob:
+  image: "localhost:5000/alpine-toolbox:dev"

@@ -29,11 +29,13 @@ Write-Host "Deploy manifests."
 
 # Write-Host "helm upgrade --install ${releaseName}-elastic-mappings $baseDir/Deploy/index-mappings/$chartPath `
 #     --namespace $env:AppServiceNamespace `
+#     -f $baseDir\Deploy\integration-manifests\values.local.yaml `
 #     --set elasticsearch.clusterUrl=$env:ElasticSearchConfig__ClusterUrl `
 #     --set elasticsearch.password=$env:ELASTICSEARCH_PASSWORD"
 
 helm upgrade --install ${releaseName}-manifests $baseDir/Deploy/integration-manifests/$chartPath `
     --namespace $env:AppServiceNamespace `
+    -f $baseDir\Deploy\integration-manifests\values.local.yaml `
     --set elasticsearch.clusterUrl=$env:ElasticSearchConfig__ClusterUrl `
     --set elasticsearch.password=$env:ELASTICSEARCH_PASSWORD
 
