@@ -9,6 +9,8 @@ try {
     & 'src\Integration\IntegrationProxyPlugins\ECK1.Integration.Plugin.ElasticSearch\Deploy\DeployLocally.ps1'
 
     & 'src\Integration\IntegrationProxyPlugins\ECK1.Integration.Plugin.Clickhouse\Deploy\DeployLocally.ps1'
+
+    & 'src\Integration\IntegrationProxyPlugins\ECK1.Integration.Plugin.Mongo\Deploy\DeployLocally.ps1'
     
     & 'src\Integration\ECK1.Integration.Cache.ShortTerm\Deploy\RunLocally.ps1'
 

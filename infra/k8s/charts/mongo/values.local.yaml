@@ -1,0 +1,18 @@
+mongo:
+  enabled: true
+
+  persistence:
+    hostPath:
+      enabled: true
+
+  service:
+    type: NodePort
+    nodePort: 32017
+
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "100m"
+      memory: "256Mi"

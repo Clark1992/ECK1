@@ -23,8 +23,9 @@
 
         rm -f "$CONFIG_DIR"/*
 
-        jq -r '.items[] | .data // {} | to_entries[] | (.key + "=" + (.value | @base64))' "$TMP" \
-        | while IFS='=' read -r key b64value; do
+        jq -r '.items[] | .data // {} | to_entries[] | .key, (.value | @base64)' "$TMP" \
+        | while read -r key; do
+          read -r b64value
           echo "$b64value" | base64 -d > "$CONFIG_DIR/$key"
         done
 

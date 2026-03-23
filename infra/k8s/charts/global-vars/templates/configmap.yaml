@@ -17,6 +17,11 @@ data:
 
   ClickhouseConfig__ConnectionString: "Host={{ .Values.clickhouse.resourcePrefix }}-svc.{{ .Values.clickhouse.namespace }}.svc.cluster.local;Port={{ .Values.clickhouse.port }};Database={{ .Values.clickhouse.database }};Username={{ .Values.clickhouse.username }};Password={{ .Values.clickhouse.password | default "" }};Compress={{ .Values.clickhouse.compress }}"
 
+  {{- range $name, $conn := .Values.mongo.connections }}
+  MongoConnections__{{ $name }}__ConnectionString: "mongodb://{{ $conn.serviceName }}.{{ $.Values.appServiceNamespace }}.svc.cluster.local:{{ $conn.port }}"
+  MongoConnections__{{ $name }}__DatabaseName: {{ $conn.databaseName | quote }}
+  {{- end }}
+
   AppServiceNamespace: {{ .Values.appServiceNamespace | default "app-services" | quote }}
 
   REDIS_HOST: {{ .Values.redis.serviceName | quote }}

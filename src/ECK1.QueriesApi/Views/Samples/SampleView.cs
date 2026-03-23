@@ -2,8 +2,9 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
 
-namespace ECK1.QueriesAPI.Views;
+namespace ECK1.QueriesAPI.Views.Samples;
 
+[BsonIgnoreExtraElements]
 public class SampleView
 {
     [JsonIgnore]
@@ -17,6 +18,7 @@ public class SampleView
 }
 
 [BsonNoId]
+[BsonIgnoreExtraElements]
 public class SampleAddressView
 {
     [JsonIgnore]
@@ -27,6 +29,7 @@ public class SampleAddressView
 }
 
 [BsonNoId]
+[BsonIgnoreExtraElements]
 public class SampleAttachmentView
 {
     public Guid Id { get; set; }

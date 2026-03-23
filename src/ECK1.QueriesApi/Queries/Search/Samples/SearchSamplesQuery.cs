@@ -1,4 +1,4 @@
-using ECK1.QueriesAPI.Views;
+using ECK1.QueriesAPI.Views.Samples;
 
 namespace ECK1.QueriesAPI.Queries.Search.Samples;
 

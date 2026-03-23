@@ -11,7 +11,7 @@ public class SampleFullRecord: IIntegrationMessage
     [ProtoMember(2)] public string Name { get; set; }
     [ProtoMember(3)] public string Description { get; set; }
     [ProtoMember(4)] public SampleAddress Address { get; set; }
-    [ProtoMember(5)] public List<SampleAttachment> Attachments { get; set; }
+    [ProtoMember(5)] public List<SampleAttachment> Attachments { get; set; } = new();
     [ProtoMember(6)] public int Version { get; set; }
     [ProtoMember(7)] public DateTime OccuredAt { get; set; }
 }

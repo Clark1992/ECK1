@@ -11,8 +11,8 @@ public class Sample2FullRecord : IIntegrationMessage
     [ProtoMember(1)] public Guid Sample2Id { get; set; }
     [ProtoMember(2)] public Sample2Customer Customer { get; set; }
     [ProtoMember(3)] public Sample2Address ShippingAddress { get; set; }
-    [ProtoMember(4)] public List<Sample2LineItem> LineItems { get; set; }
-    [ProtoMember(5)] public List<Sample2Tag> Tags { get; set; }
+    [ProtoMember(4)] public List<Sample2LineItem> LineItems { get; set; } = new();
+    [ProtoMember(5)] public List<Sample2Tag> Tags { get; set; } = new();
     [ProtoMember(6)] public Sample2Status Status { get; set; }
     [ProtoMember(7)] public int Version { get; set; }
     [ProtoMember(8)] public DateTime OccuredAt { get; set; }

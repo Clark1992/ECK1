@@ -1,9 +1,8 @@
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Core.Search;
 using Elastic.Clients.Elasticsearch.QueryDsl;
-using ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample2;
-using ECK1.QueriesAPI.Views;
 using MediatR;
+using ECK1.QueriesAPI.Views.Sample2s;
 
 namespace ECK1.QueriesAPI.Queries.Search.Sample2s;
 
@@ -32,12 +31,11 @@ public class SearchSample2sHandler : IRequestHandler<SearchSample2sQuery, PagedR
             Sort = sort.Count == 0 ? null : sort
         };
 
-        var response = await _client.SearchAsync<Sample2FullRecord>(searchRequest, ct);
+        var response = await _client.SearchAsync<Sample2View>(searchRequest, ct);
 
         var items = (response.Hits ?? [])
             .Select(h => h.Source)
             .Where(x => x is not null)
-            .Select(Map)
             .ToArray();
 
         return new PagedResponse<Sample2View>
@@ -46,36 +44,6 @@ public class SearchSample2sHandler : IRequestHandler<SearchSample2sQuery, PagedR
             Total = ElasticSearchShared.GetTotal(response.HitsMetadata?.Total)
         };
     }
-
-    private static Sample2View Map(Sample2FullRecord record) => new()
-    {
-        Sample2Id = record.Sample2Id,
-        Customer = record.Customer is null ? null : new Sample2CustomerView
-        {
-            CustomerId = record.Customer.CustomerId,
-            Email = record.Customer.Email,
-            Segment = record.Customer.Segment,
-        },
-        ShippingAddress = record.ShippingAddress is null ? null : new Sample2AddressView
-        {
-            City = record.ShippingAddress.City,
-            Country = record.ShippingAddress.Country,
-            Street = record.ShippingAddress.Street,
-        },
-        LineItems = record.LineItems?.Select(li => new Sample2LineItemView
-        {
-            ItemId = li.ItemId,
-            Quantity = li.Quantity,
-            Sku = li.Sku,
-            UnitPrice = li.UnitPrice is null ? null : new Sample2MoneyView
-            {
-                Amount = li.UnitPrice.Amount,
-                Currency = li.UnitPrice.Currency,
-            }
-        }).ToList() ?? new(),
-        Tags = record.Tags?.Select(t => t.Value).Where(v => !string.IsNullOrWhiteSpace(v)).ToList() ?? new(),
-        Status = (int)record.Status,
-    };
 
     private static Query BuildSample2Query(SearchSample2sQuery request)
     {

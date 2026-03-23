@@ -29,4 +29,18 @@ plugins:
             ConnectionString: 
               name: global-vars
               key: ClickhouseConfig__ConnectionString
+
+  - name: Mongo
+    replicaCount: 1
+    spec:
+      config:
+        configMap:
+          MongoConnections:
+            eck1:
+              ConnectionString:
+                name: global-vars
+                key: MongoConnections__eck1__ConnectionString
+              DatabaseName:
+                name: global-vars
+                key: MongoConnections__eck1__DatabaseName
             

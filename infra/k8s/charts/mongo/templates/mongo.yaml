@@ -1,0 +1,63 @@
+{{- if .Values.mongo.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eck1-mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eck1-mongo
+  template:
+    metadata:
+      labels:
+        app: eck1-mongo
+        environment: {{ .Values.environment | default "default" }}
+        service_name: eck1-mongo
+    spec:
+      containers:
+        - name: mongo
+          image: "{{ .Values.mongo.image }}"
+          ports:
+            - containerPort: {{ .Values.mongo.service.port }}
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+
+          {{- if .Values.mongo.resources }}
+          resources: {{- toYaml .Values.mongo.resources | nindent 12 }}
+          {{- end }}
+
+      volumes:
+{{- if .Values.mongo.persistence.enabled }}
+  {{- if .Values.mongo.persistence.hostPath.enabled }}
+        - name: mongo-data
+          hostPath:
+            path: "{{ .Values.mongo.persistence.hostPath.path }}"
+            type: DirectoryOrCreate
+  {{- else }}
+        - name: mongo-data
+          persistentVolumeClaim:
+            claimName: mongo-pvc
+  {{- end }}
+{{- else }}
+        - name: mongo-data
+          emptyDir: {}
+{{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.mongo.service.name | quote }}
+spec:
+  type: {{ .Values.mongo.service.type }}
+  selector:
+    app: eck1-mongo
+  ports:
+    - protocol: TCP
+      port: {{ .Values.mongo.service.port }}
+      {{- if .Values.mongo.service.nodePort }}
+      nodePort: {{ .Values.mongo.service.nodePort }}
+      {{- end }}
+      targetPort: {{ .Values.mongo.service.port }}
+{{- end }}

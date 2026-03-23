@@ -21,7 +21,6 @@ public class Sample2IntegrationMapping : Profile
 
         this.CreateMap<Sample2ThinEvent, Sample2FullRecord>();
 
-        // View has tags as strings; FullRecord uses Sample2Tag wrapper.
         this.CreateMap<string, Sample2Tag>(MemberList.Destination)
             .ForMember(x => x.Value, o => o.MapFrom(s => s));
     }

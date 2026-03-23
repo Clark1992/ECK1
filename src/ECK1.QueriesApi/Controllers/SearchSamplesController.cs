@@ -1,6 +1,6 @@
 using ECK1.QueriesAPI.Queries;
 using ECK1.QueriesAPI.Queries.Search.Samples;
-using ECK1.QueriesAPI.Views;
+using ECK1.QueriesAPI.Views.Samples;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 

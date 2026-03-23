@@ -1,9 +1,8 @@
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Core.Search;
 using Elastic.Clients.Elasticsearch.QueryDsl;
-using ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample;
-using ECK1.QueriesAPI.Views;
 using MediatR;
+using ECK1.QueriesAPI.Views.Samples;
 
 namespace ECK1.QueriesAPI.Queries.Search.Samples;
 
@@ -32,12 +31,11 @@ public class SearchSamplesHandler : IRequestHandler<SearchSamplesQuery, PagedRes
             Sort = sort.Count == 0 ? null : sort
         };
 
-        var response = await _client.SearchAsync<SampleFullRecord>(searchRequest, ct);
+        var response = await _client.SearchAsync<SampleView>(searchRequest, ct);
 
         var items = (response.Hits ?? [])
             .Select(h => h.Source)
             .Where(x => x is not null)
-            .Select(Map)
             .ToArray();
 
         return new PagedResponse<SampleView>
@@ -46,25 +44,6 @@ public class SearchSamplesHandler : IRequestHandler<SearchSamplesQuery, PagedRes
             Total = ElasticSearchShared.GetTotal(response.HitsMetadata?.Total)
         };
     }
-
-    private static SampleView Map(SampleFullRecord record) => new()
-    {
-        SampleId = record.SampleId,
-        Name = record.Name,
-        Description = record.Description,
-        Address = record.Address is null ? null : new SampleAddressView
-        {
-            City = record.Address.City,
-            Country = record.Address.Country,
-            Street = record.Address.Street,
-        },
-        Attachments = record.Attachments?.Select(a => new SampleAttachmentView
-        {
-            Id = a.Id,
-            FileName = a.FileName,
-            Url = a.Url,
-        }).ToList() ?? new()
-    };
 
     private static Query BuildSampleQuery(SearchSamplesQuery request)
     {

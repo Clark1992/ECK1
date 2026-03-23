@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Chart.Name }}-mongo-migrations
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  ttlSecondsAfterFinished: 600
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: mongo-migrate
+          image: node:20-alpine
+          command: ["sh", "-c"]
+          args:
+            - /scripts/run-migrations.sh
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MONGO_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: MongoConnections__eck1__ConnectionString
+            - name: MONGO_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: MongoConnections__eck1__DatabaseName
+          volumeMounts:
+            - name: migration-files
+              mountPath: /workdir/migrations
+            - name: migration-config
+              mountPath: /workdir/migrate-mongo-config.js
+              subPath: migrate-mongo-config.js
+            - name: migration-scripts
+              mountPath: /scripts
+      volumes:
+        - name: migration-files
+          configMap:
+            name: mongo-migration-files
+        - name: migration-config
+          configMap:
+            name: mongo-migration-config
+        - name: migration-scripts
+          configMap:
+            name: mongo-migration-scripts
+            defaultMode: 0755

@@ -1,6 +1,7 @@
 using MongoDB.Driver;
 using ECK1.CommonUtils.OpenTelemetry;
-using ECK1.QueriesAPI.Views;
+using ECK1.QueriesAPI.Views.Sample2s;
+using ECK1.QueriesAPI.Views.Samples;
 
 namespace ECK1.QueriesAPI.Data;
 

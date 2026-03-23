@@ -59,12 +59,8 @@ public static class ProjectionPlanCompiler
         var accessors = new Func<TEvent, TRecord, object>[items.Length];
         for (var i = 0; i < items.Length; i++)
         {
-            var accessor = CompileValue<TEvent, TRecord>(items[i]);
-            if (accessor is null)
-            {
-                throw new InvalidOperationException("Cant find accessor for:");
-            }
-            accessors[i] = accessor;
+            accessors[i] = CompileValue<TEvent, TRecord>(items[i])
+                ?? throw new InvalidOperationException($"Cant find accessor for: {items[i].Key}");
         }
 
         Func<TEvent, TRecord, object[]> columnvalues = (evt, rec) =>

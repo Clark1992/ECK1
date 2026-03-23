@@ -58,6 +58,22 @@ releases:
       - name: environment
         value: {{ .Environment.Name }}
 
+  - name: mongo
+    namespace: {{ requiredEnv "AppServiceNamespace" }}
+    chart: k8s/charts/mongo
+    values:
+      - k8s/charts/mongo/values.{{ .Environment.Name }}.yaml
+      {{- if isFile "k8s/charts/mongo/values.secrets.yaml" }}
+      - k8s/charts/mongo/values.secrets.yaml
+      {{- end }}
+      - mongo:
+          service:
+            name: {{ $default.mongo.serviceName }}
+            port: {{ $default.mongo.port }}
+    set:
+      - name: environment
+        value: {{ .Environment.Name }}
+
   - name: ingress-nginx
     namespace: {{ $default.ingress.namespace }}
     createNamespace: true

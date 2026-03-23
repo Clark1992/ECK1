@@ -51,9 +51,15 @@ spec:
                   name: {{ .Values.ElasticSearchConfig__ApiKeySecretName }}
                   key: api_key
             - name: MongoDb__ConnectionString
-              value: "{{ .Values.mongo.connectionString }}"
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: MongoConnections__eck1__ConnectionString
             - name: MongoDb__DatabaseName
-              value: eck1-queries
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: MongoConnections__eck1__DatabaseName
           {{- if .Values.resources }}
           resources: {{- toYaml .Values.resources | nindent 12 }}
           {{- end }}

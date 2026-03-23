@@ -10,9 +10,6 @@ service:
   port: 80
   nodePort: 30180
 
-mongo:
-  connectionString: mongodb://eck1-viewprojector-mongo:27017
-  
 env:
   ASPNETCORE_ENVIRONMENT: Development
 

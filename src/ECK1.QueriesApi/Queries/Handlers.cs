@@ -1,7 +1,8 @@
 using MediatR;
-using ECK1.QueriesAPI.Views;
 using MongoDB.Driver;
 using ECK1.QueriesAPI.Data;
+using ECK1.QueriesAPI.Views.Sample2s;
+using ECK1.QueriesAPI.Views.Samples;
 
 namespace ECK1.QueriesAPI.Queries;
 

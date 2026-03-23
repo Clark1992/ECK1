@@ -25,7 +25,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Nuget\ECK1.CommonUtils\ECK1.CommonUtils.csproj" />
-    <ProjectReference Include="..\Nuget\ECK1.IntegrationContracts\ECK1.IntegrationContracts.csproj" />
   </ItemGroup>
 
 </Project>

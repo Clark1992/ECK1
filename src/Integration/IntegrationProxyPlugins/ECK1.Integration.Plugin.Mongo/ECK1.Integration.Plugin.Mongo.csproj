@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,8 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ClickHouse.Client" />
-    <PackageReference Include="ClickHouse.Extensions.OpenTelemetry" />
+    <PackageReference Include="MongoDB.Driver" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
@@ -17,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ECK1.Integration.Plugin.Abstractions\ECK1.Integration.Plugin.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\Nuget\ECK1.CommonUtils\ECK1.CommonUtils.csproj" />
   </ItemGroup>
 
 </Project>

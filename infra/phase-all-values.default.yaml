@@ -25,6 +25,16 @@ clickhouse:
   password: default
   compress: "True"
 
+mongo:
+  serviceName: eck1-mongo
+  port: 27017
+  image: mongo:6.0
+  connections:
+    eck1:
+      serviceName: eck1-mongo
+      port: 27017
+      databaseName: eck1-queries
+
 observability:
   namespace: observability
   otlpService: "otel-collector-opentelemetry-collector"

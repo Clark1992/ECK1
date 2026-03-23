@@ -2,8 +2,9 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
 
-namespace ECK1.QueriesAPI.Views;
+namespace ECK1.QueriesAPI.Views.Sample2s;
 
+[BsonIgnoreExtraElements]
 public class Sample2View
 {
     [JsonIgnore]
@@ -13,11 +14,12 @@ public class Sample2View
     public Sample2CustomerView Customer { get; set; }
     public Sample2AddressView ShippingAddress { get; set; }
     public List<Sample2LineItemView> LineItems { get; set; } = new();
-    public List<string> Tags { get; set; } = new();
-    public int Status { get; set; }
+    public List<Sample2TagView> Tags { get; set; } = new();
+    public Sample2Status Status { get; set; }
 }
 
 [BsonNoId]
+[BsonIgnoreExtraElements]
 public class Sample2CustomerView
 {
     public Guid CustomerId { get; set; }
@@ -26,6 +28,7 @@ public class Sample2CustomerView
 }
 
 [BsonNoId]
+[BsonIgnoreExtraElements]
 public class Sample2AddressView
 {
     [JsonIgnore]
@@ -36,6 +39,7 @@ public class Sample2AddressView
 }
 
 [BsonNoId]
+[BsonIgnoreExtraElements]
 public class Sample2MoneyView
 {
     public decimal Amount { get; set; }
@@ -43,10 +47,18 @@ public class Sample2MoneyView
 }
 
 [BsonNoId]
+[BsonIgnoreExtraElements]
 public class Sample2LineItemView
 {
     public Guid ItemId { get; set; }
     public string Sku { get; set; }
     public int Quantity { get; set; }
     public Sample2MoneyView UnitPrice { get; set; }
+}
+
+[BsonNoId]
+[BsonIgnoreExtraElements]
+public class Sample2TagView
+{
+    public string Value { get; set; }
 }

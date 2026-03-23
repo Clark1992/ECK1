@@ -44,8 +44,10 @@ public static class ServiceCollectionExtensions
                     {
                         var json = Encoding.UTF8.GetString(details.RequestBodyInBytes);
                     }
-                });
-#endif
+                })
+                .ServerCertificateValidationCallback((sender, cert, chain, errors) => true)
+                .EnableDebugMode();
+#else
 
             // If running against TLS with a private CA in k8s, mount it at /etc/elasticsearch/certs/ca.crt.
             var caPath = "/etc/elasticsearch/certs/ca.crt";
@@ -71,6 +73,7 @@ public static class ServiceCollectionExtensions
             {
                 throw new Exception($"ElasticSearch CA certificate not found at {caPath}");
             }
+#endif
 
             return new ElasticsearchClient(settings);
         });

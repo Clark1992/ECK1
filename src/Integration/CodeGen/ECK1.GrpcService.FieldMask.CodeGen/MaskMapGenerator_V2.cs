@@ -124,17 +124,14 @@ namespace ECK1.GrpcService.FieldMask.CodeGen
 
             foreach (var property in properties)
             {
-                string propName = property.Name;
-                var type = property.Type;
+                var (propName, type, isPrimitive, isList) = GetPropertyData(property);
 
-                if (IsPrimitiveLike(type))
+                if (isPrimitive)
                 {
                     sb.AppendLine($"    private bool copy{propName};");
                 }
                 else
                 {
-                    type = IsListType(type, out var elementType) ? elementType : type;
-
                     sb.AppendLine($"    private bool copy{propName}Ref;");
                     sb.AppendLine($"    private bool copy{propName};");
                     sb.AppendLine($"    private MaskMap_{MakeSafeIdentifier(type)} copy{propName}MaskMap;");
