@@ -1,7 +1,8 @@
 using ECK1.CommonUtils.OpenTelemetry;
 using ECK1.CommonUtils.Secrets.Doppler;
 using ECK1.CommonUtils.Secrets.K8s;
-using OpenTelemetry.Trace;
+using ECK1.Gateway.Startup;
+using ECK1.Gateway.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddK8sSecrets();
@@ -14,19 +15,17 @@ builder.Configuration.AddDopplerSecrets();
 
 builder.AddOpenTelemetry();
 
-builder.Services.AddLogging();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services
+    .AddGatewayOptions(builder.Configuration)
+    .AddServiceDiscovery(builder.Configuration)
+    .AddGatewayProxy()
+    .AddGatewaySwagger()
+    .AddCommandPipeline(builder.Configuration)
+    .AddHostedService<GatewayRefreshWorker>();
 
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Gateway V1");
-    c.RoutePrefix = string.Empty;
-});
-
-app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+app.MapSwaggerEndpoints();
+app.MapGatewayEndpoints();
 
 app.Run();

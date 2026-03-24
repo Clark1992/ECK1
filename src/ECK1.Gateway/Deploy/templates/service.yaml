@@ -1,18 +1,17 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Chart.Name }}
+  name: eck1-gateway
   labels:
-    expose-api: "true"
-    expose-async-api: "true"
+    app: eck1-gateway
 spec:
   type: {{ .Values.service.type }}
   selector:
-    app: {{ .Chart.Name }}
+    app: eck1-gateway
   ports:
     - protocol: TCP
       port: {{ .Values.service.port }}
       targetPort: 80
-      {{- if eq .Values.service.type "NodePort" }}
+      {{- if .Values.service.nodePort }}
       nodePort: {{ .Values.service.nodePort }}
       {{- end }}

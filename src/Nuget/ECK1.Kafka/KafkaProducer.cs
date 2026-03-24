@@ -3,27 +3,28 @@ using Microsoft.Extensions.Logging;
 
 namespace ECK1.Kafka;
 
-public interface IKafkaProducer
+public interface IKafkaProducer<T>
 {
-    Task ProduceAsync(string topic, object value, string key = null, CancellationToken ct = default);
+    Task ProduceAsync(string topic, T value, string key = null, CancellationToken ct = default);
 }
 
-public class KafkaProducerBase
+public class KafkaProducerBase<T>
+    where T : class
 {
     private readonly ILogger logger;
-    private readonly IProducer<string, object> producer;
+    private readonly IProducer<string, T> producer;
 
     public KafkaProducerBase(
-        IProducer<string, object> producer,
-        ILogger<IKafkaProducer> logger)
+        IProducer<string, T> producer,
+        ILogger logger)
     {
         this.producer = producer;
         this.logger = logger;
     }
 
-    public async Task ProduceAsync(string topic, object value, string key, CancellationToken ct)
+    public async Task ProduceAsync(string topic, T value, string key, CancellationToken ct)
     {
-        var message = new Message<string, object>
+        var message = new Message<string, T>
         {
             Key = key,
             Value = value
@@ -36,37 +37,41 @@ public class KafkaProducerBase
         catch (Exception ex)
         {
             logger.LogError(ex, "Error during Produce.");
+            throw;
         }
     }
 }
 
-public class KafkaJsonProducer : KafkaProducerBase, IKafkaProducer
+public class KafkaJsonProducer<T> : KafkaProducerBase<T>, IKafkaProducer<T>
+    where T : class
 {
     public KafkaJsonProducer(
-        IProducer<string, object> producer,
-        ILogger<KafkaJsonProducer> logger) : base(
+        IProducer<string, T> producer,
+        ILogger<KafkaJsonProducer<T>> logger) : base(
             producer,
             logger)
     {
     }
 }
 
-public class KafkaAvroProducer : KafkaProducerBase, IKafkaProducer
+public class KafkaAvroProducer<T> : KafkaProducerBase<T>, IKafkaProducer<T>
+    where T : class
 {
     public KafkaAvroProducer(
-        IProducer<string, object> producer,
-        ILogger<KafkaAvroProducer> logger) : base(
+        IProducer<string, T> producer,
+        ILogger<KafkaAvroProducer<T>> logger) : base(
             producer,
             logger)
     {
     }
 }
 
-public class KafkaProtoProducer : KafkaProducerBase, IKafkaProducer
+public class KafkaProtoProducer<T> : KafkaProducerBase<T>, IKafkaProducer<T>
+    where T : class
 {
     public KafkaProtoProducer(
-        IProducer<string, object> producer,
-        ILogger<KafkaProtoProducer> logger) : base(
+        IProducer<string, T> producer,
+        ILogger<KafkaProtoProducer<T>> logger) : base(
             producer,
             logger)
     {

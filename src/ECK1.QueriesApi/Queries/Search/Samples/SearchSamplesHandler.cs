@@ -94,6 +94,7 @@ public class SearchSamplesHandler : IRequestHandler<SearchSamplesQuery, PagedRes
                     AllowLeadingWildcard = true,
                     Fields = new[]
                     {
+                        "sampleId",
                         "name",
                         "name.keyword",
                         "description",
@@ -115,6 +116,7 @@ public class SearchSamplesHandler : IRequestHandler<SearchSamplesQuery, PagedRes
                 Query = q,
                 Fields = new[]
                 {
+                    "sampleId",
                     "name",
                     "description",
                     "address.street",
@@ -181,6 +183,7 @@ public class SearchSamplesHandler : IRequestHandler<SearchSamplesQuery, PagedRes
             var (field, order) = ElasticSearchShared.ParseOrder(request.Order);
             var esField = field switch
             {
+                "sampleId" => "sampleId",
                 "name" => "name.keyword",
                 "description" => "description.keyword",
                 "address.street" => "address.street.keyword",

@@ -1,4 +1,5 @@
-﻿using ECK1.CommandsAPI;
+﻿using ECK1.AsyncApi.Extensions;
+using ECK1.CommandsAPI;
 using ECK1.CommandsAPI.Commands;
 using ECK1.CommandsAPI.Data;
 using ECK1.CommandsAPI.Data.Models;
@@ -119,6 +120,7 @@ app.UseSwaggerUI(c =>
 });
 
 app.MapControllers();
+app.MapAsyncApiDocument("eck1-commandsapi", typeof(Program).Assembly);
 
 AggregateHandlerBootstrapper.Initialize(typeof(Program).Assembly);
 

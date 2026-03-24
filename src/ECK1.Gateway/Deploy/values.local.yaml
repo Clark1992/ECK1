@@ -1,0 +1,14 @@
+replicaCount: 1
+
+image:
+  repository: localhost:5000/gateway
+  tag: dev
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 80
+  nodePort: 30090
+
+env:
+  ASPNETCORE_ENVIRONMENT: Production

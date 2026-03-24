@@ -18,6 +18,8 @@ try {
 
     & 'src\Integration\ECK1.Integration.Proxy\Deploy\RunLocally.ps1'
 
+    & 'src\ECK1.Gateway\Deploy\RunLocally.ps1'
+
     & 'tests\ECK1.TestPlatform\Deploy\RunLocally.ps1'
 
 } catch {

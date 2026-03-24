@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eck1-gateway
+  labels:
+    app: eck1-gateway
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: eck1-gateway
+  template:
+    metadata:
+      annotations:
+        rollme: {{ now | quote }}
+      labels:
+        app: eck1-gateway
+        environment: {{ .Values.environment | default "local" }}
+        expose-api: "true"
+    spec:
+      serviceAccountName: eck1-gateway
+      containers:
+        - name: gateway
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 80
+          env:
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: "{{ $value }}"
+            {{- end }}
+            - name: OTEL_SERVICE_NAME
+              value: eck1-gateway
+            - name: OTEL_SERVICE_VERSION
+              value: "1.0"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: OTEL_EXPORTER_OTLP_ENDPOINT
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: OTEL_EXPORTER_OTLP_PROTOCOL
+            - name: Gateway__Namespace
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          volumeMounts:
+            - name: kafka-client-secret
+              mountPath: /etc/secrets
+              readOnly: true
+          {{- if .Values.resources }}
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: kafka-client-secret
+          secret:
+            secretName: kafka-client-secret

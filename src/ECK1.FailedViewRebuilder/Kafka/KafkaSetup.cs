@@ -39,7 +39,7 @@ public static class ServiceCollectionExtensions
                 c.AllowAutoCreateTopics = true;
             });
 
-        services.ConfigSimpleTopicProducer<Guid>();
+        services.ConfigSimpleProducer<Guid>();
 
         return services;
     }

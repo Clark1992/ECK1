@@ -38,6 +38,8 @@ public static class KafkaSetup
 
         services.AddSingleton<IIntegrationEventProducerFactory, IntegrationEventProducerFactory>();
 
+        services.AddCommands(config, kafkaSettings);
+
         services.ConfigSimpleTopicConsumer<Guid, RebuildHandler<RebuildSampleViewCommand>>(
             kafkaSettings.BootstrapServers,
             kafkaSettings.SampleEventsRebuildRequestTopic,

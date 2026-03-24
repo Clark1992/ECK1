@@ -34,6 +34,7 @@ public class KafkaTopicProducerBase<TValue> where TValue : class
         catch (Exception ex)
         {
             logger.LogError(ex, "Error during Produce.");
+            throw;
         }
     }
 }
