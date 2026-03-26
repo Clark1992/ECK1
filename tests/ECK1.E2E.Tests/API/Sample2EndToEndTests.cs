@@ -1,8 +1,7 @@
 using System.Net;
-using System.Net.Http.Json;
 using System.Text.Json;
 
-namespace ECK1.E2E.Tests;
+namespace ECK1.E2E.Tests.API;
 
 /// <summary>
 /// Creates a Sample2 via the sync command endpoint, waits for view projection,

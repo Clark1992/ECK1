@@ -18,7 +18,7 @@ public static class OpenTelemetryExtensions
 {
     private static readonly string[] DefaultIgnoredExtensions =
     [
-        ".css", ".js", ".png", ".jpg", ".jpeg", ".svg", ".ico", ".map", ".woff", ".woff2", ".ttf", ".eot", ".gif", ".html", ".htm"
+        ".css", ".js", ".png", ".jpg", ".jpeg", ".svg", ".ico", ".map", ".woff", ".woff2", ".ttf", ".eot", ".gif", ".html", ".htm", ".json"
     ];
 
     /// <summary>

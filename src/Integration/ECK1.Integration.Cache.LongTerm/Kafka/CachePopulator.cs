@@ -9,10 +9,11 @@ public class CachePopulator<TRecord>(IEntityStore store, ILogger<CachePopulator<
 {
     public async Task Handle(string key, TRecord message, KafkaMessageId messageId, CancellationToken ct)
     {
-        logger.LogInformation("Start handle 'FullRecord:{id}'", message.Id);
+        var type = typeof(TRecord);
+        logger.LogInformation("Start handle '{type}:{id}'", type, message.Id);
 
         store.Put(message.Id, message.Version, message);
 
-        logger.LogInformation("Handled 'FullRecord:{id}'", message.Id);
+        logger.LogInformation("Handled '{type}:{id}'", type, message.Id);
     }
 }

@@ -1,4 +1,4 @@
-namespace ECK1.E2E.Tests;
+namespace ECK1.E2E.Tests.API;
 
 /// <summary>
 /// Shared configuration and HttpClient factory for E2E tests.

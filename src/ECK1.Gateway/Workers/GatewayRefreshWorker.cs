@@ -25,7 +25,7 @@ public class GatewayRefreshWorker(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        logger.LogInformation("Gateway refresh worker started (interval: {Interval}s)",
+        logger.LogDebug("Gateway refresh worker started (interval: {Interval}s)",
             _config.RefreshIntervalSeconds);
 
         // Initial delay to let services start
@@ -52,7 +52,7 @@ public class GatewayRefreshWorker(
 
         // 1. Discover services
         var discoveredServices = await serviceDiscovery.DiscoverServicesAsync(ct);
-        logger.LogInformation("Discovered {Count} services", discoveredServices.Count);
+        logger.LogDebug("Discovered {Count} services", discoveredServices.Count);
 
         var snapshots = discoveredServices.Select(s =>
             new ServiceSnapshot(s.Name, s.BaseUrl, s.ExposesApi, s.ExposesAsyncApi)).ToList();
@@ -129,6 +129,6 @@ public class GatewayRefreshWorker(
         }
 
         commandState.UpdateRoutes(routes);
-        logger.LogInformation("Updated command routes: {Count} endpoints", routes.Count);
+        logger.LogDebug("Updated command routes: {Count} endpoints", routes.Count);
     }
 }

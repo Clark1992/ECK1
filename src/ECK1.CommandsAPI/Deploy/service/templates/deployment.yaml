@@ -33,6 +33,9 @@ spec:
             - containerPort: 11111 # Orleans Silo-to-Silo
             - containerPort: 30000 # Orleans Gateway for clients
           env:
+            - name: SERVICE_NAME
+              value: {{ .Chart.Name | quote }}
+
             - name: OTEL_SERVICE_NAME
               value: {{ .Chart.Name | quote }}
               

@@ -3,9 +3,7 @@ using Confluent.SchemaRegistry;
 using ECK1.CommandsAPI.Commands;
 using ECK1.Integration.Config;
 using ECK1.IntegrationContracts.Kafka.IntegrationRecords.Generated;
-using ECK1.Kafka;
 using ECK1.Kafka.Extensions;
-using ECK1.Orleans.Grains;
 
 namespace ECK1.CommandsAPI.Kafka;
 

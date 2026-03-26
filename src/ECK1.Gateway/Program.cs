@@ -1,8 +1,10 @@
+using ECK1.CommonUtils.AspNet;
 using ECK1.CommonUtils.OpenTelemetry;
 using ECK1.CommonUtils.Secrets.Doppler;
 using ECK1.CommonUtils.Secrets.K8s;
 using ECK1.Gateway.Startup;
 using ECK1.Gateway.Workers;
+using ECK1.Kafka.OpenTelemetry;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddK8sSecrets();
@@ -13,7 +15,8 @@ builder.Configuration.AddUserSecrets<Program>();
 
 builder.Configuration.AddDopplerSecrets();
 
-builder.AddOpenTelemetry();
+builder.AddOpenTelemetry(tracingExtraConfig: tracing => tracing
+    .AddKafkaInstrumentation());
 
 builder.Services
     .AddGatewayOptions(builder.Configuration)
@@ -24,6 +27,8 @@ builder.Services
     .AddHostedService<GatewayRefreshWorker>();
 
 var app = builder.Build();
+
+app.UseTraceResponseEnricher();
 
 app.MapSwaggerEndpoints();
 app.MapGatewayEndpoints();

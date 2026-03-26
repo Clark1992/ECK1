@@ -82,7 +82,7 @@ public sealed class DynamicCommandEndpointDataSource : EndpointDataSource, IDisp
         oldCts.Cancel();
         oldCts.Dispose();
 
-        _logger.LogInformation(
+        _logger.LogDebug(
             "Rebuilt command endpoints: {Count} routes registered", endpoints.Count);
     }
 

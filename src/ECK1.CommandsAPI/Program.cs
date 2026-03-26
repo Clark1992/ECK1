@@ -42,7 +42,9 @@ builder.AddOpenTelemetry(tracingExtraConfig: tracing => tracing
     .AddSqlClientInstrumentation(options =>
     {
         options.RecordException = true;
-    }));
+    })
+    .AddSource("Microsoft.Orleans.Runtime")
+    .AddSource("Microsoft.Orleans.Application"));
 
 builder.Services.AddControllers(options =>
     options.Conventions.Add(new RouteTokenTransformerConvention(new SlugifyParameterTransformer())));
@@ -107,20 +109,21 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("AllowAllOrigins");
 
-app.UseTraceResponseEnricher();
-
 app.UseAuthorization();
 
 // Swagger
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Commands API V1");
+    c.SwaggerEndpoint("swagger/v1/swagger.json", "Commands API V1");
     c.RoutePrefix = string.Empty;
 });
 
 app.MapControllers();
-app.MapAsyncApiDocument("eck1-commandsapi", typeof(Program).Assembly);
+app.MapAsyncApiDocument(
+    Environment.GetEnvironmentVariable("SERVICE_NAME") ?? 
+        throw new Exception("SERVICE_NAME env var not specified."), 
+    typeof(Program).Assembly);
 
 AggregateHandlerBootstrapper.Initialize(typeof(Program).Assembly);
 

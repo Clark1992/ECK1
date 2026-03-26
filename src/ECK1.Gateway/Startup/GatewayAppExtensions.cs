@@ -1,4 +1,5 @@
 using ECK1.Gateway.Commands;
+using ECK1.Gateway.Proxy;
 using ECK1.Gateway.Swagger;
 
 namespace ECK1.Gateway.Startup;
@@ -32,9 +33,28 @@ public static class GatewayAppExtensions
             return Results.Content(json, "application/json");
         }).ExcludeFromDescription();
 
+        // Dynamic config endpoint for Swagger UI — returns per-service specs
+        // so the dropdown is populated with all discovered services.
+        app.MapGet("/swagger/config.json", (ServiceRouteState state, SwaggerAggregator aggregator) =>
+        {
+            var available = aggregator.GetAvailableSpecs();
+            var urls = new List<object>
+            {
+                new { url = "/swagger/merged/swagger.json", name = "All Services (Merged)" }
+            };
+
+            foreach (var serviceName in available)
+            {
+                urls.Add(new { url = $"/swagger/{serviceName}/swagger.json", name = serviceName });
+            }
+
+            return Results.Json(new { urls });
+        }).ExcludeFromDescription();
+
         app.UseSwaggerUI(options =>
         {
             options.SwaggerEndpoint("/swagger/merged/swagger.json", "All Services (Merged)");
+            options.ConfigObject.AdditionalItems["configUrl"] = "/swagger/config.json";
             options.RoutePrefix = "swagger";
         });
 

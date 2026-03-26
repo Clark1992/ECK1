@@ -1,8 +1,7 @@
 using System.Net;
-using System.Net.Http.Json;
 using System.Text.Json;
 
-namespace ECK1.E2E.Tests;
+namespace ECK1.E2E.Tests.API;
 
 /// <summary>
 /// Tests the gateway's HTTP → Kafka async command pipeline.

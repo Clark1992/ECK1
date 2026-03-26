@@ -64,8 +64,12 @@ public class KubernetesServiceDiscovery(
         var name = svc.Metadata.Name;
         var labels = svc.Metadata.Labels ?? new Dictionary<string, string>();
         var port = svc.Spec.Ports?.FirstOrDefault()?.Port ?? 80;
+#if DEBUG
+        port = svc.Spec.Ports.FirstOrDefault(x => x.NodePort.HasValue)?.NodePort ?? throw new Exception("Service has no NodePort specified.");
+        var baseUrl = $"http://localhost:{port}";
+#else
         var baseUrl = $"http://{name}:{port}";
-
+#endif
         labels.TryGetValue(ExposeApiLabel, out var exposeApi);
         labels.TryGetValue(ExposeAsyncApiLabel, out var exposeAsyncApi);
 

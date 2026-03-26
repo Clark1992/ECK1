@@ -41,7 +41,11 @@ public static class GatewayServiceExtensions
         {
             services.AddSingleton<IKubernetes>(_ =>
             {
+#if DEBUG
+                var k8sConfig = KubernetesClientConfiguration.BuildConfigFromConfigFile();
+#else
                 var k8sConfig = KubernetesClientConfiguration.InClusterConfig();
+#endif
                 return new Kubernetes(k8sConfig);
             });
             services.AddSingleton<IServiceDiscovery, KubernetesServiceDiscovery>();

@@ -6,7 +6,8 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "REDIS_CONNECTION": "localhost:30079",
-        "ORLEANS_HOSTING": "local"
+        "ORLEANS_HOSTING": "local",
+        "SERVICE_NAME": "eck1-commandsapi"
       },
       "applicationUrl": "https://localhost:63350;http://localhost:63351"
     }

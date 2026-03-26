@@ -89,7 +89,7 @@ public class DynamicYarpConfigProvider : IProxyConfigProvider, IDisposable
             oldCts.Cancel();
             oldCts.Dispose();
 
-            _logger.LogInformation("YARP config updated: {RouteCount} routes, {ClusterCount} clusters",
+            _logger.LogDebug("YARP config updated: {RouteCount} routes, {ClusterCount} clusters",
                 routes.Count, clusters.Count);
         }
         catch (Exception ex)
