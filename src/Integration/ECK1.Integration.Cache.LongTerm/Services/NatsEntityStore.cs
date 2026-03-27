@@ -43,20 +43,21 @@ public class NatsEntityStore : IDisposable, IEntityStore
     public void Put<T>(string key, int version, T obj) where T : class
     {
         var store = GetStoreForType(typeof(T));
-        using var activity = _natsTelemetry.Start("nats.kv.put", obj is null ? "delete" : "put", store.Bucket, key);
+        var versionedKey = $"{key}:{version}";
+        using var activity = _natsTelemetry.Start("nats.kv.put", obj is null ? "delete" : "put", store.Bucket, versionedKey);
 
         try
         {
             if (obj == null)
             {
-                store.DeleteAsync(key).AsTask().GetAwaiter().GetResult();
+                store.DeleteAsync(versionedKey).AsTask().GetAwaiter().GetResult();
                 return;
             }
 
             var entry = new EntityEntry<T> { Version = version, Item = obj };
             var bytes = EntitySerializer.ToBytes(entry);
 
-            store.PutAsync(key, bytes).AsTask().GetAwaiter().GetResult();
+            store.PutAsync(versionedKey, bytes).AsTask().GetAwaiter().GetResult();
         }
         catch (Exception ex)
         {
@@ -77,18 +78,19 @@ public class NatsEntityStore : IDisposable, IEntityStore
         foreach (var (key, version, obj) in items)
         {
             count++;
+            var versionedKey = $"{key}:{version}";
             try
             {
                 if (obj == null)
                 {
-                    store.DeleteAsync(key).AsTask().GetAwaiter().GetResult();
+                    store.DeleteAsync(versionedKey).AsTask().GetAwaiter().GetResult();
                     continue;
                 }
 
                 var entry = new EntityEntry<T> { Version = version, Item = obj };
                 var bytes = EntitySerializer.ToBytes(entry);
 
-                store.PutAsync(key, bytes).AsTask().GetAwaiter().GetResult();
+                store.PutAsync(versionedKey, bytes).AsTask().GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
@@ -101,26 +103,18 @@ public class NatsEntityStore : IDisposable, IEntityStore
         _natsTelemetry.SetCount(activity, count);
     }
 
-    public EntityEntry<T> Get<T>(string key, int minVersion) where T : class
+    public EntityEntry<T> Get<T>(string key, int version) where T : class
     {
         var store = GetStoreForType(typeof(T));
-        using var activity = _natsTelemetry.Start("nats.kv.get", "get", store.Bucket, key);
+        var versionedKey = $"{key}:{version}";
+        using var activity = _natsTelemetry.Start("nats.kv.get", "get", store.Bucket, versionedKey);
 
         try
         {
-            var entry = store.GetEntryAsync<byte[]>(key).AsTask().GetAwaiter().GetResult();
+            var entry = store.GetEntryAsync<byte[]>(versionedKey).AsTask().GetAwaiter().GetResult();
             if (entry.Value == null) return null;
 
             var stored = EntitySerializer.FromBytes<EntityEntry<T>>(entry.Value);
-            if (stored == null) return null;
-
-            if (stored.Version < minVersion)
-            {
-                _logger.LogWarning("Entry {Key} version is stale. Actual: {Actual} < Expected: {Expected}",
-                    key, stored.Version, minVersion);
-                return null;
-            }
-
             return stored;
         }
         catch (NatsKVKeyNotFoundException)

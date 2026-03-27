@@ -48,7 +48,7 @@ public class EntityStore : IDisposable, IEntityStore
 
     public void Put<T>(string key, int version, T obj) where T : class
     {
-        var fullKey = BuildKey(typeof(T).FullName, key);
+        var fullKey = BuildKey(typeof(T).FullName, key, version);
 
         lock (_dbLock)
         {
@@ -97,7 +97,7 @@ public class EntityStore : IDisposable, IEntityStore
             {
                 foreach (var (key, version, obj) in items)
                 {
-                    var fullKey = BuildKey(typeof(T).FullName, key);
+                    var fullKey = BuildKey(typeof(T).FullName, key, version);
 
                     if (obj == null)
                     {
@@ -120,22 +120,14 @@ public class EntityStore : IDisposable, IEntityStore
         }
     }
 
-    public EntityEntry<T> Get<T>(string key, int minVersion) where T : class
+    public EntityEntry<T> Get<T>(string key, int version) where T : class
     {
-        var fullKey = BuildKey(typeof(T).FullName, key);
+        var fullKey = BuildKey(typeof(T).FullName, key, version);
 
         if (_memory.TryGetValue<EntityEntry<T>>(fullKey, out var cached))
-            return cached.Version >= minVersion ? cached : null;
+            return cached;
 
         cached = GetEntryFromDb<T>(fullKey);
-
-        if (cached == null) return null;
-        if (cached.Version < minVersion)
-        {
-            _logger.LogWarning("Entry {FullKey} version is stale. Actual: {Actual} < Expected: {Expected}",
-                fullKey, cached.Version, minVersion);
-            return null;
-        }
 
         return cached;
     }
@@ -207,12 +199,12 @@ public class EntityStore : IDisposable, IEntityStore
         }
     }
 
-    private static string BuildKey(string entityType, string key)
+    private static string BuildKey(string entityType, string key, int version)
     {
         ArgumentException.ThrowIfNullOrEmpty(entityType);
         ArgumentException.ThrowIfNullOrEmpty(key);
 
-        return $"{entityType}:{key}";
+        return $"{entityType}:{key}:{version}";
     }
 
     private void DisposeGuard() => ObjectDisposedException.ThrowIf(_disposed, nameof(EntityStore));

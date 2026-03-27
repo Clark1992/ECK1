@@ -67,7 +67,7 @@ public class EventConsumerConfig(
                             FieldMaskHash = fieldMaskHash,
                             Id = @event.EntityId.ToString(),
                             Mask = mask,
-                            MinVersion = @event.Version
+                            Version = @event.Version
                         };
 
                         var useLongTerm = ShouldUseLongTerm(occuredAt, threshold);

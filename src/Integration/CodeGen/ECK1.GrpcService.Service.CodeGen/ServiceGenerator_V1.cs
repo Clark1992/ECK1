@@ -81,7 +81,7 @@ public class ServiceGenerator : IIncrementalGenerator
         sb.AppendLine("{");
         sb.AppendLine("    void ClearAll();");
         sb.AppendLine();
-        sb.AppendLine("    EntityEntry<T> Get<T>(string key, int minVersion) where T : class;");
+        sb.AppendLine("    EntityEntry<T> Get<T>(string key, int version) where T : class;");
         sb.AppendLine();
         sb.AppendLine("    void Put<T>(string key, int version, T obj) where T : class;");
         sb.AppendLine("}");
@@ -142,7 +142,7 @@ public class ServiceGenerator : IIncrementalGenerator
         sb.AppendLine($"    public ValueTask<EntityResponse<{typeText}>> Get_{safeId}_Entity(GetEntityRequest<{typeText}> request) =>");
         sb.AppendLine($"        GetEntity(request, () =>");
         sb.AppendLine("        {");
-        sb.AppendLine($"            var entityEntry = store.Get<{typeText}>(request.Id, request.MinVersion);");
+        sb.AppendLine($"            var entityEntry = store.Get<{typeText}>(request.Id, request.Version);");
         sb.AppendLine();
         sb.AppendLine($"            if (entityEntry is null)");
         sb.AppendLine("            {");
