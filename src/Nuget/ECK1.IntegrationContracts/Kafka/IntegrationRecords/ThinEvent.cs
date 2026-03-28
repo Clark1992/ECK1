@@ -14,4 +14,6 @@ public class ThinEvent
     public DateTime OccuredAt { get; set; }
     [Required]
     public string EventType { get; set; }
+    [Required]
+    public string[] Targets { get; set; } = [];
 }
