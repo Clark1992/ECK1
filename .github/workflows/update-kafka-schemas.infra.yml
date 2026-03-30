@@ -60,10 +60,10 @@ jobs:
                 --configfile "$NUGET_CONFIG"
             fi
 
-            # Find and build all .sln files
+            # Find and publish all .sln files (publish copies framework deps needed by schema generator)
             find "$CLONE_DIR/$REPO_NAME" -name "*.sln" -type f | while read -r SLN; do
-              echo "Building solution: $SLN"
-              dotnet build "$SLN" -c Release
+              echo "Publishing solution: $SLN"
+              dotnet publish "$SLN" -c Release
             done
           done
 
@@ -78,7 +78,7 @@ jobs:
           for DLL_NAME in "${!DLL_MAP[@]}"; do
             ENV_NAME="${DLL_MAP[$DLL_NAME]}"
 
-            DLL_PATH=$(find "$CLONE_DIR" -path "*/bin/Release/net8.0/${DLL_NAME}" -type f | head -n 1)
+            DLL_PATH=$(find "$CLONE_DIR" -path "*/bin/Release/net8.0/publish/${DLL_NAME}" -type f | head -n 1)
 
             if [ -z "$DLL_PATH" ]; then
               echo "ERROR: Could not find ${DLL_NAME} in any cloned repo"
