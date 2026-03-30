@@ -60,10 +60,10 @@ jobs:
                 --configfile "$NUGET_CONFIG"
             fi
 
-            # Find and publish all .sln files (publish copies framework deps needed by schema generator)
+            # Find and publish all .sln files (self-contained ensures all deps are in output for reflection)
             find "$CLONE_DIR/$REPO_NAME" -name "*.sln" -type f | while read -r SLN; do
               echo "Publishing solution: $SLN"
-              dotnet publish "$SLN" -c Release
+              dotnet publish "$SLN" -c Release --self-contained -r linux-x64
             done
           done
 
@@ -78,7 +78,7 @@ jobs:
           for DLL_NAME in "${!DLL_MAP[@]}"; do
             ENV_NAME="${DLL_MAP[$DLL_NAME]}"
 
-            DLL_PATH=$(find "$CLONE_DIR" -path "*/tests/*" -prune -o -path "*/bin/Release/net8.0/publish/${DLL_NAME}" -type f -print | head -n 1)
+            DLL_PATH=$(find "$CLONE_DIR" -path "*/tests/*" -prune -o -path "*/bin/Release/net8.0/linux-x64/publish/${DLL_NAME}" -type f -print | head -n 1)
 
             if [ -z "$DLL_PATH" ]; then
               echo "ERROR: Could not find ${DLL_NAME} in any cloned repo"
@@ -88,19 +88,6 @@ jobs:
             echo "Found $DLL_NAME at $DLL_PATH"
             echo "$ENV_NAME=$(realpath "$DLL_PATH")" >> $GITHUB_ENV
           done
-
-          # Copy ASP.NET Core shared framework assemblies into publish dirs that need them
-          # (schema generator loads DLLs via reflection and can't resolve shared framework assemblies)
-          ASPNET_FW_DIR=$(find /usr/share/dotnet/shared/Microsoft.AspNetCore.App/8.* -maxdepth 0 | sort -V | tail -1)
-          if [ -d "$ASPNET_FW_DIR" ]; then
-            find "$CLONE_DIR" -path "*/tests/*" -prune -o -path "*/bin/Release/net8.0/publish" -type d -print | while read -r PUB_DIR; do
-              if [ -f "$PUB_DIR/ECK1.CommandsAPI.dll" ]; then
-                echo "Copying ASP.NET Core framework assemblies to $PUB_DIR"
-                cp -n "$ASPNET_FW_DIR"/Microsoft.AspNetCore.Mvc.*.dll "$PUB_DIR/"
-                cp -n "$ASPNET_FW_DIR"/Microsoft.Extensions.*.dll "$PUB_DIR/" 2>/dev/null || true
-              fi
-            done
-          fi
 
       - name: Run generator
         uses: ./.github/workflows/actions/run-generator
