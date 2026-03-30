@@ -15,7 +15,7 @@ public class IntegrationConfigEntry
     public string RecordTopic { get; set; } = "";
     public string RebuildRequestTopic { get; set; } = "";
     public string EntityType { get; set; } = "";
-    public IConfigurationSection? PluginConfig { get; set; }
+    public IConfigurationSection PluginConfig { get; set; }
 }
 
 public static class ConfigHelpers
@@ -66,7 +66,7 @@ public static class ConfigHelpers
     /// Loads integration manifest entries from <see cref="IntegrationConfig.Section"/> in IConfiguration.
     /// Optionally filters plugin config by <paramref name="targetPlugin"/>.
     /// </summary>
-    public static IntegrationConfig LoadConfig(IConfiguration configuration, string? targetPlugin = null)
+    public static IntegrationConfig LoadConfig(IConfiguration configuration, string targetPlugin = null)
     {
         var section = configuration.GetSection(IntegrationConfig.Section);
         var result = new IntegrationConfig();

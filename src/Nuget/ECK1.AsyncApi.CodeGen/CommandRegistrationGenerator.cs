@@ -1,7 +1,6 @@
 using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
 using System.Text;
-using Microsoft.CodeAnalysis;
 
 using static ECK1.AsyncApi.CodeGen.Common;
 

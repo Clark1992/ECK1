@@ -49,7 +49,7 @@ file sealed class FieldNode
             FieldNode current = root;
             foreach (var segment in segments)
             {
-                if (!current.Children.TryGetValue(segment, out FieldNode? child))
+                if (!current.Children.TryGetValue(segment, out FieldNode child))
                 {
                     child = new FieldNode();
                     current.Children[segment] = child;
@@ -76,7 +76,7 @@ file static class PlanCompiler
                 ?? throw new InvalidOperationException(
                     $"Property '{name}' not found on type {typeof(T).Name}");
 
-            bool isCollection = TryGetItemType(prop.PropertyType, out Type? itemType);
+            bool isCollection = TryGetItemType(prop.PropertyType, out Type itemType);
 
             if (child.IsLeaf && !isCollection)
             {
@@ -116,7 +116,7 @@ file static class PlanCompiler
         Func<object, BsonValue> convert = GetBsonConverter(typeof(TItem));
         return (doc, src) =>
         {
-            IEnumerable<TItem>? items = getter(src);
+            IEnumerable<TItem> items = getter(src);
             if (items is null) { doc.Add(name, BsonNull.Value); return; }
             var array = new BsonArray();
             foreach (TItem item in items)
@@ -132,7 +132,7 @@ file static class PlanCompiler
         Action<BsonDocument, TItem>[] itemWriters = CompileWriters<TItem>(childNode);
         return (doc, src) =>
         {
-            IEnumerable<TItem>? items = getter(src);
+            IEnumerable<TItem> items = getter(src);
             if (items is null) { doc.Add(name, BsonNull.Value); return; }
             var array = new BsonArray();
             foreach (TItem item in items)
@@ -153,7 +153,7 @@ file static class PlanCompiler
         Action<BsonDocument, TNested>[] innerWriters = CompileWriters<TNested>(childNode);
         return (doc, src) =>
         {
-            TNested? nested = getter(src);
+            TNested nested = getter(src);
             if (nested is null) { doc.Add(name, BsonNull.Value); return; }
             var innerDoc = new BsonDocument();
             foreach (Action<BsonDocument, TNested> w in innerWriters)
@@ -213,7 +213,7 @@ file static class PlanCompiler
 
     // --- Helpers ---
 
-    private static bool TryGetItemType(Type type, out Type? itemType)
+    private static bool TryGetItemType(Type type, out Type itemType)
     {
         if (type != typeof(string))
         {

@@ -27,7 +27,7 @@ public sealed class ManifestDirectoryConfigurationProvider : ConfigurationProvid
 
     public override void Load()
     {
-        var data = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+        var data = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         if (!Directory.Exists(_source.DirectoryPath))
         {

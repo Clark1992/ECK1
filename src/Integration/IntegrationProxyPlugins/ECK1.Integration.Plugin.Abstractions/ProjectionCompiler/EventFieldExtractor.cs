@@ -25,7 +25,7 @@ public sealed class EventFieldExtractor
             yield return (fieldName, getter(@event));
     }
 
-    public static EventFieldExtractor Compile(IConfigurationSection? eventMappings)
+    public static EventFieldExtractor Compile(IConfigurationSection eventMappings)
     {
         if (eventMappings is null || !eventMappings.GetChildren().Any())
             return Empty;

@@ -11,7 +11,7 @@ public class IntegrationSender<TAggregateRoot, TFullRecord>(
     IMapper mapper,
     IKafkaTopicProducer<TFullRecord> recordProducer,
     IIntegrationEventProducerFactory integartionEventProducerFactory,
-    ILogger<IntegrationSender<TAggregateRoot, TFullRecord>> logger)
+    ILogger<IntegrationSender<TAggregateRoot, TFullRecord>> _)
     : INotificationHandler<AggregateSavedNotification<TAggregateRoot>>
     where TAggregateRoot: IAggregateRoot, IAggregateRootInternal
     where TFullRecord: IIntegrationMessage

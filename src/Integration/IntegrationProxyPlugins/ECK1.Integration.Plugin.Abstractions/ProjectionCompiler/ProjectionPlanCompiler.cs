@@ -262,7 +262,7 @@ public static class ProjectionPlanCompiler
                 }
             }
         }
-        catch (Exception e)
+        catch (Exception)
         {
             throw;
         }
