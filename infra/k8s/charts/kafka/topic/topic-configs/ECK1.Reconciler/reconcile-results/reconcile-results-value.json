@@ -1,6 +1,6 @@
 ﻿{
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "RebuildRequest",
+  "title": "ReconcileResult",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -15,15 +15,12 @@
       ],
       "default": null
     },
-    "FailedTargets": {
+    "FailedPlugin": {
       "type": [
-        "array",
-        "null"
+        "null",
+        "string"
       ],
-      "default": null,
-      "items": {
-        "type": "string"
-      }
+      "default": null
     },
     "IsFullHistoryRebuild": {
       "type": "boolean"

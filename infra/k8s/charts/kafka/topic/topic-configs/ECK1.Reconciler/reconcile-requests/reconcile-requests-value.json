@@ -1,0 +1,40 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "ReconcileRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "Items": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "default": null,
+      "items": {
+        "$ref": "#/definitions/ReconcileRequestItem"
+      }
+    }
+  },
+  "definitions": {
+    "ReconcileRequestItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "EntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "EntityType": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "ExpectedVersion": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,389 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "ISample2Command",
+  "type": "object",
+  "definitions": {
+    "CreateSample2Command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Customer": {
+          "default": null,
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/Customer"
+            }
+          ]
+        },
+        "ShippingAddress": {
+          "default": null,
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/Address"
+            }
+          ]
+        },
+        "LineItems": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "default": null,
+          "items": {
+            "$ref": "#/definitions/LineItem"
+          }
+        },
+        "Tags": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "default": null,
+          "items": {
+            "type": "string"
+          }
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "CreateSample2Command"
+          ]
+        }
+      }
+    },
+    "Customer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "CustomerId": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "format": "uuid"
+        },
+        "Email": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Segment": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
+    },
+    "Address": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Street": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "City": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Country": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
+    },
+    "LineItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Sku": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Quantity": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "UnitPrice": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/Money"
+            }
+          ]
+        }
+      }
+    },
+    "Money": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Amount": {
+          "type": "number",
+          "format": "decimal"
+        },
+        "Currency": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
+    },
+    "ChangeSample2CustomerEmailCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "NewEmail": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "ChangeSample2CustomerEmailCommand"
+          ]
+        }
+      }
+    },
+    "ChangeSample2ShippingAddressCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "NewAddress": {
+          "default": null,
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/Address"
+            }
+          ]
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "ChangeSample2ShippingAddressCommand"
+          ]
+        }
+      }
+    },
+    "AddSample2LineItemCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "Item": {
+          "default": null,
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/LineItem"
+            }
+          ]
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "AddSample2LineItemCommand"
+          ]
+        }
+      }
+    },
+    "RemoveSample2LineItemCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "ItemId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "RemoveSample2LineItemCommand"
+          ]
+        }
+      }
+    },
+    "ChangeSample2StatusCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "NewStatus": {
+          "$ref": "#/definitions/Sample2Status"
+        },
+        "Reason": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "ChangeSample2StatusCommand"
+          ]
+        }
+      }
+    },
+    "Sample2Status": {
+      "type": "integer",
+      "description": "",
+      "x-enumNames": [
+        "Draft",
+        "Submitted",
+        "Paid",
+        "Shipped",
+        "Cancelled"
+      ],
+      "enum": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "AddSample2TagCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "Tag": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "AddSample2TagCommand"
+          ]
+        }
+      }
+    },
+    "RemoveSample2TagCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "Tag": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "RemoveSample2TagCommand"
+          ]
+        }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/definitions/CreateSample2Command"
+    },
+    {
+      "$ref": "#/definitions/ChangeSample2CustomerEmailCommand"
+    },
+    {
+      "$ref": "#/definitions/ChangeSample2ShippingAddressCommand"
+    },
+    {
+      "$ref": "#/definitions/AddSample2LineItemCommand"
+    },
+    {
+      "$ref": "#/definitions/RemoveSample2LineItemCommand"
+    },
+    {
+      "$ref": "#/definitions/ChangeSample2StatusCommand"
+    },
+    {
+      "$ref": "#/definitions/AddSample2TagCommand"
+    },
+    {
+      "$ref": "#/definitions/RemoveSample2TagCommand"
+    }
+  ]
+}

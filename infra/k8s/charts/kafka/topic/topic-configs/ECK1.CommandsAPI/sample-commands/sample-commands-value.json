@@ -1,0 +1,288 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "ISampleCommand",
+  "type": "object",
+  "definitions": {
+    "CreateSampleCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Name": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        "Description": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        "Address": {
+          "default": null,
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/Address"
+            }
+          ]
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "CreateSampleCommand"
+          ]
+        }
+      }
+    },
+    "Address": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Street": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "City": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Country": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
+    },
+    "ChangeSampleNameCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "NewName": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "ChangeSampleNameCommand"
+          ]
+        }
+      }
+    },
+    "ChangeSampleDescriptionCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "NewDescription": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "ChangeSampleDescriptionCommand"
+          ]
+        }
+      }
+    },
+    "ChangeSampleAddressCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "NewAddress": {
+          "default": null,
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/Address"
+            }
+          ]
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "ChangeSampleAddressCommand"
+          ]
+        }
+      }
+    },
+    "AddSampleAttachmentCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "Attachment": {
+          "default": null,
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/Attachment"
+            }
+          ]
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "AddSampleAttachmentCommand"
+          ]
+        }
+      }
+    },
+    "Attachment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "FileName": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Url": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
+    },
+    "RemoveSampleAttachmentCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "AttachmentId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "RemoveSampleAttachmentCommand"
+          ]
+        }
+      }
+    },
+    "UpdateSampleAttachmentCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "AttachmentId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "NewFileName": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        "NewUrl": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "UpdateSampleAttachmentCommand"
+          ]
+        }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/definitions/CreateSampleCommand"
+    },
+    {
+      "$ref": "#/definitions/ChangeSampleNameCommand"
+    },
+    {
+      "$ref": "#/definitions/ChangeSampleDescriptionCommand"
+    },
+    {
+      "$ref": "#/definitions/ChangeSampleAddressCommand"
+    },
+    {
+      "$ref": "#/definitions/AddSampleAttachmentCommand"
+    },
+    {
+      "$ref": "#/definitions/RemoveSampleAttachmentCommand"
+    },
+    {
+      "$ref": "#/definitions/UpdateSampleAttachmentCommand"
+    }
+  ]
+}
