@@ -38,14 +38,18 @@ jobs:
         run: dotnet restore src/ECK1.sln
 
       - name: Build
+        id: build
         run: dotnet build src/ECK1.sln -c Release --no-restore
 
       - name: Test
+        if: always() && steps.build.outcome == 'success'
         run: |
-          dotnet test tests/ECK1.CommandsAPI.Tests -c Release --no-build --logger "trx;LogFileName=results.trx"
-          dotnet test tests/ECK1.CommonUtils.Tests -c Release --no-build --logger "trx;LogFileName=results.trx"
-          dotnet test tests/ECK1.Integration.Proxy.Tests -c Release --no-build --logger "trx;LogFileName=results.trx"
-          dotnet test tests/ECK1.Integration.Cache.ShortTerm.Tests -c Release --no-build --logger "trx;LogFileName=results.trx"
+          EXIT_CODE=0
+          dotnet test tests/ECK1.CommandsAPI.Tests -c Release --no-build --logger "trx;LogFileName=results.trx" || EXIT_CODE=1
+          dotnet test tests/ECK1.CommonUtils.Tests -c Release --no-build --logger "trx;LogFileName=results.trx" || EXIT_CODE=1
+          dotnet test tests/ECK1.Integration.Proxy.Tests -c Release --no-build --logger "trx;LogFileName=results.trx" || EXIT_CODE=1
+          dotnet test tests/ECK1.Integration.Cache.ShortTerm.Tests -c Release --no-build --logger "trx;LogFileName=results.trx" || EXIT_CODE=1
+          exit $EXIT_CODE
 
       - name: Test Report
         uses: dorny/test-reporter@v1
