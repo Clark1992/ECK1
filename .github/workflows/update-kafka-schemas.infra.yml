@@ -1,0 +1,112 @@
+name: Generate Kafka Schemas
+
+permissions:
+  contents: write
+  packages: read
+
+on:
+  workflow_dispatch: {}
+  repository_dispatch:
+    types: [generate-schemas]
+
+jobs:
+  generate-schemas:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'repository_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download secrets
+        uses: ./.github/workflows/actions/download-secrets
+        with:
+          doppler-token: ${{ secrets.DOPPLER_TOKEN }}
+          project: eck1-global
+          config: dev
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Clone and build source repos
+        shell: bash
+        run: |
+          set -e
+
+          CLONE_DIR="/tmp/source-repos"
+          mkdir -p "$CLONE_DIR"
+
+          # --- Repos to clone ---
+          REPOS=(
+            "https://github.com/Clark1992/ECK1"
+          )
+
+          for REPO_URL in "${REPOS[@]}"; do
+            REPO_NAME=$(basename "$REPO_URL")
+            echo "Cloning $REPO_NAME from $REPO_URL"
+            git clone --depth 1 "$REPO_URL" "$CLONE_DIR/$REPO_NAME"
+
+            # Configure NuGet auth if nuget.config exists
+            NUGET_CONFIG="$CLONE_DIR/$REPO_NAME/nuget.config"
+            if [ -f "$NUGET_CONFIG" ]; then
+              dotnet nuget update source "GitHub" \
+                --username "${GITHUB_REPOSITORY_OWNER}" \
+                --password "${{ secrets.GITHUB_TOKEN }}" \
+                --store-password-in-clear-text \
+                --configfile "$NUGET_CONFIG"
+            fi
+
+            # Find and build all .sln files
+            find "$CLONE_DIR/$REPO_NAME" -name "*.sln" -type f | while read -r SLN; do
+              echo "Building solution: $SLN"
+              dotnet build "$SLN" -c Release
+            done
+          done
+
+          # --- Map DLL names to env vars ---
+          declare -A DLL_MAP=(
+            [ECK1.Contracts.dll]="ECK1_CONTRACTS_ASSEMBLY_PATH"
+            [ECK1.IntegrationContracts.dll]="ECK1_INTEGRATION_CONTRACTS_ASSEMBLY_PATH"
+            [ECK1.CommandsAPI.dll]="ECK1_COMMANDS_ASSEMBLY_PATH"
+            [ECK1.Reconciliation.Contracts.dll]="ECK1_RECONCILIATION_CONTRACTS_ASSEMBLY_PATH"
+          )
+
+          for DLL_NAME in "${!DLL_MAP[@]}"; do
+            ENV_NAME="${DLL_MAP[$DLL_NAME]}"
+
+            DLL_PATH=$(find "$CLONE_DIR" -path "*/bin/Release/net8.0/${DLL_NAME}" -type f | head -n 1)
+
+            if [ -z "$DLL_PATH" ]; then
+              echo "ERROR: Could not find ${DLL_NAME} in any cloned repo"
+              exit 1
+            fi
+
+            echo "Found $DLL_NAME at $DLL_PATH"
+            echo "$ENV_NAME=$(realpath "$DLL_PATH")" >> $GITHUB_ENV
+          done
+
+      - name: Run generator
+        uses: ./.github/workflows/actions/run-generator
+        with:
+          eck1-contracts-assembly-path: ${{ env.ECK1_CONTRACTS_ASSEMBLY_PATH }}
+          eck1-integration-contracts-assembly-path: ${{ env.ECK1_INTEGRATION_CONTRACTS_ASSEMBLY_PATH }}
+          eck1-commands-assembly-path: ${{ env.ECK1_COMMANDS_ASSEMBLY_PATH }}
+          eck1-reconciliation-contracts-assembly-path: ${{ env.ECK1_RECONCILIATION_CONTRACTS_ASSEMBLY_PATH }}
+          schema-backup-path: ""
+          solution-file: ECK1.sln
+          solution-dir: src
+          schema-root: ""
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git diff --staged --quiet || git commit -m "Update kafka schemas"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

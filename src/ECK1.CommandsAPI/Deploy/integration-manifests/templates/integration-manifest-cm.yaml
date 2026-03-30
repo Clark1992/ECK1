@@ -9,6 +9,7 @@ data:
     RecordType: ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample.SampleFullRecord
     EventsTopic: sample-thin-events
     RecordTopic: sample-full-records
+    RebuildRequestTopic: eck1-rebuild-requests
     Plugins: 
       Elasticsearch: 
         Fields:
@@ -21,6 +22,9 @@ data:
           - "attachments.id"
           - "attachments.fileName"
           - "attachments.url"
+        EventMappings:
+          lastModified:
+            source: event.OccuredAt
         Indexes: 
           - sample-full-records
 
@@ -92,6 +96,9 @@ data:
           - attachments.id
           - attachments.fileName
           - attachments.url
+        EventMappings:
+          lastModified:
+            source: event.OccuredAt
         Connection: eck1
         Collection: samples
         EntityIdField: sampleId
@@ -100,6 +107,7 @@ data:
     RecordType: ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample2.Sample2FullRecord
     EventsTopic: sample2-thin-events
     RecordTopic: sample2-full-records
+    RebuildRequestTopic: eck1-rebuild-requests
     Plugins:
       Elasticsearch:
         Fields:
@@ -118,6 +126,9 @@ data:
           - "lineItems.unitPrice.currency"
           - "tags.value"
           - "status"
+        EventMappings:
+          lastModified:
+            source: event.OccuredAt
         Indexes:
           - sample2-full-records
 
@@ -218,6 +229,9 @@ data:
           - lineItems.unitPrice.amount
           - lineItems.unitPrice.currency
           - tags.value
+        EventMappings:
+          lastModified:
+            source: event.OccuredAt
         Connection: eck1
         Collection: sample2s
         EntityIdField: sample2Id

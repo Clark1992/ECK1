@@ -49,7 +49,7 @@ public class EventConsumerConfig(
                 sp =>
                 {
                     var logger = sp.GetRequiredService<ILogger<EventConsumerConfig>>();
-                    var plugin = sp.GetRequiredService<IIntergationPlugin<ThinEvent, TMessage>>();
+                    var pluginInstance = sp.GetRequiredService<IIntergationPlugin<ThinEvent, TMessage>>();
                     var producer = sp.GetRequiredService<IKafkaTopicProducer<EventFailure>>();
                     int? fieldMaskHash = null;
 
@@ -57,6 +57,17 @@ public class EventConsumerConfig(
                     {
                         var occuredAt = @event.OccuredAt;
                         logger.LogInformation("{Topic}: Start handle '{message}:{id} (OccureAt: {occuredAt})'", topic, @event.EventType, @event.EntityId, occuredAt);
+
+                        if (@event.Targets.Count > 0 && !@event.Targets.Contains(plugin))
+                        {
+                            logger.LogInformation(
+                                "{Topic}: Shortcircuit message addressed to another target: '{message}:{id} (OccureAt: {occuredAt})'",
+                                topic,
+                                @event.EventType,
+                                @event.EntityId,
+                                occuredAt);
+                            return;
+                        }
 
                         if (@event.EntityId == default)
                             return;
@@ -94,7 +105,7 @@ public class EventConsumerConfig(
 
                             fieldMaskHash = response.FieldMaskHash;
 
-                            await plugin.PushAsync(@event, response.Item);
+                            await pluginInstance.PushAsync(@event, response.Item);
 
                             logger.LogInformation("{Topic}: Handled '{message}:{id}'", topic, @event.EventType, @event.EntityId);
                         }

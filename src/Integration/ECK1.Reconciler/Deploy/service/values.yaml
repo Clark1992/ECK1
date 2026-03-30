@@ -1,0 +1,39 @@
+replicaCount: 1
+
+configWatcher:
+  label: "config-type=integration-config"
+
+image:
+  repository: myregistry.azurecr.io/reconciler
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+env:
+  ASPNETCORE_ENVIRONMENT: Development
+
+sqlserver:
+  database: "ECK1.Reconciler"
+  host: "eck1-sqlserver"
+  port: 1433
+  appConnectionString: ""
+  credentials:
+    appUser: ""
+    appPassword: ""
+
+resources:
+  limits:
+    cpu: "1"
+    memory: "1Gi"
+  requests:
+    cpu: "100m"
+    memory: "256Mi"
+
+dbup:
+  enabled: true
+  image:
+    repository: localhost:5000/dbup
+    tag: dev

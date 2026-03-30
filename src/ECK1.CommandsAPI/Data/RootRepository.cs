@@ -1,14 +1,17 @@
-using ECK1.CommandsAPI.Domain;
+using Confluent.Kafka;
 using ECK1.CommandsAPI.Data.Models;
+using ECK1.CommandsAPI.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 
 namespace ECK1.CommandsAPI.Data;
 public interface IRootRepository<TAggregate>
-    where TAggregate : IAggregateRoot
+    where TAggregate : IAggregateRootInternal
 {
     Task<TAggregate> LoadAsync(Guid aggregateId, CancellationToken ct);
+    Task<List<IDomainEvent>> LoadHistory(Guid aggregateId, CancellationToken ct);
+    Task<IDomainEvent> GetLatestEvent(Guid rootId, CancellationToken ct);
     Task<List<Guid>> SaveAsync(TAggregate aggregate, CancellationToken ct);
 }
 
@@ -16,7 +19,7 @@ internal class RootRepository<TAggregate, TEventEntity, TSnapshotEntity>(
     CommandsDbContext db, 
     IOptionsSnapshot<EventsStoreConfig> config) :
         IRootRepository<TAggregate>
-        where TAggregate : class, IAggregateRootInternal, IAggregateRoot
+        where TAggregate : class, IAggregateRoot, IAggregateRootInternal
         where TEventEntity : class, IEventEntity
         where TSnapshotEntity : SnapshotEntity, new()
 {
@@ -93,11 +96,35 @@ internal class RootRepository<TAggregate, TEventEntity, TSnapshotEntity>(
         }
 
         var loaded = aggregate is not null
-            ? AggregateRoot.ReplayHistory(aggregate, domainEvents)
-            : AggregateRoot.FromHistory<TAggregate>(domainEvents, aggregateId);
+            ? AggregateRoot.FromSnapshot(aggregate, domainEvents)
+            : AggregateRoot.FromStart<TAggregate>(domainEvents, aggregateId);
 
-        loaded.InitUntouched();
         return loaded;
+    }
+
+    public async Task<IDomainEvent> GetLatestEvent(Guid rootId, CancellationToken ct)
+    {
+        var events = await LoadHistory(rootId, 1, ct);
+
+        return events.Count > 0 ? events[0] : null;
+    }
+
+    public Task<List<IDomainEvent>> LoadHistory(Guid rootId, CancellationToken ct) =>
+        LoadHistory(rootId, null, ct);
+
+    private async Task<List<IDomainEvent>> LoadHistory(Guid aggregateId, int? takeLast, CancellationToken ct)
+    {
+        var query = Db.Set<TEventEntity>()
+            .Where(e => e.AggregateId == aggregateId)
+            .OrderBy(e => e.Version)
+            .Select(e => e.ToDomainEvent());
+
+        if (takeLast.HasValue)
+        {
+            query = query.TakeLast(takeLast.Value);
+        }
+
+        return await query.ToListAsync(ct);
     }
 
     private async Task SaveSnapshotAsync(TAggregate aggregate, CancellationToken ct)

@@ -1,5 +1,5 @@
 ﻿using ECK1.Integration.Plugin.Abstractions;
-using ECK1.Integration.Common;
+using ECK1.Integration.Plugin.Abstractions.ProjectionCompiler;
 using ECK1.Integration.Config;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Transport;
@@ -10,7 +10,9 @@ using Microsoft.Extensions.Options;
 using OpenTelemetry.Trace;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using ECK1.CommonUtils.OpenTelemetry;
+using Generated = ECK1.IntegrationContracts.Kafka.IntegrationRecords.Generated;
 
 namespace ECK1.Integration.Plugin.ElasticSearch;
 
@@ -22,6 +24,7 @@ public class ElasticSearchPluginLoader : IIntergationPluginLoader
         services.AddSingleton(integrationConfig);
 
         services.AddSingleton(typeof(IIntergationPlugin<,>), typeof(ElasticSearchWriter<,>));
+        services.AddSingleton<IReconciliationPlugin, ElasticSearchReconciliationPlugin>();
 
         services.AddSingleton<ElasticsearchClient>(sp =>
         {
@@ -68,11 +71,13 @@ public class ElasticSearchPluginLoader : IIntergationPluginLoader
 }
 
 public class ElasticSearchWriter<TEvent, TMessage> : IIntergationPlugin<TEvent, TMessage>
+    where TEvent : Generated.ThinEvent
 {
     private readonly ElasticsearchClient client;
     private readonly ILogger<ElasticSearchWriter<TEvent, TMessage>> logger;
     private readonly List<string> indexes;
     private readonly ElasticSearchConfig config;
+    private readonly EventFieldExtractor eventFieldExtractor;
 
     public ElasticSearchWriter(
         ElasticsearchClient client,
@@ -87,6 +92,9 @@ public class ElasticSearchWriter<TEvent, TMessage> : IIntergationPlugin<TEvent, 
             entry.PluginConfig.GetSection("Indexes").Get<List<string>>() :
             throw new InvalidOperationException($"Missing plugin config for {messageType}");
 
+        this.eventFieldExtractor = EventFieldExtractor.Compile(
+            entry.PluginConfig.GetSection("EventMappings"));
+
         this.config = options.Value;
         this.client = client;
         this.logger.LogInformation("ElasticSearchPlugin: loaded");
@@ -94,19 +102,79 @@ public class ElasticSearchWriter<TEvent, TMessage> : IIntergationPlugin<TEvent, 
         this.logger.LogInformation("Indexes for {type}: {config}", messageType, JsonSerializer.Serialize(this.indexes));
     }
 
-    public async Task PushAsync(TEvent _, TMessage message)
+    public async Task PushAsync(TEvent @event, TMessage message)
     {
         await Task.WhenAll([.. this.indexes.Select(async index =>
         {
             try
             {
-                var response = await client.IndexAsync(message, i => i.Index(index));
-                this.logger.LogInformation("Response from ElasticSearchPlugin: {res}", response);
+                if (eventFieldExtractor.HasFields)
+                {
+                    var jsonNode = JsonSerializer.SerializeToNode(message);
+                    if (jsonNode is JsonObject jsonObj)
+                    {
+                        foreach (var (fieldName, value) in eventFieldExtractor.Extract(@event))
+                            jsonObj[fieldName] = JsonValue.Create(value);
+                    }
+                    var response = await client.IndexAsync(jsonNode, i => i.Index(index));
+                    this.logger.LogInformation("Response from ElasticSearchPlugin: {res}", response);
+                }
+                else
+                {
+                    var response = await client.IndexAsync(message, i => i.Index(index));
+                    this.logger.LogInformation("Response from ElasticSearchPlugin: {res}", response);
+                }
             }
             catch (Exception e)
             {
                 this.logger.LogError(e, "Error during calling ES");
             }
         })]);
+    }
+}
+
+public class ElasticSearchReconciliationPlugin(
+    ElasticsearchClient client,
+    ILogger<ElasticSearchReconciliationPlugin> logger,
+    IntegrationConfig integrationConfig) : IReconciliationPlugin
+{
+    public async Task<ReconciliationCheckResult> CheckAsync(Guid entityId, string entityType, int expectedVersion, CancellationToken ct)
+    {
+        var entry = integrationConfig
+            .FirstOrDefault(kvp => kvp.Value.EntityType == entityType);
+
+        if (entry.Value is null)
+            return ReconciliationCheckResult.Ok;
+
+        var indexes = entry.Value.PluginConfig.GetSection("Indexes").Get<List<string>>();
+        if (indexes is null || indexes.Count == 0)
+            return ReconciliationCheckResult.Ok;
+
+        var index = indexes[0];
+
+        var response = await client.GetAsync<JsonDocument>(index, entityId.ToString(), ct);
+
+        if (!response.IsValidResponse || response.Source is null)
+        {
+            logger.LogWarning("ES reconciliation: entity {EntityId} not found in index {Index}", entityId, index);
+            return ReconciliationCheckResult.NeedsLatest;
+        }
+
+        return CheckVersion(response.Source.RootElement, expectedVersion, entityId, index);
+    }
+
+    private ReconciliationCheckResult CheckVersion(JsonElement root, int expectedVersion, Guid entityId, string index)
+    {
+        if (root.TryGetProperty("version", out var versionElement) &&
+            versionElement.TryGetInt32(out int storedVersion) &&
+            storedVersion < expectedVersion)
+        {
+            logger.LogWarning(
+                "ES reconciliation: entity {EntityId} version mismatch in {Index}. Expected {Expected}, got {Actual}",
+                entityId, index, expectedVersion, storedVersion);
+            return ReconciliationCheckResult.NeedsLatest;
+        }
+
+        return ReconciliationCheckResult.Ok;
     }
 }

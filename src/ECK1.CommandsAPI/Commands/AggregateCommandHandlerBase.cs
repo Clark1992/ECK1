@@ -5,7 +5,7 @@ using MediatR;
 
 namespace ECK1.CommandsAPI.Commands;
 public abstract class AggregateCommandHandlerBase<TAggregate>
-    where TAggregate : class, IAggregateRootInternal, IAggregateRoot
+    where TAggregate : class, IAggregateRoot, IAggregateRootInternal
 {
     private const int MaxSaveRetries = 2;
 
@@ -75,7 +75,7 @@ public abstract class AggregateCommandHandlerBase<TAggregate>
         {
             var eventIds = await Repository.SaveAsync(aggregate, ct);
 
-            await Mediator.Publish(new AggregateSavedNotification<TAggregate>(aggregate.Untouched, events), ct);
+            await Mediator.Publish(new AggregateSavedNotification<TAggregate>(aggregate, events), ct);
 
             aggregate.CommitEvents();
             return new Success(aggregate.Id, eventIds);

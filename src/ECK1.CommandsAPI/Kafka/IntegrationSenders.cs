@@ -13,14 +13,14 @@ public class IntegrationSender<TAggregateRoot, TFullRecord>(
     IIntegrationEventProducerFactory integartionEventProducerFactory,
     ILogger<IntegrationSender<TAggregateRoot, TFullRecord>> logger)
     : INotificationHandler<AggregateSavedNotification<TAggregateRoot>>
-    where TAggregateRoot: IAggregateRoot
+    where TAggregateRoot: IAggregateRoot, IAggregateRootInternal
     where TFullRecord: IIntegrationMessage
 {
     private readonly IKafkaTopicProducer<ThinEvent> thinEventProducer = integartionEventProducerFactory.GetProducer<TFullRecord>();
 
     public async Task Handle(AggregateSavedNotification<TAggregateRoot> notification, CancellationToken ct)
     {
-        var untouched = notification.Aggregate;
+        var untouched = notification.Aggregate.Untouched;
         var indexedEvents = notification.Events.OrderBy(x => x.Version).ToList();
         var key = notification.Aggregate.Id.ToString();
 
@@ -31,10 +31,11 @@ public class IntegrationSender<TAggregateRoot, TFullRecord>(
             var thinEvent = new ThinEvent
             {
                 EventId = domainEvent.EventId,
-                EntityId = untouched.Id,
+                EntityId = notification.Aggregate.Id,
                 EventType = domainEvent.GetType().FullName,
                 OccuredAt = domainEvent.OccurredAt.UtcDateTime,
                 Version = domainEvent.Version,
+                Targets = notification.Targets ?? []
             };
 
             var fullRecord = mapper.Map<TFullRecord>(untouched);

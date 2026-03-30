@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <PackageId>ECK1.Reconciliation.Contracts</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Random</Authors>
+    <Company>Random</Company>
+    <Description>ECK1 Reconciliation Contracts - reconciliation and rebuild request/result types</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+</Project>

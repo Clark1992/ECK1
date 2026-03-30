@@ -13,6 +13,7 @@ public class IntegrationConfigEntry
     public string RecordType { get; set; } = "";
     public string EventsTopic { get; set; } = "";
     public string RecordTopic { get; set; } = "";
+    public string RebuildRequestTopic { get; set; } = "";
     public string EntityType { get; set; } = "";
     public IConfigurationSection? PluginConfig { get; set; }
 }
@@ -80,6 +81,7 @@ public static class ConfigHelpers
                 RecordType = recordType,
                 EventsTopic = entitySection[nameof(IntegrationConfigEntry.EventsTopic)] ?? "",
                 RecordTopic = entitySection[nameof(IntegrationConfigEntry.RecordTopic)] ?? "",
+                RebuildRequestTopic = entitySection[nameof(IntegrationConfigEntry.RebuildRequestTopic)] ?? "",
                 EntityType = entitySection.Key,
             };
 

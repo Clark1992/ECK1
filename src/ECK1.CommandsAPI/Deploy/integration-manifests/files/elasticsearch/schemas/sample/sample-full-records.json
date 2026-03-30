@@ -56,7 +56,9 @@
           },
           "url": { "type": "keyword" }
         }
-      }
+      },
+
+      "lastModified": { "type": "date" }
     }
   }
 }

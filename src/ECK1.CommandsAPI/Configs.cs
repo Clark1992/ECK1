@@ -12,7 +12,5 @@ public class KafkaSettings
     public string SchemaRegistryUrl { get; set; }
     public string User { get; set; }
     public string Secret { get; set; }
-    public string SampleEventsRebuildRequestTopic { get; set; }
-    public string Sample2EventsRebuildRequestTopic { get; set; }
     public string GroupId { get; set; }
 }

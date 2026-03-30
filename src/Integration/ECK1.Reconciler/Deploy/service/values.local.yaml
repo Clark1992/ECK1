@@ -1,0 +1,17 @@
+replicaCount: 1
+
+image:
+  repository: localhost:5000/reconciler
+  tag: dev
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 80
+  nodePort: 30101
+
+sqlserver:
+  appConnectionString: "Server=eck1-sqlserver,1433;Database=ECK1.Reconciler;User Id=eck1_reconciler_app;Password=RecApp!S3cure2026;TrustServerCertificate=True;Encrypt=False"
+  credentials:
+    appUser: "eck1_reconciler_app"
+    appPassword: "RecApp!S3cure2026"

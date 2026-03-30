@@ -30,8 +30,7 @@ public class Sample2 : AggregateRoot<ISample2Event>
         lineItems ??= [];
         tags ??= [];
 
-        var root = new Sample2();
-        root.InitUntouched();
+        var root = AggregateRoot.CreateNew<Sample2>();
 
         root.ApplyChange(new Sample2CreatedEvent(
             root.Id,
@@ -153,9 +152,9 @@ public class Sample2 : AggregateRoot<ISample2Event>
             _tags.Remove(@event.Tag);
     }
 
-    private void Apply(Sample2RebuiltEvent @event) { }
+    //private void Apply(Sample2RebuiltEvent @event) { }
 
-    protected override IAggregateRoot DeepClone()
+    protected override IAggregateRootReplay DeepClone()
     {
         var copy = new Sample2
         {

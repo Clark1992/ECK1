@@ -11,7 +11,7 @@ public class SampleIntegrationRecordMapping : Profile
     public SampleIntegrationRecordMapping()
     {
         CreateMap<Domain.Shared.Address, IntegrationSampleAddress>(MemberList.Destination);
-        CreateMap<ECK1.CommandsAPI.Domain.Samples.SampleAttachment, IntegrationSampleAttachment>(MemberList.Destination);
+        CreateMap<Domain.Samples.SampleAttachment, IntegrationSampleAttachment>(MemberList.Destination);
         CreateMap<Sample, SampleFullRecord>(MemberList.Destination)
             .ForMember(x => x.OccuredAt, o => o.Ignore())
             .ForMember(x => x.Attachments, o => o.MapFrom(src => src.Attachments.ToList()));

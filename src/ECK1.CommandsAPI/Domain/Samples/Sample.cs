@@ -19,8 +19,7 @@ public class Sample : AggregateRoot<ISampleEvent>
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrEmpty(description);
 
-        var root = new Sample();
-        root.InitUntouched();
+        var root = AggregateRoot.CreateNew<Sample>();
 
         root.ApplyChange(new SampleCreatedEvent(root.Id, name, description, address));
         return root;
@@ -118,9 +117,9 @@ public class Sample : AggregateRoot<ISampleEvent>
         attachment.ApplyUpdate(@event.NewFileName, @event.NewUrl);
     }
 
-    private void Apply(SampleRebuiltEvent @event) { }
+    //private void Apply(SampleRebuiltEvent @event) { }
 
-    protected override IAggregateRoot DeepClone()
+    protected override IAggregateRootReplay DeepClone()
     {
         var copy = new Sample
         {

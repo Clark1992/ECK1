@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RebuildRequest",
+  "type": "object",
+  "properties": {
+    "EntityId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "EntityType": {
+      "type": "string"
+    },
+    "FailedTargets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "IsFullHistoryRebuild": {
+      "type": "boolean"
+    }
+  },
+  "required": ["EntityId", "EntityType", "FailedTargets", "IsFullHistoryRebuild"]
+}

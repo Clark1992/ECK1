@@ -1,0 +1,22 @@
+name: Publish ECK1.Orleans
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'src/Nuget/ECK1.Orleans/**'
+      - '.github/workflows/publish-nuget.orleans.yml'
+      - '.github/workflows/publish-nuget-shared.yml'
+      - '.github/scripts/update-version.sh'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    uses: ./.github/workflows/publish-nuget-shared.yml
+    with:
+      project_path: 'src/Nuget/ECK1.Orleans'
+      csproj_file: 'ECK1.Orleans.csproj'

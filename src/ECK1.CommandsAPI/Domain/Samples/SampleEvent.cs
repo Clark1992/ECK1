@@ -34,4 +34,4 @@ public record SampleAddressChangedEvent(Guid SampleId, Address NewAddress) : Sam
 public record SampleAttachmentAddedEvent(Guid SampleId, SampleAttachment Attachment) : SampleEvent(SampleId);
 public record SampleAttachmentRemovedEvent(Guid SampleId, Guid AttachmentId) : SampleEvent(SampleId);
 public record SampleAttachmentUpdatedEvent(Guid SampleId, Guid AttachmentId, string NewFileName, string NewUrl) : SampleEvent(SampleId);
-public record SampleRebuiltEvent(Guid SampleId, string Name, string Description, Address Address, List<SampleAttachment> Attachments) : SampleEvent(SampleId);
+//public record SampleRebuiltEvent(Guid SampleId, string Name, string Description, Address Address, List<SampleAttachment> Attachments) : SampleEvent(SampleId);

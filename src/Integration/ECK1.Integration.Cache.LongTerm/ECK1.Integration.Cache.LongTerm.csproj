@@ -18,8 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Confluent.Kafka" />
-    <PackageReference Include="Confluent.SchemaRegistry" />
     <PackageReference Include="AutoMapper" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" />

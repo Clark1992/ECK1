@@ -1,6 +1,7 @@
 ﻿using Confluent.Kafka;
 using Confluent.SchemaRegistry;
 using ECK1.Contracts.Kafka.BusinessEvents;
+using ECK1.Reconciliation.Contracts;
 using ECK1.Integration.Common;
 using ECK1.Integration.Config;
 using ECK1.Integration.EntityStore.Configuration.Generated;
@@ -35,6 +36,28 @@ public static class KafkaSetup
             kafkaSettings.FailureEventsTopic,
             SubjectNameStrategy.Topic,
             SerializerType.JSON);
+
+        #region Reconciliation
+        services.ConfigTopicProducer<ReconcileResult>(
+            kafkaSettings.ReconcileResultsTopic,
+            SubjectNameStrategy.Topic,
+            SerializerType.JSON);
+
+        services.AddScoped<ReconcileRequestHandler>();
+
+        services.ConfigTopicConsumer<ReconcileRequest>(
+            kafkaSettings.BootstrapServers,
+            kafkaSettings.ReconcileRequestsTopic,
+            $"{kafkaSettings.GroupIdPrefix}-{plugin}-reconcile",
+            SubjectNameStrategy.Topic,
+            SerializerType.JSON,
+            c =>
+            {
+                c.WithAuth(kafkaSettings.User, kafkaSettings.Secret);
+                c.AutoOffsetReset = AutoOffsetReset.Earliest;
+                c.EnableAutoCommit = false;
+            });
+        #endregion
 
         #region Event consumers
         var cacheSettings = config

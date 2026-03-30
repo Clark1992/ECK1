@@ -1,9 +1,13 @@
 ﻿using Confluent.Kafka;
 using Confluent.SchemaRegistry;
 using ECK1.CommandsAPI.Commands;
+using ECK1.Reconciliation.Contracts;
 using ECK1.Integration.Config;
 using ECK1.IntegrationContracts.Kafka.IntegrationRecords.Generated;
+using ECK1.Kafka;
 using ECK1.Kafka.Extensions;
+
+using static ECK1.Integration.Config.ConfigHelpers;
 
 namespace ECK1.CommandsAPI.Kafka;
 
@@ -38,19 +42,40 @@ public static class KafkaSetup
 
         services.AddCommands(config, kafkaSettings);
 
-        services.ConfigSimpleTopicConsumer<Guid, RebuildHandler<RebuildSampleViewCommand>>(
-            kafkaSettings.BootstrapServers,
-            kafkaSettings.SampleEventsRebuildRequestTopic,
-            kafkaSettings.GroupId,
-            Guid.Parse,
-            c => c.WithAuth(kafkaSettings.User, kafkaSettings.Secret));
+        services.AddKeyedScoped<IRebuildHandler, RebuildHandler<RebuildSampleViewCommand>>("ECK1.Sample");
+        services.AddKeyedScoped<IRebuildHandler, RebuildHandler<RebuildSample2ViewCommand>>("ECK1.Sample2");
 
-        services.ConfigSimpleTopicConsumer<Guid, RebuildHandler<RebuildSample2ViewCommand>>(
-            kafkaSettings.BootstrapServers,
-            kafkaSettings.Sample2EventsRebuildRequestTopic,
-            kafkaSettings.GroupId,
-            Guid.Parse,
-            c => c.WithAuth(kafkaSettings.User, kafkaSettings.Secret));
+        // Register rebuild-request consumers per distinct RebuildRequestTopic from the manifest
+        var integrationConfig = ConfigHelpers.LoadConfig(config);
+        var rebuildTopics = integrationConfig.Values
+            .Select(e => e.RebuildRequestTopic)
+            .Where(t => !string.IsNullOrEmpty(t))
+            .Distinct();
+
+        foreach (var rebuildTopic in rebuildTopics)
+        {
+            services.ConfigTopicConsumer<RebuildRequest>(
+                kafkaSettings.BootstrapServers,
+                rebuildTopic,
+                kafkaSettings.GroupId,
+                SubjectNameStrategy.Topic,
+                SerializerType.JSON,
+                sp =>
+                {
+                    var logger = sp.GetRequiredService<ILogger<RebuildHandler<RebuildViewCommandBase>>>();
+                    return (key, message, messageId, ct) =>
+                    {
+                        var handler = sp.GetKeyedService<IRebuildHandler>(message.EntityType);
+                        if (handler is null)
+                        {
+                            logger.LogWarning("No rebuild handler registered for entity type '{EntityType}'", message.EntityType);
+                            return Task.CompletedTask;
+                        }
+                        return handler.HandleAsync(message, ct);
+                    };
+                },
+                c => c.WithAuth(kafkaSettings.User, kafkaSettings.Secret));
+        }
 
         return services;
     }

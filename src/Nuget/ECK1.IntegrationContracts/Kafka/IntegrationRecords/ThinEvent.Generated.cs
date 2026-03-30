@@ -16,28 +16,18 @@ namespace ECK1.IntegrationContracts.Kafka.IntegrationRecords.Generated
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("avrogen", "1.12.1+9110c693767c1dde2665b2b57939333478b12036")]
     public partial class ThinEvent : global::Avro.Specific.ISpecificRecord
     {
-        public static global::Avro.Schema _SCHEMA = global::Avro.Schema.Parse(@"{""type"":""record"",""name"":""ThinEvent"",""namespace"":""ECK1.IntegrationContracts.Kafka.IntegrationRecords"",""fields"":[{""name"":""EventId"",""type"":{""type"":""string"",""logicalType"":""uuid""}},{""name"":""EntityId"",""type"":{""type"":""string"",""logicalType"":""uuid""}},{""name"":""Version"",""type"":""int""},{""name"":""OccuredAt"",""type"":{""type"":""long"",""logicalType"":""timestamp-millis""}},{""name"":""EventType"",""type"":""string""}]}");
-        private System.Guid _EventId;
+        public static global::Avro.Schema _SCHEMA = global::Avro.Schema.Parse(@"{""type"":""record"",""name"":""ThinEvent"",""namespace"":""ECK1.IntegrationContracts.Kafka.IntegrationRecords"",""fields"":[{""name"":""EntityId"",""type"":{""type"":""string"",""logicalType"":""uuid""}},{""name"":""EventId"",""type"":{""type"":""string"",""logicalType"":""uuid""}},{""name"":""EventType"",""type"":""string""},{""name"":""OccuredAt"",""type"":{""type"":""long"",""logicalType"":""timestamp-millis""}},{""name"":""Targets"",""default"":null,""type"":[""null"",{""type"":""array"",""items"":""string""}]},{""name"":""Version"",""type"":""int""}]}");
         private System.Guid _EntityId;
-        private int _Version;
-        private System.DateTime _OccuredAt;
+        private System.Guid _EventId;
         private string _EventType;
+        private System.DateTime _OccuredAt;
+        private IList<System.String> _Targets;
+        private int _Version;
         public virtual global::Avro.Schema Schema
         {
             get
             {
                 return ThinEvent._SCHEMA;
-            }
-        }
-        public System.Guid EventId
-        {
-            get
-            {
-                return this._EventId;
-            }
-            set
-            {
-                this._EventId = value;
             }
         }
         public System.Guid EntityId
@@ -51,26 +41,15 @@ namespace ECK1.IntegrationContracts.Kafka.IntegrationRecords.Generated
                 this._EntityId = value;
             }
         }
-        public int Version
+        public System.Guid EventId
         {
             get
             {
-                return this._Version;
+                return this._EventId;
             }
             set
             {
-                this._Version = value;
-            }
-        }
-        public System.DateTime OccuredAt
-        {
-            get
-            {
-                return this._OccuredAt;
-            }
-            set
-            {
-                this._OccuredAt = value;
+                this._EventId = value;
             }
         }
         public string EventType
@@ -84,15 +63,49 @@ namespace ECK1.IntegrationContracts.Kafka.IntegrationRecords.Generated
                 this._EventType = value;
             }
         }
+        public System.DateTime OccuredAt
+        {
+            get
+            {
+                return this._OccuredAt;
+            }
+            set
+            {
+                this._OccuredAt = value;
+            }
+        }
+        public IList<System.String> Targets
+        {
+            get
+            {
+                return this._Targets;
+            }
+            set
+            {
+                this._Targets = value;
+            }
+        }
+        public int Version
+        {
+            get
+            {
+                return this._Version;
+            }
+            set
+            {
+                this._Version = value;
+            }
+        }
         public virtual object Get(int fieldPos)
         {
             switch (fieldPos)
             {
-                case 0: return this.EventId;
-                case 1: return this.EntityId;
-                case 2: return this.Version;
+                case 0: return this.EntityId;
+                case 1: return this.EventId;
+                case 2: return this.EventType;
                 case 3: return this.OccuredAt;
-                case 4: return this.EventType;
+                case 4: return this.Targets;
+                case 5: return this.Version;
                 default: throw new global::Avro.AvroRuntimeException("Bad index " + fieldPos + " in Get()");
             }
             ;
@@ -101,11 +114,12 @@ namespace ECK1.IntegrationContracts.Kafka.IntegrationRecords.Generated
         {
             switch (fieldPos)
             {
-                case 0: this.EventId = (System.Guid)fieldValue; break;
-                case 1: this.EntityId = (System.Guid)fieldValue; break;
-                case 2: this.Version = (System.Int32)fieldValue; break;
+                case 0: this.EntityId = (System.Guid)fieldValue; break;
+                case 1: this.EventId = (System.Guid)fieldValue; break;
+                case 2: this.EventType = (System.String)fieldValue; break;
                 case 3: this.OccuredAt = (System.DateTime)fieldValue; break;
-                case 4: this.EventType = (System.String)fieldValue; break;
+                case 4: this.Targets = (IList<System.String>)fieldValue; break;
+                case 5: this.Version = (System.Int32)fieldValue; break;
                 default: throw new global::Avro.AvroRuntimeException("Bad index " + fieldPos + " in Put()");
             }
             ;

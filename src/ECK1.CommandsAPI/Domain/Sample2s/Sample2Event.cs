@@ -13,7 +13,7 @@ namespace ECK1.CommandsAPI.Domain.Sample2s;
 [JsonDerivedType(typeof(Sample2StatusChangedEvent), nameof(Sample2StatusChangedEvent))]
 [JsonDerivedType(typeof(Sample2TagAddedEvent), nameof(Sample2TagAddedEvent))]
 [JsonDerivedType(typeof(Sample2TagRemovedEvent), nameof(Sample2TagRemovedEvent))]
-[JsonDerivedType(typeof(Sample2RebuiltEvent), nameof(Sample2RebuiltEvent))]
+//[JsonDerivedType(typeof(Sample2RebuiltEvent), nameof(Sample2RebuiltEvent))]
 public interface ISample2Event : IDomainEvent
 {
     Guid Sample2Id { get; }
@@ -44,10 +44,10 @@ public record Sample2LineItemRemovedEvent(Guid Sample2Id, Guid ItemId) : Sample2
 public record Sample2StatusChangedEvent(Guid Sample2Id, Sample2Status NewStatus, string Reason) : Sample2Event(Sample2Id);
 public record Sample2TagAddedEvent(Guid Sample2Id, string Tag) : Sample2Event(Sample2Id);
 public record Sample2TagRemovedEvent(Guid Sample2Id, string Tag) : Sample2Event(Sample2Id);
-public record Sample2RebuiltEvent(
-    Guid Sample2Id,
-    Sample2Customer Customer,
-    Address ShippingAddress,
-    List<Sample2LineItem> LineItems,
-    List<string> Tags,
-    Sample2Status Status) : Sample2Event(Sample2Id);
+//public record Sample2RebuiltEvent(
+//    Guid Sample2Id,
+//    Sample2Customer Customer,
+//    Address ShippingAddress,
+//    List<Sample2LineItem> LineItems,
+//    List<string> Tags,
+//    Sample2Status Status) : Sample2Event(Sample2Id);

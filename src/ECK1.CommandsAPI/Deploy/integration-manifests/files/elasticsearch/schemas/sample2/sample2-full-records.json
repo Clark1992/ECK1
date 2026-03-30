@@ -85,7 +85,9 @@
             }
           }
         }
-      }
+      },
+
+      "lastModified": { "type": "date" }
     }
   }
 }

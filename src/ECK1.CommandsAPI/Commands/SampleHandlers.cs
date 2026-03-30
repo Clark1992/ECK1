@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ECK1.CommandsAPI.Data;
+using ECK1.CommandsAPI.Domain;
 using ECK1.CommandsAPI.Domain.Samples;
 using ECK1.CommandsAPI.Domain.Shared;
 using ECK1.CommandsAPI.Kafka;
@@ -81,14 +82,36 @@ public class SampleCommandHandlers :
             ct);
     }
 
-    public async Task<(ICommandResult, Sample)> Handle(CommandRequest<RebuildSampleViewCommand, Sample> command, CancellationToken ct)
-    {
-        var sample = await Repository.LoadAsync(command.Command.Id, ct);
+    public Task<(ICommandResult, Sample)> Handle(CommandRequest<RebuildSampleViewCommand, Sample> command, CancellationToken ct) =>
+        command.Command.IsFullHistoryRebuild ?
+        RebuildFullHistory(command.Command, ct) :
+        RebuildLatest(command.Command, ct);
 
-        if (sample is null) return (new NotFound(), null);
+    public async Task<(ICommandResult, Sample)> RebuildFullHistory(RebuildSampleViewCommand cmd, CancellationToken ct)
+    {
+        var history = await Repository.LoadHistory(cmd.Id, ct);
+
+        if (history.Count == 0) return (new NotFound(), null);
+
+        var sample = AggregateRoot.CreateNew<Sample>();
+        history.ForEach(sample.ReplayEvent);
 
         await Mediator.Publish(
-            new AggregateSavedNotification<Sample>(sample, [mapper.Map<SampleRebuiltEvent>(sample)]),
+            new AggregateSavedNotification<Sample>(sample, history, cmd.FailedTargets),
+            ct);
+
+        return (new Success(sample.Id, []), sample);
+    }
+
+    public async Task<(ICommandResult, Sample)> RebuildLatest(RebuildSampleViewCommand cmd, CancellationToken ct)
+    {
+        var sample = await Repository.LoadAsync(cmd.Id, ct);
+        var latest = await Repository.GetLatestEvent(cmd.Id, ct);
+
+        if (sample is null || latest is null) return (new NotFound(), null);
+
+        await Mediator.Publish(
+            new AggregateSavedNotification<Sample>(sample, [latest], cmd.FailedTargets),
             ct);
 
         return (new Success(sample.Id, []), sample);

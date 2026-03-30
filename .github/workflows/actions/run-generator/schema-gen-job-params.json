@@ -1,6 +1,6 @@
 [
   {
-    "assemblyPath": "__BUSINESS_CONTRACTS_ASSEMBLY_PATH__",
+    "assemblyPath": "__ECK1_CONTRACTS_ASSEMBLY_PATH__",
     "typeName": "ECK1.Contracts.Kafka.BusinessEvents.EventFailure",
     "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/failure-events.dlq",
     "format": "json",
@@ -8,14 +8,14 @@
     "topic": "failure-events.dlq"
   },
   {
-    "assemblyPath": "__INTEGRATION_CONTRACTS_ASSEMBLY_PATH__",
+    "assemblyPath": "__ECK1_INTEGRATION_CONTRACTS_ASSEMBLY_PATH__",
     "typeName": "ECK1.IntegrationContracts.Kafka.IntegrationRecords.ThinEvent",
     "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/sample-thin-events",
     "format": "avro",
     "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/sample-thin-events"
   },
   {
-    "assemblyPath": "__INTEGRATION_CONTRACTS_ASSEMBLY_PATH__",
+    "assemblyPath": "__ECK1_INTEGRATION_CONTRACTS_ASSEMBLY_PATH__",
     "typeName": "ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample.SampleFullRecord",
     "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/sample-full-records",
     "format": "proto",
@@ -23,18 +23,58 @@
     "topic": "sample-full-records"
   },
   {
-    "assemblyPath": "__INTEGRATION_CONTRACTS_ASSEMBLY_PATH__",
+    "assemblyPath": "__ECK1_INTEGRATION_CONTRACTS_ASSEMBLY_PATH__",
     "typeName": "ECK1.IntegrationContracts.Kafka.IntegrationRecords.ThinEvent",
     "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/sample2-thin-events",
     "format": "avro",
     "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/sample2-thin-events"
   },
   {
-    "assemblyPath": "__INTEGRATION_CONTRACTS_ASSEMBLY_PATH__",
+    "assemblyPath": "__ECK1_INTEGRATION_CONTRACTS_ASSEMBLY_PATH__",
     "typeName": "ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample2.Sample2FullRecord",
     "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/sample2-full-records",
     "format": "proto",
     "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/sample2-full-records",
     "topic": "sample2-full-records"
+  },
+  {
+    "assemblyPath": "__ECK1_RECONCILIATION_CONTRACTS_ASSEMBLY_PATH__",
+    "typeName": "ECK1.Reconciliation.Contracts.ReconcileRequest",
+    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.Reconciler/reconcile-requests",
+    "format": "json",
+    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.Reconciler/reconcile-requests",
+    "topic": "reconcile-requests"
+  },
+  {
+    "assemblyPath": "__ECK1_RECONCILIATION_CONTRACTS_ASSEMBLY_PATH__",
+    "typeName": "ECK1.Reconciliation.Contracts.ReconcileResult",
+    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.Reconciler/reconcile-results",
+    "format": "json",
+    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.Reconciler/reconcile-results",
+    "topic": "reconcile-results"
+  },
+  {
+    "assemblyPath": "__ECK1_RECONCILIATION_CONTRACTS_ASSEMBLY_PATH__",
+    "typeName": "ECK1.Reconciliation.Contracts.RebuildRequest",
+    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/eck1-rebuild-requests",
+    "format": "json",
+    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/eck1-rebuild-requests",
+    "topic": "eck1-rebuild-requests"
+  },
+  {
+    "assemblyPath": "__ECK1_COMMANDS_ASSEMBLY_PATH__",
+    "typeName": "ECK1.CommandsAPI.Commands.ISampleCommand",
+    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/sample-commands",
+    "format": "json",
+    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/sample-commands",
+    "topic": "sample-commands"
+  },
+  {
+    "assemblyPath": "__ECK1_COMMANDS_ASSEMBLY_PATH__",
+    "typeName": "ECK1.CommandsAPI.Commands.ISample2Command",
+    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/sample2-commands",
+    "format": "json",
+    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/sample2-commands",
+    "topic": "sample2-commands"
   }
 ]

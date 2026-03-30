@@ -4,5 +4,7 @@ using MediatR;
 namespace ECK1.CommandsAPI.Kafka;
 
 public record AggregateSavedNotification<TAggregate>(
-    IAggregateRoot Aggregate,
-    IReadOnlyCollection<IDomainEvent> Events) : INotification;
+    TAggregate Aggregate,
+    IReadOnlyCollection<IDomainEvent> Events,
+    string[] Targets = null) : INotification
+    where TAggregate: IAggregateRoot;

@@ -1,0 +1,59 @@
+name: Build and Test
+
+permissions:
+  contents: read
+  packages: read
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: ["main"]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - '.github/workflows/build-and-test.yml'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Configure NuGet auth
+        run: |
+          dotnet nuget update source "GitHub" \
+            --username "${GITHUB_REPOSITORY_OWNER}" \
+            --password "${{ secrets.GITHUB_TOKEN }}" \
+            --store-password-in-clear-text
+
+      - name: Restore
+        run: dotnet restore src/ECK1.sln
+
+      - name: Build
+        run: dotnet build src/ECK1.sln -c Release --no-restore
+
+      - name: Test
+        run: |
+          dotnet test tests/ECK1.CommandsAPI.Tests -c Release --no-build
+          dotnet test tests/ECK1.CommonUtils.Tests -c Release --no-build
+          dotnet test tests/ECK1.Integration.Proxy.Tests -c Release --no-build
+          dotnet test tests/ECK1.Integration.Cache.ShortTerm.Tests -c Release --no-build
+
+  trigger-schema-generation:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger schema generation
+        run: |
+          gh api repos/Clark1992/ECK1/dispatches \
+            --method POST \
+            -f event_type=generate-schemas
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -26,11 +26,11 @@ public class AggregateRootTests
             new SampleAttachmentAddedEvent(sampleId, attachment) { Version = version++ },
             new SampleAttachmentUpdatedEvent(sampleId, attachment.Id, "invoice-v2.pdf", "https://cdn/files/invoice-v2.pdf") { Version = version++ },
             new SampleAttachmentRemovedEvent(sampleId, attachment.Id) { Version = version++ },
-            new SampleRebuiltEvent(sampleId, "Ignored", "Ignored", changedAddress, []) {  Version = version++ },
+            //new SampleRebuiltEvent(sampleId, "Ignored", "Ignored", changedAddress, []) {  Version = version++ },
         ];
 
         // Act
-        var sample = AggregateRoot.FromHistory<Sample>(history, sampleId);
+        var sample = AggregateRoot.FromStart<Sample>(history, sampleId);
 
         // Assert
         sample.Id.Should().Be(sampleId);
@@ -76,11 +76,11 @@ public class AggregateRootTests
             new Sample2StatusChangedEvent(sample2Id, Sample2Status.Paid, "Payment received") { Version = version++ },
             new Sample2TagAddedEvent(sample2Id, "beta" ) { Version = version++ },
             new Sample2TagRemovedEvent(sample2Id, "alpha") { Version = version++ },
-            new Sample2RebuiltEvent(sample2Id, createdCustomer, changedAddress, [], [], Sample2Status.Cancelled) { Version = version++ },
+            //new Sample2RebuiltEvent(sample2Id, createdCustomer, changedAddress, [], [], Sample2Status.Cancelled) { Version = version++ },
         ];
 
         // Act
-        var sample2 = AggregateRoot.FromHistory<Sample2>(history, sample2Id);
+        var sample2 = AggregateRoot.FromStart<Sample2>(history, sample2Id);
 
         // Assert
         sample2.Id.Should().Be(sample2Id);

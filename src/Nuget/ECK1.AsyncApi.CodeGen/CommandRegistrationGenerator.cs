@@ -1,9 +1,9 @@
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis;
+
+using static ECK1.AsyncApi.CodeGen.Common;
 
 namespace ECK1.AsyncApi.CodeGen;
 
@@ -14,23 +14,22 @@ public sealed class CommandRegistrationGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var commandInterfaces = context.SyntaxProvider
-            .ForAttributeWithMetadataName(
-                CommandAttributeName,
-                predicate: static (node, _) => node is InterfaceDeclarationSyntax,
-                transform: static (ctx, _) => ExtractCommandInfo(ctx))
-            .Where(static info => info != null);
+        var symbolCollection = GetTypesWithAttributeWithDeps(context, CommandAttributeName);
 
-        var collected = commandInterfaces.Collect();
+        var commandInterfaces = symbolCollection
+            .SelectMany((types, _) =>
+                types
+                    .Where(t => t.TypeKind == TypeKind.Interface)
+                    .Select(t => ExtractCommandInfo(t))
+                    .Where(info => info != null)
+            )
+            .Collect();
 
-        context.RegisterSourceOutput(collected, static (spc, commands) => GenerateSource(spc, commands));
+        context.RegisterSourceOutput(commandInterfaces, static (spc, commands) => GenerateSource(spc, commands));
     }
 
-    private static CommandInfo ExtractCommandInfo(GeneratorAttributeSyntaxContext ctx)
+    private static CommandInfo ExtractCommandInfo(INamedTypeSymbol symbol)
     {
-        if (ctx.TargetSymbol is not INamedTypeSymbol symbol)
-            return null;
-
         var topicAttr = symbol.GetAttributes()
             .FirstOrDefault(a => a.AttributeClass != null
                 && a.AttributeClass.ContainingNamespace != null

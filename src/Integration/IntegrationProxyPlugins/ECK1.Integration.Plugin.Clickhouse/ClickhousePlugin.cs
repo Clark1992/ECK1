@@ -6,9 +6,9 @@ using ClickHouse.Client.Copy;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Text.Json;
-using ECK1.Integration.Common;
 using ECK1.Integration.Config;
 using OpenTelemetry.Trace;
+using Generated = ECK1.IntegrationContracts.Kafka.IntegrationRecords.Generated;
 
 namespace ECK1.Integration.Plugin.Clickhouse;
 
@@ -23,6 +23,7 @@ public class ClickhousePluginLoader : IIntergationPluginLoader
         
         services.AddSingleton(typeof(IIntergationPlugin<,>), typeof(ClickhouseWriter<,>));
 
+        services.AddSingleton<IReconciliationPlugin, ClickhouseReconciliationPlugin>();
         services.AddSingleton<IClickhouseConnectionFactory, ClickhouseConnectionFactory>();
     }
 
@@ -33,6 +34,7 @@ public class ClickhousePluginLoader : IIntergationPluginLoader
 }
 
 public sealed class ClickhouseWriter<TEvent, TRecord>: IIntergationPlugin<TEvent, TRecord>, IAsyncDisposable
+    where TEvent : Generated.ThinEvent
 {
     private readonly ILogger<ClickhouseWriter<TEvent, TRecord>> logger;
 
@@ -176,5 +178,65 @@ public sealed class ClickhouseWriter<TEvent, TRecord>: IIntergationPlugin<TEvent
 
         stopCts.Dispose();
         flushLock.Dispose();
+    }
+}
+
+public class ClickhouseReconciliationPlugin(
+    IClickhouseConnectionFactory connectionFactory,
+    ILogger<ClickhouseReconciliationPlugin> logger) : IReconciliationPlugin
+{
+    public async Task<ReconciliationCheckResult> CheckAsync(Guid entityId, string entityType, int expectedVersion, CancellationToken ct)
+    {
+        await using var conn = await connectionFactory.CreateOpenConnectionAsync(ct);
+
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = """
+            SELECT max(entity_version) AS max_ver, count() AS cnt
+            FROM integration_events_raw FINAL
+            WHERE entity_id = {entityId:UUID} AND entity_type = {entityType:String}
+            """;
+        cmd.Parameters.Add(new ClickHouse.Client.ADO.Parameters.ClickHouseDbParameter
+        {
+            ParameterName = "entityId",
+            Value = entityId
+        });
+        cmd.Parameters.Add(new ClickHouse.Client.ADO.Parameters.ClickHouseDbParameter
+        {
+            ParameterName = "entityType",
+            Value = entityType
+        });
+
+        await using var reader = await cmd.ExecuteReaderAsync(ct);
+
+        if (!await reader.ReadAsync(ct))
+        {
+            logger.LogWarning("CH reconciliation: no rows for entity {EntityId}", entityId);
+            return ReconciliationCheckResult.NeedsFullRebuild;
+        }
+
+        var maxVer = reader.GetInt32(0);
+        var cnt = reader.GetInt64(1);
+
+        if (cnt == 0)
+        {
+            logger.LogWarning("CH reconciliation: entity {EntityId} not found", entityId);
+            return ReconciliationCheckResult.NeedsFullRebuild;
+        }
+
+        if (maxVer < expectedVersion)
+        {
+            logger.LogWarning("CH reconciliation: entity {EntityId} version mismatch. Expected {Expected}, got {Actual}",
+                entityId, expectedVersion, maxVer);
+            return ReconciliationCheckResult.NeedsFullRebuild;
+        }
+
+        if (cnt < maxVer)
+        {
+            logger.LogWarning("CH reconciliation: entity {EntityId} has gaps. Expected {Expected} rows, got {Actual}",
+                entityId, maxVer, cnt);
+            return ReconciliationCheckResult.NeedsFullRebuild;
+        }
+
+        return ReconciliationCheckResult.Ok;
     }
 }

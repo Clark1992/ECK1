@@ -13,6 +13,10 @@ sqlserver:
       appUser: "eck1_failed_view_rebuilder_app"
       appPassword: "FvrApp!S3cure2026"
 
+    - name: "ECK1.Reconciler"
+      appUser: "eck1_reconciler_app"
+      appPassword: "RecApp!S3cure2026"
+
   credentials:
     saPassword: "SqlSa!S3cure2026"
     metricsUser: "eck1_sql_metrics"

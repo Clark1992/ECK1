@@ -1,5 +1,6 @@
 using AutoMapper;
 using ECK1.CommandsAPI.Data;
+using ECK1.CommandsAPI.Domain;
 using ECK1.CommandsAPI.Domain.Sample2s;
 using ECK1.CommandsAPI.Domain.Shared;
 using ECK1.CommandsAPI.Kafka;
@@ -89,14 +90,36 @@ public class Sample2CommandHandlers :
         return await SaveAndNotify(command.Command.Id, command.State, sample2 => sample2.RemoveTag(command.Command.Tag), ct);
     }
 
-    public async Task<(ICommandResult, Sample2)> Handle(CommandRequest<RebuildSample2ViewCommand, Sample2> command, CancellationToken ct)
-    {
-        var sample2 = await Repository.LoadAsync(command.Command.Id, ct);
+    public Task<(ICommandResult, Sample2)> Handle(CommandRequest<RebuildSample2ViewCommand, Sample2> command, CancellationToken ct) =>
+        command.Command.IsFullHistoryRebuild ?
+        RebuildFullHistory(command.Command, ct) :
+        RebuildLatest(command.Command, ct);
 
-        if (sample2 is null) return (new NotFound(), null);
+    public async Task<(ICommandResult, Sample2)> RebuildFullHistory(RebuildSample2ViewCommand cmd, CancellationToken ct)
+    {
+        var history = await Repository.LoadHistory(cmd.Id, ct);
+
+        if (history.Count == 0) return (new NotFound(), null);
+
+        var sample2 = AggregateRoot.CreateNew<Sample2>();
+        history.ForEach(sample2.ReplayEvent);
 
         await Mediator.Publish(
-            new AggregateSavedNotification<Sample2>(sample2, [mapper.Map<Sample2RebuiltEvent>(sample2)]),
+            new AggregateSavedNotification<Sample2>(sample2, history, cmd.FailedTargets),
+            ct);
+
+        return (new Success(sample2.Id, []), sample2);
+    }
+
+    public async Task<(ICommandResult, Sample2)> RebuildLatest(RebuildSample2ViewCommand cmd, CancellationToken ct)
+    {
+        var sample2 = await Repository.LoadAsync(cmd.Id, ct);
+        var latest = await Repository.GetLatestEvent(cmd.Id, ct);
+
+        if (sample2 is null || latest is null) return (new NotFound(), null);
+
+        await Mediator.Publish(
+            new AggregateSavedNotification<Sample2>(sample2, [latest], cmd.FailedTargets),
             ct);
 
         return (new Success(sample2.Id, []), sample2);

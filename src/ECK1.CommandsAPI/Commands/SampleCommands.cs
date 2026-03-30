@@ -1,12 +1,12 @@
 using System.Text.Json.Serialization;
 using ECK1.AsyncApi.Attributes;
 using ECK1.CommandsAPI.Domain.Samples;
+using ECK1.CommandsAPI.Dto.Common;
+using ECK1.CommandsAPI.Dto.Sample;
 using ECK1.Contracts.Shared;
 using ECK1.Orleans;
 using MediatR;
 using Orleans;
-using ECK1.CommandsAPI.Dto.Common;
-using ECK1.CommandsAPI.Dto.Sample;
 
 namespace ECK1.CommandsAPI.Commands;
 
@@ -21,33 +21,35 @@ namespace ECK1.CommandsAPI.Commands;
 [JsonDerivedType(typeof(UpdateSampleAttachmentCommand), nameof(UpdateSampleAttachmentCommand))]
 [Command]
 [Topic(TopicConfigKey = "Kafka:SampleCommandsTopic")]
-public interface ISampleCommand: IGrainKeyResolver<Sample>, IRequest<(ICommandResult, Sample)>;
+public interface ISampleCommand : IGrainKeyResolver<Sample>, IRequest<(ICommandResult, Sample)>;
 
 [GenerateSerializer]
 [Route("POST", "/api/async/sample")]
-public record CreateSampleCommand(string Name, string Description, Address Address): ISampleCommand;
+public record CreateSampleCommand(string Name, string Description, Address Address) : ISampleCommand;
 
 [GenerateSerializer]
 [Route("PUT", "/api/async/sample/{id}/name")]
-public record ChangeSampleNameCommand([property: FromRoute("id")] Guid Id, string NewName): ISampleCommand, IValueId<Guid>;
+public record ChangeSampleNameCommand([property: FromRoute("id")] Guid Id, string NewName) : ISampleCommand, IValueId<Guid>;
 
 [GenerateSerializer]
 [Route("PUT", "/api/async/sample/{id}/description")]
-public record ChangeSampleDescriptionCommand([property: FromRoute("id")] Guid Id, string NewDescription): ISampleCommand, IValueId<Guid>;
+public record ChangeSampleDescriptionCommand([property: FromRoute("id")] Guid Id, string NewDescription) : ISampleCommand, IValueId<Guid>;
 
 [GenerateSerializer]
 [Route("PUT", "/api/async/sample/{id}/address")]
-public record ChangeSampleAddressCommand([property: FromRoute("id")] Guid Id, Address NewAddress): ISampleCommand, IValueId<Guid>;
+public record ChangeSampleAddressCommand([property: FromRoute("id")] Guid Id, Address NewAddress) : ISampleCommand, IValueId<Guid>;
 
 [GenerateSerializer]
 [Route("POST", "/api/async/sample/{id}/attachments")]
-public record AddSampleAttachmentCommand([property: FromRoute("id")] Guid Id, Attachment Attachment): ISampleCommand, IValueId<Guid>;
+public record AddSampleAttachmentCommand([property: FromRoute("id")] Guid Id, Attachment Attachment) : ISampleCommand, IValueId<Guid>;
 
 [GenerateSerializer]
 [Route("DELETE", "/api/async/sample/{id}/attachments/{attachmentId}")]
-public record RemoveSampleAttachmentCommand([property: FromRoute("id")] Guid Id, [property: FromRoute("attachmentId")] Guid AttachmentId): ISampleCommand, IValueId<Guid>;
+public record RemoveSampleAttachmentCommand([property: FromRoute("id")] Guid Id, [property: FromRoute("attachmentId")] Guid AttachmentId) : ISampleCommand, IValueId<Guid>;
 
 [GenerateSerializer]
 [Route("PUT", "/api/async/sample/{id}/attachments/{attachmentId}")]
-public record UpdateSampleAttachmentCommand([property: FromRoute("id")] Guid Id, [property: FromRoute("attachmentId")] Guid AttachmentId, string NewFileName, string NewUrl): ISampleCommand, IValueId<Guid>;
-[GenerateSerializer] public class RebuildSampleViewCommand: RebuildViewCommandBase, IGrainKeyResolver<Sample>, IRequest<(ICommandResult, Sample)>;
+public record UpdateSampleAttachmentCommand([property: FromRoute("id")] Guid Id, [property: FromRoute("attachmentId")] Guid AttachmentId, string NewFileName, string NewUrl) : ISampleCommand, IValueId<Guid>;
+
+[GenerateSerializer]
+public class RebuildSampleViewCommand : RebuildViewCommandBase, IGrainKeyResolver<Sample>, IRequest<(ICommandResult, Sample)>;
