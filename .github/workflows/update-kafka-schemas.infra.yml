@@ -89,6 +89,19 @@ jobs:
             echo "$ENV_NAME=$(realpath "$DLL_PATH")" >> $GITHUB_ENV
           done
 
+          # Copy ASP.NET Core shared framework assemblies into publish dirs that need them
+          # (schema generator loads DLLs via reflection and can't resolve shared framework assemblies)
+          ASPNET_FW_DIR=$(find /usr/share/dotnet/shared/Microsoft.AspNetCore.App/8.* -maxdepth 0 | sort -V | tail -1)
+          if [ -d "$ASPNET_FW_DIR" ]; then
+            find "$CLONE_DIR" -path "*/tests/*" -prune -o -path "*/bin/Release/net8.0/publish" -type d -print | while read -r PUB_DIR; do
+              if [ -f "$PUB_DIR/ECK1.CommandsAPI.dll" ]; then
+                echo "Copying ASP.NET Core framework assemblies to $PUB_DIR"
+                cp -n "$ASPNET_FW_DIR"/Microsoft.AspNetCore.Mvc.*.dll "$PUB_DIR/"
+                cp -n "$ASPNET_FW_DIR"/Microsoft.Extensions.*.dll "$PUB_DIR/" 2>/dev/null || true
+              fi
+            done
+          fi
+
       - name: Run generator
         uses: ./.github/workflows/actions/run-generator
         with:
