@@ -26,7 +26,6 @@ public class AggregateRootTests
             new SampleAttachmentAddedEvent(sampleId, attachment) { Version = version++ },
             new SampleAttachmentUpdatedEvent(sampleId, attachment.Id, "invoice-v2.pdf", "https://cdn/files/invoice-v2.pdf") { Version = version++ },
             new SampleAttachmentRemovedEvent(sampleId, attachment.Id) { Version = version++ },
-            //new SampleRebuiltEvent(sampleId, "Ignored", "Ignored", changedAddress, []) {  Version = version++ },
         ];
 
         // Act
@@ -68,7 +67,7 @@ public class AggregateRootTests
         var version = 1;
         List<ISample2Event> history =
         [
-            new Sample2CreatedEvent(sample2Id, createdCustomer, createdAddress, initialLineItems, ["alpha"], Sample2Status.Draft),
+            new Sample2CreatedEvent(sample2Id, createdCustomer, createdAddress, initialLineItems, ["alpha"], Sample2Status.Draft) { Version = version++ },
             new Sample2CustomerEmailChangedEvent(sample2Id, "new@example.com") { Version = version++ },
             new Sample2ShippingAddressChangedEvent(sample2Id, changedAddress) { Version = version++ },
             new Sample2LineItemAddedEvent(sample2Id, addedLineItem) { Version = version++ },
@@ -76,7 +75,6 @@ public class AggregateRootTests
             new Sample2StatusChangedEvent(sample2Id, Sample2Status.Paid, "Payment received") { Version = version++ },
             new Sample2TagAddedEvent(sample2Id, "beta" ) { Version = version++ },
             new Sample2TagRemovedEvent(sample2Id, "alpha") { Version = version++ },
-            //new Sample2RebuiltEvent(sample2Id, createdCustomer, changedAddress, [], [], Sample2Status.Cancelled) { Version = version++ },
         ];
 
         // Act
