@@ -78,7 +78,7 @@ jobs:
           for DLL_NAME in "${!DLL_MAP[@]}"; do
             ENV_NAME="${DLL_MAP[$DLL_NAME]}"
 
-            DLL_PATH=$(find "$CLONE_DIR" -path "*/bin/Release/net8.0/publish/${DLL_NAME}" -type f | head -n 1)
+            DLL_PATH=$(find "$CLONE_DIR" -path "*/tests/*" -prune -o -path "*/bin/Release/net8.0/publish/${DLL_NAME}" -type f -print | head -n 1)
 
             if [ -z "$DLL_PATH" ]; then
               echo "ERROR: Could not find ${DLL_NAME} in any cloned repo"
