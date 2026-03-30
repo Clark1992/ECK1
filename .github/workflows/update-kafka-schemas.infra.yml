@@ -97,28 +97,6 @@ jobs:
             echo "$ENV_NAME=$(realpath "$DLL_PATH")" >> $GITHUB_ENV
           done
 
-          # Remove Microsoft.* DLLs from ALL non-test bin dirs to prevent version conflicts
-          # The schema generator (runs on newer .NET) has its own versions of these loaded;
-          # v8 copies in build output dirs cause FileLoadException via Assembly.LoadFrom probing
-          echo "Cleaning conflicting Microsoft.* DLLs from build outputs..."
-          find "$CLONE_DIR" -path "*/tests/*" -prune -o -path "*/bin/Release/net8.0/Microsoft.*.dll" -type f -print -exec rm -f {} \;
-
-          # Copy only ASP.NET MVC assemblies needed by schema generator reflection for CommandsAPI
-          # These specific DLLs don't conflict because the schema generator doesn't load them itself
-          ASPNET_FW_DIR=$(find /usr/share/dotnet/shared/Microsoft.AspNetCore.App/8.* -maxdepth 0 | sort -V | tail -1)
-          if [ -d "$ASPNET_FW_DIR" ]; then
-            find "$CLONE_DIR" -path "*/tests/*" -prune -o -name "ECK1.CommandsAPI.dll" -path "*/bin/Release/net8.0/*" -print | while read -r DLL; do
-              TARGET_DIR=$(dirname "$DLL")
-              echo "Copying ASP.NET MVC framework assemblies to $TARGET_DIR"
-              cp -n "$ASPNET_FW_DIR"/Microsoft.AspNetCore.Mvc.Core.dll "$TARGET_DIR/"
-              cp -n "$ASPNET_FW_DIR"/Microsoft.AspNetCore.Mvc.Abstractions.dll "$TARGET_DIR/"
-              cp -n "$ASPNET_FW_DIR"/Microsoft.AspNetCore.Routing.dll "$TARGET_DIR/"
-              cp -n "$ASPNET_FW_DIR"/Microsoft.AspNetCore.Routing.Abstractions.dll "$TARGET_DIR/"
-              cp -n "$ASPNET_FW_DIR"/Microsoft.AspNetCore.Http.Abstractions.dll "$TARGET_DIR/"
-              cp -n "$ASPNET_FW_DIR"/Microsoft.AspNetCore.Http.Features.dll "$TARGET_DIR/"
-            done
-          fi
-
       - name: Run generator
         uses: ./.github/workflows/actions/run-generator
         with:
