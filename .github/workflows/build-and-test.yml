@@ -62,6 +62,8 @@ jobs:
   trigger-schema-generation:
     needs: build-and-test
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Trigger schema generation
         run: |
