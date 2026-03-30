@@ -68,6 +68,7 @@ jobs:
           done
 
           # --- Map DLL names to env vars ---
+          # Prefer finding each DLL in its own project dir to avoid dependency contamination
           declare -A DLL_MAP=(
             [ECK1.Contracts.dll]="ECK1_CONTRACTS_ASSEMBLY_PATH"
             [ECK1.IntegrationContracts.dll]="ECK1_INTEGRATION_CONTRACTS_ASSEMBLY_PATH"
@@ -77,8 +78,15 @@ jobs:
 
           for DLL_NAME in "${!DLL_MAP[@]}"; do
             ENV_NAME="${DLL_MAP[$DLL_NAME]}"
+            PROJECT_NAME="${DLL_NAME%.dll}"
 
-            DLL_PATH=$(find "$CLONE_DIR" -path "*/tests/*" -prune -o -path "*/bin/Release/net8.0/${DLL_NAME}" -type f -print | head -n 1)
+            # First try: find DLL in its own project's bin dir (cleanest dependency set)
+            DLL_PATH=$(find "$CLONE_DIR" -path "*/tests/*" -prune -o -path "*/${PROJECT_NAME}/bin/Release/net8.0/${DLL_NAME}" -type f -print | head -n 1)
+
+            # Fallback: find DLL anywhere in non-test bin dirs
+            if [ -z "$DLL_PATH" ]; then
+              DLL_PATH=$(find "$CLONE_DIR" -path "*/tests/*" -prune -o -path "*/bin/Release/net8.0/${DLL_NAME}" -type f -print | head -n 1)
+            fi
 
             if [ -z "$DLL_PATH" ]; then
               echo "ERROR: Could not find ${DLL_NAME} in any cloned repo"
@@ -89,8 +97,15 @@ jobs:
             echo "$ENV_NAME=$(realpath "$DLL_PATH")" >> $GITHUB_ENV
           done
 
-          # Copy ASP.NET MVC assemblies needed by schema generator reflection
-          # Only copy MVC-specific DLLs, NOT Microsoft.Extensions.* (those conflict with schema generator's own v9 deps)
+          # For CommandsAPI bin dir: remove Microsoft.Extensions.*.dll to prevent version conflicts
+          # The schema generator already has these loaded (v9); v8 copies in bin cause FileLoadException
+          find "$CLONE_DIR" -path "*/tests/*" -prune -o -name "ECK1.CommandsAPI.dll" -path "*/bin/Release/net8.0/*" -print | while read -r DLL; do
+            TARGET_DIR=$(dirname "$DLL")
+            echo "Removing conflicting Microsoft.Extensions.*.dll from $TARGET_DIR"
+            rm -f "$TARGET_DIR"/Microsoft.Extensions.*.dll
+          done
+
+          # Copy ASP.NET MVC assemblies needed by schema generator reflection for CommandsAPI
           ASPNET_FW_DIR=$(find /usr/share/dotnet/shared/Microsoft.AspNetCore.App/8.* -maxdepth 0 | sort -V | tail -1)
           if [ -d "$ASPNET_FW_DIR" ]; then
             find "$CLONE_DIR" -path "*/tests/*" -prune -o -name "ECK1.CommandsAPI.dll" -path "*/bin/Release/net8.0/*" -print | while read -r DLL; do
