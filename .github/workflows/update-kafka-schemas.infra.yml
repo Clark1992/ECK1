@@ -97,15 +97,14 @@ jobs:
             echo "$ENV_NAME=$(realpath "$DLL_PATH")" >> $GITHUB_ENV
           done
 
-          # For CommandsAPI bin dir: remove Microsoft.Extensions.*.dll to prevent version conflicts
-          # The schema generator already has these loaded (v9); v8 copies in bin cause FileLoadException
-          find "$CLONE_DIR" -path "*/tests/*" -prune -o -name "ECK1.CommandsAPI.dll" -path "*/bin/Release/net8.0/*" -print | while read -r DLL; do
-            TARGET_DIR=$(dirname "$DLL")
-            echo "Removing conflicting Microsoft.Extensions.*.dll from $TARGET_DIR"
-            rm -f "$TARGET_DIR"/Microsoft.Extensions.*.dll
-          done
+          # Remove Microsoft.* DLLs from ALL non-test bin dirs to prevent version conflicts
+          # The schema generator (runs on newer .NET) has its own versions of these loaded;
+          # v8 copies in build output dirs cause FileLoadException via Assembly.LoadFrom probing
+          echo "Cleaning conflicting Microsoft.* DLLs from build outputs..."
+          find "$CLONE_DIR" -path "*/tests/*" -prune -o -path "*/bin/Release/net8.0/Microsoft.*.dll" -type f -print -exec rm -f {} \;
 
-          # Copy ASP.NET MVC assemblies needed by schema generator reflection for CommandsAPI
+          # Copy only ASP.NET MVC assemblies needed by schema generator reflection for CommandsAPI
+          # These specific DLLs don't conflict because the schema generator doesn't load them itself
           ASPNET_FW_DIR=$(find /usr/share/dotnet/shared/Microsoft.AspNetCore.App/8.* -maxdepth 0 | sort -V | tail -1)
           if [ -d "$ASPNET_FW_DIR" ]; then
             find "$CLONE_DIR" -path "*/tests/*" -prune -o -name "ECK1.CommandsAPI.dll" -path "*/bin/Release/net8.0/*" -print | while read -r DLL; do
