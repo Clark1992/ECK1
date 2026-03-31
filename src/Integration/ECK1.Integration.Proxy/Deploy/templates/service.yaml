@@ -1,0 +1,16 @@
+{{- range .Values.plugins }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $.Chart.Name }}-{{ .name | lower }}-svc
+  labels:
+    purpose: chaos-engine
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ $.Chart.Name }}-{{ .name | lower }}
+  ports:
+    - protocol: TCP
+      port: 80
+---
+{{- end }}

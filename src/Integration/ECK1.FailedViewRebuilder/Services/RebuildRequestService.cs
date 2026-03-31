@@ -2,6 +2,9 @@
 using ECK1.FailedViewRebuilder.Data;
 using ECK1.FailedViewRebuilder.Data.Models;
 using ECK1.FailedViewRebuilder.Models;
+using ECK1.Integration.Config;
+using ECK1.Kafka;
+using ECK1.Reconciliation.Contracts;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECK1.FailedViewRebuilder.Services;
@@ -31,26 +34,26 @@ public class RebuildRequestService(
     FailuresDbContext db,
     ILogger<RebuildRequestService> logger,
     IBackgroundTaskQueue taskQueue,
-    FailureHandlingConfig config) : IRebuildRequestService
+    IReadOnlyDictionary<string, IKafkaTopicProducer<RebuildRequest>> rebuildProducers) : IRebuildRequestService
 {
     public async Task<string> StartJob(
         string entityType,
         int? count)
     {
-        if(!config.TryGetValue(entityType, out var entry))
+        if (!rebuildProducers.ContainsKey(entityType))
         {
-            var msg = "Cannot find failure handling config for {0}";
+            var msg = "No rebuild producer registered for entity type '{0}'";
             logger.LogWarning(msg, entityType);
             return string.Format(msg, entityType);
         }
 
-        var jobName = entry.RebuildRequestTopic;
+        var jobName = $"rebuild-{entityType}";
 
         var job = await db.JobHistories.FirstOrDefaultAsync(j => j.Name == jobName && j.FinishedAt == null);
 
         if (job is not null)
         {
-            logger.LogInformation("Previous job ({topic}) is still in progress", jobName);
+            logger.LogInformation("Previous job ({jobName}) is still in progress", jobName);
 
             return $"[{entityType}] Previous job ({jobName}) started at {job.StartedAt} is still in progress.";
         }
@@ -76,7 +79,7 @@ public class RebuildRequestService(
         taskQueue.QueueBackgroundWorkItem(async (sp, ct) =>
         {
             var jobRunner = sp.GetRequiredService<IJobRunner>();
-            await jobRunner.RunJob(jobName, qParams, job.Id, ct);
+            await jobRunner.RunJob(entityType, qParams, job.Id, ct);
         });
 
         return $"[{entityType}] Started {job.Name} at {job.StartedAt}";

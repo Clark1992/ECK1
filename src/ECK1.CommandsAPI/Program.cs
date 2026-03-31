@@ -9,6 +9,7 @@ using ECK1.CommandsAPI.Kafka;
 using ECK1.CommandsAPI.Kafka.Orleans;
 using ECK1.CommandsAPI.Startup;
 using ECK1.CommonUtils.AspNet;
+using ECK1.CommonUtils.Chaos;
 using ECK1.Integration.Config;
 using ECK1.CommonUtils.OpenTelemetry;
 using ECK1.CommonUtils.Secrets.Doppler;
@@ -90,6 +91,8 @@ builder.Services.AddGrain<RebuildSample2ViewCommand>()
 
 builder.Services.SetupKafka(builder.Configuration);
 
+builder.Services.AddChaosEngine(builder.Configuration);
+
 builder.Services.AddScoped<INotificationHandler<AggregateSavedNotification<Sample>>, IntegrationSender<Sample, SampleFullRecord>>();
 builder.Services.AddScoped<INotificationHandler<AggregateSavedNotification<Sample2>>, IntegrationSender<Sample2, Sample2FullRecord>>();
 
@@ -120,6 +123,7 @@ app.UseSwaggerUI(c =>
 });
 
 app.MapControllers();
+app.MapChaosEndpoints();
 app.MapAsyncApiDocument(
     Environment.GetEnvironmentVariable("SERVICE_NAME") ?? 
         throw new Exception("SERVICE_NAME env var not specified."), 

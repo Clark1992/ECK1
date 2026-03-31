@@ -1,4 +1,5 @@
 using ECK1.CommonUtils.AspNet;
+using ECK1.CommonUtils.Chaos;
 using ECK1.CommonUtils.OpenTelemetry;
 using ECK1.CommonUtils.Secrets.Doppler;
 using ECK1.CommonUtils.Secrets.K8s;
@@ -51,6 +52,8 @@ builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 builder.Services.SetupKafka(configuration, integrationConfig);
 
+builder.Services.AddChaosEngine(builder.Configuration);
+
 builder.Services.AddHostedService<ReconciliationCheckService>();
 builder.Services.AddHostedService<RebuildDispatchService>();
 
@@ -88,5 +91,6 @@ app.UseSwaggerUI(c =>
 });
 
 app.MapControllers();
+app.MapChaosEndpoints();
 
 app.Run();

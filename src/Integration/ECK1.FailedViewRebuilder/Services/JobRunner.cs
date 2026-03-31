@@ -2,6 +2,7 @@
 using ECK1.FailedViewRebuilder.Data.Models;
 using ECK1.FailedViewRebuilder.Models;
 using ECK1.Kafka;
+using ECK1.Reconciliation.Contracts;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECK1.FailedViewRebuilder.Services;
@@ -9,25 +10,32 @@ namespace ECK1.FailedViewRebuilder.Services;
 public interface IJobRunner
 {
     Task RunJob<TOrder>(
-        string topic,
+        string entityType,
         QueryParams<TOrder> qParams,
         int jobId,
         CancellationToken ct);
 }
 
 public class JobRunner(
-    IKafkaSimpleProducer<Guid> producer,
+    IReadOnlyDictionary<string, IKafkaTopicProducer<RebuildRequest>> rebuildProducers,
     FailuresDbContext db,
     ILogger<JobRunner> logger) : IJobRunner
 {
     protected readonly int BatchSize = 1000;
 
     public async Task RunJob<TKey>(
-        string topic,
+        string entityType,
         QueryParams<TKey> qParams,
         int jobId,
         CancellationToken ct)
     {
+        var producer = rebuildProducers.GetValueOrDefault(entityType);
+        if (producer is null)
+        {
+            logger.LogWarning("No rebuild producer registered for entity type '{EntityType}'. Skipping.", entityType);
+            return;
+        }
+
         JobHistory job = null;
         try
         {
@@ -44,7 +52,7 @@ public class JobRunner(
 
                 if (job.FinishedAt.HasValue)
                 {
-                    logger.LogInformation("Seems like job ({topic}) has been forcefully stopped. Stopping sending messages...", topic);
+                    logger.LogInformation("Seems like job ({entityType}) has been forcefully stopped. Stopping sending messages...", entityType);
                     return;
                 }
 
@@ -66,7 +74,7 @@ public class JobRunner(
                 if (failedEvents.Count == 0)
                     break;
 
-                await Process(topic, failedEvents);
+                await Process(producer, entityType, failedEvents, ct);
 
                 // run once for the whole count when count is set in params
                 if (qParams.Count.HasValue)
@@ -78,7 +86,7 @@ public class JobRunner(
         }
         catch (Exception ex)
         {
-            logger.LogError("Error during sending rebuild view requests. Job key (topic): {topic}. Exception: {ex}", topic, ex);
+            logger.LogError("Error during sending rebuild view requests. EntityType: {entityType}. Exception: {ex}", entityType, ex);
             if (job is not null)
             {
                 job.ErrorMessage = $"{ex.Message}\n{ex.StackTrace}";
@@ -95,12 +103,26 @@ public class JobRunner(
         }
     }
 
-    private async Task Process(string topic, List<EventFailure> failedEvents)
+    private async Task Process(
+        IKafkaTopicProducer<RebuildRequest> producer,
+        string entityType,
+        List<EventFailure> failedEvents,
+        CancellationToken ct)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(topic);
+        foreach (var failure in failedEvents)
+        {
+            var request = new RebuildRequest
+            {
+                EntityId = failure.EntityId,
+                EntityType = entityType,
+                FailedTargets = [],
+                IsFullHistoryRebuild = false,
+            };
 
-        failedEvents.ForEach(e => producer.ProduceAsync(e.EntityId, topic, default));
+            await producer.ProduceAsync(request, failure.EntityId.ToString(), ct);
+        }
+
         db.Set<EventFailure>().RemoveRange(failedEvents);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(ct);
     }
 }

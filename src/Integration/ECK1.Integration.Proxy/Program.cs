@@ -1,4 +1,5 @@
 ﻿using ECK1.CommonUtils.AspNet;
+using ECK1.CommonUtils.Chaos;
 using ECK1.CommonUtils.OpenTelemetry;
 using ECK1.Kafka.OpenTelemetry;
 using ECK1.Integration.Plugin.Abstractions;
@@ -49,6 +50,8 @@ builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 builder.Services.SetupKafka(builder.Configuration, integrationConfig, proxyConfig.Plugin);
 
+builder.Services.AddChaosEngine(builder.Configuration);
+
 var pluginRegistry = new IntergationPluginRegistry(logger);
 var pluginLoader = pluginRegistry.LoadPlugin(
     builder.Services,
@@ -87,5 +90,6 @@ app.UseSwaggerUI(c =>
 });
 
 app.MapControllers();
+app.MapChaosEndpoints();
 
 app.Run();

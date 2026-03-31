@@ -29,7 +29,13 @@ builder.Services.AddSingleton<InterleavedTwoPoolCreateUpdateRunner>();
 builder.Services.Configure<CommandsApiClientOptions>(
     builder.Configuration.GetSection(CommandsApiClientOptions.SectionName));
 
+builder.Services.Configure<ProxyServiceConfig>(
+    builder.Configuration.GetSection(ProxyServiceConfig.SectionName));
+
+builder.Services.AddSingleton<ChaosOrchestratorService>();
+
 builder.Services.AddHttpClient<CommandsApiClient>();
+builder.Services.AddHttpClient("chaos");
 
 var app = builder.Build();
 

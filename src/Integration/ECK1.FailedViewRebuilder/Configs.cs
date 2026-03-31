@@ -10,13 +10,3 @@ public class KafkaSettings
     public string FailureEventsTopic { get; set; }
     public string GroupId { get; set; }
 }
-
-public class FailureHandlingConfig : Dictionary<string, FailureHandlingConfigEntry>
-{
-    public static string Section => nameof(FailureHandlingConfig);
-}
-
-public class FailureHandlingConfigEntry
-{
-    public string RebuildRequestTopic { get; set; }
-}

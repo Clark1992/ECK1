@@ -12,6 +12,7 @@ using ECK1.Kafka;
 using Polly;
 using Polly.Retry;
 using ECK1.Contracts.Kafka.BusinessEvents;
+using ECK1.CommonUtils.Chaos;
 
 namespace ECK1.Integration.Proxy.Kafka;
 
@@ -51,6 +52,7 @@ public class EventConsumerConfig(
                     var logger = sp.GetRequiredService<ILogger<EventConsumerConfig>>();
                     var pluginInstance = sp.GetRequiredService<IIntergationPlugin<ThinEvent, TMessage>>();
                     var producer = sp.GetRequiredService<IKafkaTopicProducer<EventFailure>>();
+                    var chaos = sp.GetRequiredService<IChaosEngine>();
                     int? fieldMaskHash = null;
 
                     return async (key, @event, _, ct) =>
@@ -72,6 +74,8 @@ public class EventConsumerConfig(
                         if (@event.EntityId == default)
                             return;
 
+                        if (chaos.IsActive(ChaosScenarios.Proxy.DropEvent)) return;
+
                         // TODO: dont send mask every time
                         var request = new GetEntityRequest<TMessage>
                         {
@@ -85,6 +89,8 @@ public class EventConsumerConfig(
 
                         try
                         {
+                            chaos.Check(ChaosScenarios.Proxy.CacheMiss);
+
                             EntityResponse<TMessage> response;
 
                             if (useLongTerm)
@@ -105,7 +111,10 @@ public class EventConsumerConfig(
 
                             fieldMaskHash = response.FieldMaskHash;
 
-                            await pluginInstance.PushAsync(@event, response.Item);
+                            chaos.Check(ChaosScenarios.Proxy.PushFail);
+
+                            if (!chaos.IsActive(ChaosScenarios.Proxy.PushNoop))
+                                await pluginInstance.PushAsync(@event, response.Item);
 
                             logger.LogInformation("{Topic}: Handled '{message}:{id}'", topic, @event.EventType, @event.EntityId);
                         }
@@ -120,6 +129,16 @@ public class EventConsumerConfig(
                                 @event,
                                 entry.EntityType,
                                 reason,
+                                logger,
+                                ct);
+                        }
+                        catch (Exception ex) when (ex is not OperationCanceledException)
+                        {
+                            await PublishToDlqAsync(
+                                producer,
+                                @event,
+                                entry.EntityType,
+                                $"[{plugin}] {ex.GetType().Name}: {ex.Message}",
                                 logger,
                                 ct);
                         }
