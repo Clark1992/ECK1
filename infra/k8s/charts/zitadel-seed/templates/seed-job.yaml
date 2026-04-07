@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: zitadel-seed
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  backoffLimit: 5
+  activeDeadlineSeconds: 300
+  template:
+    spec:
+      serviceAccountName: zitadel-seed
+      restartPolicy: Never
+      containers:
+        - name: seed
+          image: {{ .Values.seed.image }}
+          command: ["sh", "-c", "/scripts/seed-users.sh"]
+          env:
+            - name: ZITADEL_HOST
+              value: "{{ .Values.zitadel.serviceName }}:{{ .Values.zitadel.port }}"
+            - name: ZITADEL_EXTERNAL_DOMAIN
+              value: "{{ .Values.zitadel.externalDomain }}"
+            - name: ZITADEL_PAT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.seed.patSecretName }}
+                  key: {{ .Values.seed.patSecretKey }}
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: scripts
+          configMap:
+            name: zitadel-seed-script
+            defaultMode: 0755

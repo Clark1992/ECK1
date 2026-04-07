@@ -11,7 +11,6 @@ public class HttpRequestCommandBinder
 {
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false
     };
 
@@ -62,7 +61,7 @@ public class HttpRequestCommandBinder
         {
             var value = BindPropertyValue(context, prop, routeValues, bodyJson);
             if (value is not null)
-                result[ToCamelCase(prop.Name)] = value;
+                result[prop.Name] = value;
         }
 
         return result;
@@ -120,15 +119,53 @@ public class HttpRequestCommandBinder
             return null;
 
         var sourceName = prop.SourceName ?? prop.Name;
-        return ExtractJsonProperty(bodyJson.Value, sourceName);
+        var element = ExtractJsonProperty(bodyJson.Value, sourceName);
+        if (element is null)
+            return null;
+
+        if (prop.IsComplex && prop.Properties is { Count: > 0 })
+            return BindComplexElement(element.Value, prop.Properties);
+
+        if (prop.IsCollection && prop.Properties is { Count: > 0 })
+            return BindCollectionElement(element.Value, prop.Properties);
+
+        return element;
+    }
+
+    private static Dictionary<string, object> BindComplexElement(
+        JsonElement element, List<AsyncApiPropertyDescriptor> properties)
+    {
+        var result = new Dictionary<string, object>();
+        foreach (var prop in properties)
+        {
+            var nested = ExtractJsonProperty(element, prop.SourceName ?? prop.Name);
+            if (nested is null) continue;
+
+            if (prop.IsComplex && prop.Properties is { Count: > 0 })
+                result[prop.Name] = BindComplexElement(nested.Value, prop.Properties);
+            else if (prop.IsCollection && prop.Properties is { Count: > 0 })
+                result[prop.Name] = BindCollectionElement(nested.Value, prop.Properties);
+            else
+                result[prop.Name] = nested;
+        }
+        return result;
+    }
+
+    private static List<object> BindCollectionElement(
+        JsonElement element, List<AsyncApiPropertyDescriptor> properties)
+    {
+        if (element.ValueKind != JsonValueKind.Array)
+            return [];
+
+        return [.. element.EnumerateArray().Select(item =>
+            (object)BindComplexElement(item, properties))];
     }
 
     private static string DetermineMessageKey(Dictionary<string, object> result, CommandRouteEntry entry)
     {
         if (entry.KeyProperty is not null)
         {
-            var keyPropName = ToCamelCase(entry.KeyProperty);
-            if (result.TryGetValue(keyPropName, out var keyVal) && keyVal is not null)
+            if (result.TryGetValue(entry.KeyProperty, out var keyVal) && keyVal is not null)
                 return keyVal.ToString();
         }
 

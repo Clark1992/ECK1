@@ -1,0 +1,91 @@
+replicaCount: 1
+
+login:
+  enabled: true
+  ingress:
+    enabled: true
+    className: nginx
+    controller: nginx
+    hosts:
+      - host: zitadel.localhost
+        paths:
+          - path: /ui/v2/login
+            pathType: Prefix
+
+zitadel:
+  masterkey: "MasterKey12345678901234567Dev!!!"
+  configmapConfig:
+    ExternalSecure: false
+    ExternalDomain: zitadel.localhost
+    ExternalPort: 30200
+    TLS:
+      Enabled: false
+    Machine:
+      Identification:
+        Hostname:
+          Enabled: true
+        Webhook:
+          Enabled: false
+    Database:
+      Postgres:
+        Host: zitadel-postgresql
+        Port: 5432
+        Database: zitadel
+        User:
+          Username: zitadel
+          SSL:
+            Mode: disable
+        Admin:
+          Username: postgres
+          SSL:
+            Mode: disable
+    FirstInstance:
+      Org:
+        Name: ECK1
+        Human:
+          UserName: admin
+          FirstName: Admin
+          LastName: User
+          Email:
+            Address: admin@zitadel.localhost
+            Verified: true
+          Password: Admin123!
+          PasswordChangeRequired: false
+        Machine:
+          Machine:
+            Name: ZITADEL Admin SA
+            Username: zitadel-admin-sa
+          MachineKey:
+            ExpirationDate: "2030-01-01T00:00:00Z"
+            Type: 1
+          Pat:
+            ExpirationDate: "2030-01-01T00:00:00Z"
+
+postgresql:
+  enabled: true
+  auth:
+    username: zitadel
+    password: zitadel
+    database: zitadel
+    postgresPassword: zitadel
+  primary:
+    persistence:
+      enabled: true
+      size: 1Gi
+
+ingress:
+  enabled: true
+  className: nginx
+  controller: nginx
+  hosts:
+    - host: zitadel.localhost
+      paths:
+        - path: /
+          pathType: Prefix
+
+resources:
+  requests:
+    memory: 128Mi
+    cpu: 100m
+  limits:
+    memory: 256Mi

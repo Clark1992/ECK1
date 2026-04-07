@@ -1,6 +1,7 @@
 using ECK1.Gateway.Commands;
 using ECK1.Gateway.Proxy;
 using ECK1.Gateway.Swagger;
+using Microsoft.Extensions.Options;
 
 namespace ECK1.Gateway.Startup;
 
@@ -54,8 +55,16 @@ public static class GatewayAppExtensions
         app.UseSwaggerUI(options =>
         {
             options.SwaggerEndpoint("/swagger/merged/swagger.json", "All Services (Merged)");
-            options.ConfigObject.AdditionalItems["configUrl"] = "/swagger/config.json";
             options.RoutePrefix = "swagger";
+            options.EnablePersistAuthorization();
+
+            var zitadel = app.Services.GetRequiredService<IOptions<ZitadelConfig>>().Value;
+            if (!string.IsNullOrEmpty(zitadel.ClientId))
+            {
+                options.OAuthClientId(zitadel.ClientId);
+                options.OAuthUsePkce();
+                options.OAuthScopes("openid", "profile", "email");
+            }
         });
 
         return app;

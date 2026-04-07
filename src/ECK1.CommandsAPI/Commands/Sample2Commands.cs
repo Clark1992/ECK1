@@ -42,6 +42,7 @@ public record AddSample2LineItemCommand([property: FromRoute("id")] Guid Id, Sam
 
 [GenerateSerializer]
 [Route("DELETE", "/api/async/sample2/{id}/line-items/{itemId}")]
+[RequirePermissionAsync("delete")]
 public record RemoveSample2LineItemCommand([property: FromRoute("id")] Guid Id, [property: FromRoute("itemId")] Guid ItemId) : ISample2Command, IValueId<Guid>;
 
 [GenerateSerializer]
@@ -54,6 +55,7 @@ public record AddSample2TagCommand([property: FromRoute("id")] Guid Id, [propert
 
 [GenerateSerializer]
 [Route("DELETE", "/api/async/sample2/{id}/tags")]
+[RequirePermissionAsync("delete")]
 public record RemoveSample2TagCommand([property: FromRoute("id")] Guid Id, [property: FromQuery("tag")] string Tag) : ISample2Command, IValueId<Guid>;
 
 [GenerateSerializer]

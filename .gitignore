@@ -54,4 +54,5 @@ Chart.lock
 # Local (untracked) docs
 **/README*.local.md
 COPILOT_CONTEXT.md
+Zitadel.md
 infra/k8s/charts/analytics/clickhouse/files/queries/*

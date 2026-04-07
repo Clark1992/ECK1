@@ -1,5 +1,8 @@
 using ECK1.Kafka;
 using Newtonsoft.Json.Linq;
+using Confluent.Kafka;
+using System.Text;
+using ECK1.Gateway.Startup;
 
 namespace ECK1.Gateway.Commands;
 
@@ -44,8 +47,10 @@ public class CommandEndpointHandler(
         try
         {
             var payload = JObject.Parse(bindingResult.CommandJson);
+            var kafkaHeaders = BuildUserHeaders(context);
+
             await producer.ProduceAsync(
-                entry.Topic, payload, bindingResult.MessageKey, context.RequestAborted);
+                entry.Topic, payload, bindingResult.MessageKey, kafkaHeaders, context.RequestAborted);
 
             context.Response.StatusCode = StatusCodes.Status202Accepted;
             await context.Response.WriteAsJsonAsync(new
@@ -63,6 +68,26 @@ public class CommandEndpointHandler(
 
             context.Response.StatusCode = StatusCodes.Status502BadGateway;
             await context.Response.WriteAsJsonAsync(new { error = $"Failed to publish command: {ex.Message}" });
+        }
+    }
+
+    private static Headers BuildUserHeaders(HttpContext context)
+    {
+        var headers = new Headers();
+
+        AddHeaderIfPresent(context, headers, UserContextMiddleware.Headers.UserId);
+        AddHeaderIfPresent(context, headers, UserContextMiddleware.Headers.UserName);
+        AddHeaderIfPresent(context, headers, UserContextMiddleware.Headers.UserEmail);
+
+        return headers.Count > 0 ? headers : null;
+    }
+
+    private static void AddHeaderIfPresent(HttpContext context, Headers kafkaHeaders, string headerName)
+    {
+        if (context.Request.Headers.TryGetValue(headerName, out var value)
+            && !string.IsNullOrEmpty(value))
+        {
+            kafkaHeaders.Add(headerName, Encoding.UTF8.GetBytes(value.ToString()));
         }
     }
 }

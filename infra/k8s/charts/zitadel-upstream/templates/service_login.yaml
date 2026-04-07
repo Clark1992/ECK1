@@ -1,0 +1,37 @@
+{{ if .Values.login.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "zitadel.login.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  {{- if .Values.login.service }}
+  annotations:
+    {{- if eq .Values.login.ingress.controller "aws" }}
+    alb.ingress.kubernetes.io/healthcheck-path: {{ include "login.livenessProbePath" . }}
+    {{- end }}
+    {{- with .Values.login.service.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+  labels:
+    {{- include "login.labels" . | nindent 4 }}
+    {{- with .Values.login.service.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.login.service.type }}
+  {{- if and .Values.login.service.clusterIP (eq .Values.login.service.type "ClusterIP") }}
+  clusterIP: {{ .Values.login.service.clusterIP }}
+  {{- end }}
+  {{- if and .Values.login.service.externalTrafficPolicy (eq .Values.login.service.type "LoadBalancer") }}
+  externalTrafficPolicy: {{ .Values.login.service.externalTrafficPolicy }}
+  {{- end }}
+  ports:
+    - port: {{ .Values.login.service.port }}
+      targetPort: {{ include "login.containerPort" . }}
+      protocol: TCP
+      name: {{ regexReplaceAll "\\W+" .Values.login.service.protocol "-" }}-server
+      appProtocol: {{ .Values.login.service.appProtocol }}
+  selector:
+    {{- include "login.selectorLabels" . | nindent 4 }}
+{{- end }}

@@ -25,6 +25,7 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.StackExchangeRedis" />
     <PackageReference Include="MongoDB.Driver" />
     <PackageReference Include="MongoDB.Driver.Core.Extensions.DiagnosticSources" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" />
   </ItemGroup>
 
     <ItemGroup>

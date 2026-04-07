@@ -11,3 +11,5 @@ dockerRegistry: "localhost:5000"
 
 envSpecific:
   ELASTICSEARCH_PASSWORD: "local"
+  Zitadel__Authority: "http://zitadel.zitadel.svc.cluster.local:8080"
+  Zitadel__Issuer: "http://zitadel.localhost:30200"

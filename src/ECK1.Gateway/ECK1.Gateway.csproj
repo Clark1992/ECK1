@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="KubernetesClient" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
     <PackageReference Include="Yarp.ReverseProxy" />
   </ItemGroup>

@@ -20,6 +20,7 @@ builder.AddOpenTelemetry(tracingExtraConfig: tracing => tracing
 
 builder.Services
     .AddGatewayOptions(builder.Configuration)
+    .AddGatewayAuth(builder.Configuration)
     .AddServiceDiscovery(builder.Configuration)
     .AddGatewayProxy()
     .AddGatewaySwagger()
@@ -27,6 +28,10 @@ builder.Services
     .AddHostedService<GatewayRefreshWorker>();
 
 var app = builder.Build();
+
+app.UseAuthentication();
+app.UseMiddleware<UserContextMiddleware>();
+app.UseMiddleware<RouteAuthorizationMiddleware>();
 
 app.UseTraceResponseEnricher();
 

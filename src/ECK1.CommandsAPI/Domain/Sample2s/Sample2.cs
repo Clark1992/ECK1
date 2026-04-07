@@ -33,7 +33,7 @@ public class Sample2 : AggregateRoot<ISample2Event>
         var root = AggregateRoot.CreateNew<Sample2>();
 
         root.ApplyChange(new Sample2CreatedEvent(
-            root.Id,
+            Guid.NewGuid(),
             customer,
             shippingAddress,
             lineItems,

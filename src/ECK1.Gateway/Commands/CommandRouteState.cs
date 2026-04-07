@@ -35,5 +35,6 @@ public class CommandRouteEntry
     public string Topic { get; init; } = string.Empty;
     public string KeyProperty { get; init; }
     public string CommandName { get; init; } = string.Empty;
+    public List<string> RequiredPermissions { get; init; } = [];
     public List<AsyncApiPropertyDescriptor> Properties { get; init; } = [];
 }

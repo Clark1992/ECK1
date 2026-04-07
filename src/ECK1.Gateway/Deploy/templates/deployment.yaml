@@ -48,6 +48,21 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: Zitadel__Authority
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: Zitadel__Authority
+            - name: Zitadel__Issuer
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: Zitadel__Issuer
+            - name: Zitadel__ClientId
+              valueFrom:
+                secretKeyRef:
+                  name: zitadel-oidc-client
+                  key: client_id
           volumeMounts:
             - name: kafka-client-secret
               mountPath: /etc/secrets

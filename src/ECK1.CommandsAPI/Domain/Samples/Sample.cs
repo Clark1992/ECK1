@@ -21,7 +21,7 @@ public class Sample : AggregateRoot<ISampleEvent>
 
         var root = AggregateRoot.CreateNew<Sample>();
 
-        root.ApplyChange(new SampleCreatedEvent(root.Id, name, description, address));
+        root.ApplyChange(new SampleCreatedEvent(Guid.NewGuid(), name, description, address));
         return root;
     }
 

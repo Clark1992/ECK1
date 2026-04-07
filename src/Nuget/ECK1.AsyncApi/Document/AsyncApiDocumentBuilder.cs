@@ -64,6 +64,12 @@ public class AsyncApiDocumentBuilder
 
         string keyProperty = properties.FirstOrDefault(p => p.Name.Equals("Id", StringComparison.OrdinalIgnoreCase))?.Name;
 
+        var requiredPermissions = type.GetCustomAttributes<RequirePermissionAsyncAttribute>()
+            .Concat(type.GetInterfaces().SelectMany(i => i.GetCustomAttributes<RequirePermissionAsyncAttribute>()))
+            .Select(a => a.Permission)
+            .Distinct()
+            .ToList();
+
         return new AsyncApiCommandDescriptor
         {
             Name = type.Name,
@@ -71,6 +77,7 @@ public class AsyncApiDocumentBuilder
             Route = routeAttr.Route,
             Topic = topic,
             KeyProperty = keyProperty,
+            RequiredPermissions = requiredPermissions,
             Properties = properties
         };
     }

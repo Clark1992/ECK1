@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using ECK1.AsyncApi.Document;
 using ECK1.Gateway.Commands;
 using ECK1.Gateway.Proxy;
+using Microsoft.Extensions.Options;
 
 namespace ECK1.Gateway.Swagger;
 
@@ -13,6 +14,7 @@ namespace ECK1.Gateway.Swagger;
 public class SwaggerAggregator(
     ServiceRouteState state,
     CommandRouteState commandState,
+    IOptions<ZitadelConfig> zitadelOptions,
     ILogger<SwaggerAggregator> logger)
 {
 
@@ -95,7 +97,46 @@ public class SwaggerAggregator(
         // Add async command routes from discovered AsyncAPI documents
         AddCommandRoutes(mergedPaths);
 
+        AddSecurityScheme(merged);
+
         return merged.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+    }
+
+    private void AddSecurityScheme(JsonObject merged)
+    {
+        var zitadel = zitadelOptions.Value;
+        if (string.IsNullOrEmpty(zitadel.Issuer))
+            return;
+
+        var issuer = zitadel.Issuer.TrimEnd('/');
+
+        var components = merged["components"]!.AsObject();
+        components["securitySchemes"] = new JsonObject
+        {
+            ["oauth2"] = new JsonObject
+            {
+                ["type"] = "oauth2",
+                ["flows"] = new JsonObject
+                {
+                    ["authorizationCode"] = new JsonObject
+                    {
+                        ["authorizationUrl"] = $"{issuer}/oauth/v2/authorize",
+                        ["tokenUrl"] = $"{issuer}/oauth/v2/token",
+                        ["scopes"] = new JsonObject
+                        {
+                            ["openid"] = "OpenID Connect",
+                            ["profile"] = "User profile",
+                            ["email"] = "User email"
+                        }
+                    }
+                }
+            }
+        };
+
+        merged["security"] = new JsonArray(new JsonObject
+        {
+            ["oauth2"] = new JsonArray("openid", "profile", "email")
+        });
     }
 
     private static void RewritePaths(JsonObject root, string serviceName)
@@ -271,6 +312,12 @@ public class SwaggerAggregator(
                         }
                     }
                 };
+            }
+
+            if (entry.RequiredPermissions is { Count: > 0 })
+            {
+                operation["x-required-permissions"] = new JsonArray(
+                    [.. entry.RequiredPermissions.Select(r => (JsonNode)JsonValue.Create(r))]);
             }
 
             if (mergedPaths[path] is not JsonObject pathItem)

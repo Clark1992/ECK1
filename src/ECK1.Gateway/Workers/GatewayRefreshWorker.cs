@@ -2,7 +2,9 @@ using ECK1.AsyncApi.Document;
 using ECK1.Gateway.Commands;
 using ECK1.Gateway.Discovery;
 using ECK1.Gateway.Proxy;
+using ECK1.Gateway.Startup;
 using Microsoft.Extensions.Options;
+using System.Text.Json;
 
 namespace ECK1.Gateway.Workers;
 
@@ -18,6 +20,7 @@ public class GatewayRefreshWorker(
     ServiceRouteState routeState,
     DynamicYarpConfigProvider yarpProvider,
     CommandRouteState commandState,
+    RouteAuthorizationState authState,
     IOptions<GatewayConfig> config,
     ILogger<GatewayRefreshWorker> logger) : BackgroundService
 {
@@ -100,6 +103,9 @@ public class GatewayRefreshWorker(
         // 5. Update command routes
         RebuildCommandRoutes();
 
+        // 6. Update authorization rules from swagger x-required-permissions
+        RebuildAuthorizationRules();
+
         logger.LogDebug("Gateway refresh cycle completed");
     }
 
@@ -123,6 +129,7 @@ public class GatewayRefreshWorker(
                     Topic = command.Topic,
                     KeyProperty = command.KeyProperty,
                     CommandName = command.Name,
+                    RequiredPermissions = command.RequiredPermissions,
                     Properties = command.Properties
                 };
             }
@@ -130,5 +137,52 @@ public class GatewayRefreshWorker(
 
         commandState.UpdateRoutes(routes);
         logger.LogDebug("Updated command routes: {Count} endpoints", routes.Count);
+    }
+
+    private void RebuildAuthorizationRules()
+    {
+        var rules = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+
+        // Extract x-required-roles from swagger docs (sync HTTP endpoints)
+        foreach (var (serviceName, doc) in routeState.SwaggerDocs)
+        {
+            try
+            {
+                using var jsonDoc = JsonDocument.Parse(doc.RootElement.GetRawText());
+                var root = jsonDoc.RootElement;
+
+                if (!root.TryGetProperty("paths", out var paths))
+                    continue;
+
+                foreach (var pathEntry in paths.EnumerateObject())
+                {
+                    var prefixedPath = $"/{serviceName}{pathEntry.Name}";
+
+                    foreach (var methodEntry in pathEntry.Value.EnumerateObject())
+                    {
+                        if (!methodEntry.Value.TryGetProperty("x-required-permissions", out var permissionsElement))
+                            continue;
+
+                        var permissions = permissionsElement.EnumerateArray()
+                            .Select(r => r.GetString())
+                            .Where(r => r is not null)
+                            .ToList();
+
+                        if (permissions.Count > 0)
+                        {
+                            var key = $"{methodEntry.Name.ToUpperInvariant()}:{prefixedPath}";
+                            rules[key] = permissions;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to extract auth rules from swagger for {Service}", serviceName);
+            }
+        }
+
+        authState.UpdateRules(rules);
+        logger.LogDebug("Updated authorization rules: {Count} protected routes", rules.Count);
     }
 }

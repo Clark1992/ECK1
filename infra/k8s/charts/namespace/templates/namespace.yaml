@@ -7,3 +7,4 @@ metadata:
     sync-global-secrets: "true"
     sync-{{ .Values.elasticsearch.caSecretName }}: "true"
     sync-{{ .Values.elasticsearch.apiKeySecretName }}: "true"
+    sync-zitadel-oidc-client: "true"

@@ -13,6 +13,7 @@ public class AsyncApiCommandDescriptor
     public string Route { get; set; } = string.Empty;
     public string Topic { get; set; } = string.Empty;
     public string KeyProperty { get; set; }
+    public List<string> RequiredPermissions { get; set; } = [];
     public List<AsyncApiPropertyDescriptor> Properties { get; set; } = [];
 }
 

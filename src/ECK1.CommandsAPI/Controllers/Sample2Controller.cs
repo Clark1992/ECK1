@@ -1,10 +1,15 @@
+using ECK1.AsyncApi.Attributes;
 using ECK1.CommandsAPI.Commands;
 using ECK1.CommandsAPI.Domain.Sample2s;
 using ECK1.CommandsAPI.Dto.Common;
 using ECK1.CommandsAPI.Dto.Sample2;
+using ECK1.CommonUtils.Swagger;
 using ECK1.Orleans.Grains;
 using Microsoft.AspNetCore.Mvc;
 using Orleans;
+using FromBody = Microsoft.AspNetCore.Mvc.FromBodyAttribute;
+using FromQuery = Microsoft.AspNetCore.Mvc.FromQueryAttribute;
+using Route = Microsoft.AspNetCore.Mvc.RouteAttribute;
 
 namespace ECK1.CommandsAPI.Controllers;
 
@@ -45,6 +50,7 @@ public class Sample2Controller(IGrainRouter<ISample2Command, NullGrainMetadata, 
     }
 
     [HttpDelete("{id}/line-items/{itemId}")]
+    [RequirePermission("delete")]
     public async Task<IActionResult> RemoveLineItem(Guid id, Guid itemId, CancellationToken ct)
     {
         var result = await grainRouter.RouteToGrain(new RemoveSample2LineItemCommand(id, itemId), ct);
@@ -68,6 +74,7 @@ public class Sample2Controller(IGrainRouter<ISample2Command, NullGrainMetadata, 
     }
 
     [HttpDelete("{id}/tags")]
+    [RequirePermission("delete")]
     public async Task<IActionResult> RemoveTag(Guid id, [FromQuery] string tag, CancellationToken ct)
     {
         var result = await grainRouter.RouteToGrain(new RemoveSample2TagCommand(id, tag), ct);

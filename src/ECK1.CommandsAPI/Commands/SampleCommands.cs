@@ -3,6 +3,7 @@ using ECK1.AsyncApi.Attributes;
 using ECK1.CommandsAPI.Domain.Samples;
 using ECK1.CommandsAPI.Dto.Common;
 using ECK1.CommandsAPI.Dto.Sample;
+using ECK1.CommonUtils.Swagger;
 using ECK1.Contracts.Shared;
 using ECK1.Orleans;
 using MediatR;
@@ -45,6 +46,7 @@ public record AddSampleAttachmentCommand([property: FromRoute("id")] Guid Id, At
 
 [GenerateSerializer]
 [Route("DELETE", "/api/async/sample/{id}/attachments/{attachmentId}")]
+[RequirePermissionAsync("delete")]
 public record RemoveSampleAttachmentCommand([property: FromRoute("id")] Guid Id, [property: FromRoute("attachmentId")] Guid AttachmentId) : ISampleCommand, IValueId<Guid>;
 
 [GenerateSerializer]

@@ -22,6 +22,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Trace;
+using ECK1.CommonUtils.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddK8sSecrets();
@@ -61,7 +62,10 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddLogging();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.OperationFilter<RequirePermissionOperationFilter>();
+});
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));

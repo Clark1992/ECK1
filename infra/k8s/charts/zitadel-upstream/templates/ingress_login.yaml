@@ -1,0 +1,40 @@
+{{- if .Values.login.ingress.enabled -}}
+{{- $fullName := include "zitadel.login.fullname" . -}}
+{{- $svcPort := .Values.login.service.port -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "login.labels" . | nindent 4 }}
+  annotations:
+    {{- if eq .Values.login.ingress.controller "aws" }}
+    alb.ingress.kubernetes.io/group.order: '-2'
+    {{- end }}
+    {{- with .Values.login.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  ingressClassName: {{ include "zitadel.login.ingressClassName" . }}
+  {{- with .Values.login.ingress.tls }}
+  tls:
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    {{- $values := .Values -}}
+    {{- range .Values.login.ingress.hosts }}
+    - host: {{ .host | default $values.zitadel.configmapConfig.ExternalDomain | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: {{ $svcPort }}
+          {{- end }}
+    {{- end }}
+{{- end }}

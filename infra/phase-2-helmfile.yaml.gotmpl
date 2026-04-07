@@ -11,6 +11,8 @@ repositories:
   # cert-manager repo
   - name: jetstack
     url: https://charts.jetstack.io
+  - name: zitadel
+    url: https://charts.zitadel.com
 
 ---
 
@@ -143,6 +145,78 @@ releases:
           secretName: {{ requiredEnv "ElasticSearchConfig__ApiKeySecretName" }}
 
   {{- if eq .Environment.Name "local" }}
+
+  - name: zitadel
+    namespace: {{ $default.zitadel.namespace }}
+    createNamespace: true
+    chart: k8s/charts/zitadel-upstream
+    values:
+      - k8s/charts/zitadel-upstream/values.{{ .Environment.Name }}.yaml
+    hooks:
+      - events: ["presync"]
+        showlogs: true
+        command: "pwsh"
+        args:
+          - "-NoProfile"
+          - "-Command"
+          - |
+            # Bootstrap: on first install, Zitadel's pre-install hooks need PostgreSQL
+            # but PostgreSQL is a regular chart resource. Work around by installing
+            # without hooks first, then helmfile upgrade runs hooks with PG available.
+            $ns = "{{ $default.zitadel.namespace }}"
+            $valuesFile = "k8s/charts/zitadel-upstream/values.{{ .Environment.Name }}.yaml"
+
+            # Check if release exists and is healthy
+            $status = helm status zitadel -n $ns -o json 2>$null | ConvertFrom-Json
+            $releaseStatus = $status.info.status
+
+            if ($releaseStatus -eq "failed") {
+              Write-Host "Release in failed state. Uninstalling to allow clean reinstall..."
+              helm uninstall zitadel -n $ns --wait 2>$null
+              # Clean up stuck jobs
+              kubectl delete jobs -n $ns -l app.kubernetes.io/name=zitadel --ignore-not-found 2>$null
+              $releaseStatus = $null
+            }
+
+            if (-not $releaseStatus) {
+              Write-Host "First-time install detected. Bootstrapping PostgreSQL..."
+              helm install zitadel k8s/charts/zitadel-upstream -n $ns --create-namespace `
+                --values $valuesFile --no-hooks --wait --timeout 120s
+              Write-Host "Waiting for PostgreSQL..."
+              kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=postgresql `
+                -n $ns --timeout=120s
+              Write-Host "PostgreSQL ready. Creating masterkey secret..."
+              $mk = kubectl get secret zitadel-masterkey -n $ns --ignore-not-found -o name 2>$null
+              if (-not $mk) {
+                $val = yq '.zitadel.masterkey' $valuesFile
+                kubectl create secret generic zitadel-masterkey -n $ns --from-literal="masterkey=$val"
+              }
+              Write-Host "Bootstrap complete. Helmfile upgrade will now run hooks."
+            } else {
+              Write-Host "Zitadel release exists (status: $releaseStatus). Skipping bootstrap."
+            }
+      - events: ["postsync"]
+        showlogs: true
+        command: "pwsh"
+        args:
+          - "-NoProfile"
+          - "-Command"
+          - |
+            Write-Host "Waiting for Zitadel readiness..."
+            $ns = "{{ $default.zitadel.namespace }}"
+            kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=zitadel `
+              -n $ns --timeout=180s 2>$null
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "Zitadel is ready"
+            } else {
+              Write-Host "Warning: Zitadel not ready yet, but continuing..."
+            }
+
+  - name: zitadel-seed
+    namespace: {{ $default.zitadel.namespace }}
+    needs:
+      - {{ $default.zitadel.namespace }}/zitadel
+    chart: k8s/charts/zitadel-seed
 
   - name: cert-manager
     namespace: cert-manager

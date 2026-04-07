@@ -4,11 +4,18 @@ elasticsearch:
   resourcePrefix: elasticsearch
   port: 9200
 
+zitadel:
+  namespace: zitadel
+  externalDomain: zitadel.localhost
+  port: 8080
+  chartVersion: "9.27.1"
+
 kafka:
   namespace: kafka
   userSecretName: "kafka-user"
 
 ingress:
+  namespace: ingress-nginx
   ingressHttpPort: 30200
   ingressHttpsPort: 30443
 

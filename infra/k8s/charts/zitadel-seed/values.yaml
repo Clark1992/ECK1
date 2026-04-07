@@ -1,0 +1,9 @@
+zitadel:
+  serviceName: zitadel
+  port: 8080
+  externalDomain: zitadel.localhost
+
+seed:
+  image: "curlimages/curl:8.12.1"
+  patSecretName: zitadel-admin-sa-pat
+  patSecretKey: pat

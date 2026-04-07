@@ -1,0 +1,313 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "zitadel.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "zitadel.start.labels" . | nindent 4 }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.zitadel.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .Values.zitadel.revisionHistoryLimit }}
+  {{- end }}
+  {{- if not .Values.zitadel.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "zitadel.start.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- with .Values.podAnnotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        checksum/configmap: {{ include (print $.Template.BasePath "/configmap_zitadel.yaml") . | sha256sum }}
+        checksum/secret-db-ssl-ca-crt: {{ include (print $.Template.BasePath "/secret_db-ssl-ca-crt.yaml") . | sha256sum }}
+        checksum/secret-zitadel-secrets: {{ include (print $.Template.BasePath "/secret_zitadel-secrets.yaml") . | sha256sum }}
+        {{- if .Values.metrics.enabled }}
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/debug/metrics"
+        prometheus.io/port: {{ include "zitadel.containerPort" . | quote }}
+        {{- end }}
+      labels:
+        {{- include "zitadel.start.labels" . | nindent 8 }}
+        {{- with .Values.podAdditionalLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "zitadel.serviceAccountName" . }}
+      securityContext:
+        {{- include "zitadel.podSecurityContext" . | nindent 8 }}
+      enableServiceLinks: false
+      containers:
+      {{- if .Values.zitadel.extraContainers }}
+        {{- toYaml .Values.zitadel.extraContainers | nindent 8 }}
+      {{- end }}
+      {{- if .Values.extraContainers }}
+        {{- toYaml .Values.extraContainers | nindent 8 }}
+      {{- end }}
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- include "zitadel.securityContext" . | nindent 14 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - start
+            - --config
+            - /config/zitadel-config-yaml
+            {{- if .Values.zitadel.secretConfig }}
+            - --config
+            - /zitadel-secrets-yaml/zitadel-secrets-yaml
+            {{- end }}
+            {{- if and .Values.zitadel.configSecretName .Values.zitadel.configSecretKey }}
+            - --config
+            - /zitadel-secret-config-yaml/{{ .Values.zitadel.configSecretKey }}
+            {{- end }}
+            - --masterkeyFromEnv
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.podIP
+            - name: ZITADEL_MASTERKEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "zitadel.masterkeySecretName" . }}
+                  key: masterkey
+            {{- $dbEnv := get (include "zitadel.dbkey.json" . | fromJson) "env" }}
+            {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
+            - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_ROOTCERT
+              value: /db-ssl-ca-crt/ca.crt
+            {{- end }}
+            {{- if .Values.zitadel.dbSslUserCrtSecret }}
+            - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_CERT
+              value: /db-ssl-user-crt/tls.crt
+            - name: ZITADEL_DATABASE_{{ $dbEnv }}_USER_SSL_KEY
+              value: /db-ssl-user-crt/tls.key
+            {{- end }}
+            {{- if .Values.zitadel.serverSslCrtSecret }}
+            - name: ZITADEL_TLS_CERTPATH
+              value: /server-ssl-crt/tls.crt
+            - name: ZITADEL_TLS_KEYPATH
+              value: /server-ssl-crt/tls.key
+            {{- end }}
+            {{- if .Values.zitadel.selfSignedCert.enabled }}
+            - name: ZITADEL_TLS_CERTPATH
+              value: /etc/tls/tls.crt
+            - name: ZITADEL_TLS_KEYPATH
+              value: /etc/tls/tls.key
+            {{- end }}
+            {{- with .Values.env }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- if .Values.envVarsSecret }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.envVarsSecret }}
+          {{- end }}
+          ports:
+          - containerPort: {{ include "zitadel.containerPort" . }}
+            name: {{ .Values.service.protocol }}-server
+            protocol: TCP
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ include "zitadel.livenessProbePath" . }}
+              port: {{ .Values.service.protocol }}-server
+
+              {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
+              httpHeaders:
+                - name: Host
+                  value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
+              {{- end }}
+              {{- if ((((.Values.zitadel).configmapConfig).TLS).Enabled) }}
+              scheme: HTTPS
+              {{- else }}
+              scheme: {{ .Values.service.scheme }}
+              {{- end }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ include "zitadel.readinessProbePath" . }}
+              port: {{ .Values.service.protocol }}-server
+              {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
+              httpHeaders:
+                - name: Host
+                  value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
+              {{- end }}
+              {{- if ((((.Values.zitadel).configmapConfig).TLS).Enabled) }}
+              scheme: HTTPS
+              {{- else }}
+              scheme: {{ .Values.service.scheme }}
+              {{- end }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.startupProbe.enabled }}
+          startupProbe:
+            httpGet:
+              path: {{ include "zitadel.startupProbePath" . }}
+              port: {{ .Values.service.protocol }}-server
+              {{- if .Values.zitadel.configmapConfig.ExternalDomain }}
+              httpHeaders:
+                - name: Host
+                  value: {{ .Values.zitadel.configmapConfig.ExternalDomain }}
+              {{- end }}
+              {{- if ((((.Values.zitadel).configmapConfig).TLS).Enabled) }}
+              scheme: HTTPS
+              {{- else }}
+              scheme: {{ .Values.service.scheme }}
+              {{- end }}
+            periodSeconds: {{ .Values.startupProbe.periodSeconds }}
+            failureThreshold: {{ .Values.startupProbe.failureThreshold }}
+          {{- end }}
+          volumeMounts:
+          - name: zitadel-config-yaml
+            mountPath: /config
+            readOnly: true
+          {{- if .Values.zitadel.secretConfig }}
+          - name: zitadel-secrets-yaml
+            mountPath: /zitadel-secrets-yaml
+            readOnly: true
+          {{- end }}
+          {{- if .Values.zitadel.configSecretName }}
+          - name: zitadel-secret-config-yaml
+            mountPath: /zitadel-secret-config-yaml
+            readOnly: true
+          {{- end }}
+          {{- if (or .Values.zitadel.dbSslCaCrt .Values.zitadel.dbSslCaCrtSecret) }}
+          - name: db-ssl-ca-crt
+            mountPath: /db-ssl-ca-crt
+            readOnly: true
+          {{- end }}
+          {{- if .Values.zitadel.dbSslUserCrtSecret }}
+          - name: db-ssl-user-crt
+            mountPath: /db-ssl-user-crt
+            readOnly: true
+          {{- end }}
+          {{- if .Values.zitadel.serverSslCrtSecret }}
+          - name: server-ssl-crt
+            mountPath: /server-ssl-crt
+            readOnly: true
+          {{- end }}
+          {{- if .Values.zitadel.selfSignedCert.enabled }}
+          - name: tls
+            mountPath: /etc/tls
+          {{- end }}
+          {{- with .Values.extraVolumeMounts }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 14 }}
+      initContainers:
+      # The following initContainer is conditional. It is only added if the
+      # PostgreSQL endpoint can be fully determined from the Helm values. This is
+      # necessary to gracefully handle configurations where database credentials are
+      # provided via external secrets (instead of the values file), which would
+      # otherwise cause a template rendering error during `helm install`.
+      {{- $pgEndpoint := include "zitadel.postgresEndpoint" . }}
+      {{- if $pgEndpoint }}
+        # This initContainer acts as a dependency check before the main application
+        # starts. It uses the `wait4x` tool to pause the pod's startup sequence
+        # until the PostgreSQL database is accepting TCP connections. This prevents
+        # the main ZITADEL container from starting and potentially crashing before its
+        # database is available, thus improving deployment reliability.
+        - name: wait-for-postgres
+          image: {{ include "wait4x.image" . }}
+          imagePullPolicy: '{{ default "IfNotPresent" .Values.tools.wait4x.image.pullPolicy }}'
+          command:
+            - wait4x
+            - tcp
+            - {{ $pgEndpoint }}
+            - --timeout
+            - "5m"
+            - --interval
+            - "5s"
+          securityContext:
+            {{- include "zitadel.securityContext" . | nindent 12 }}
+          {{- with .Values.tools.wait4x.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- end }}
+      {{- with .Values.zitadel.initContainers }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+      - name: zitadel-config-yaml
+        configMap:
+          name: {{ include "zitadel.configmapName" . }}
+      {{- if .Values.zitadel.secretConfig }}
+      - name: zitadel-secrets-yaml
+        secret:
+          secretName: {{ include "zitadel.secretName" . }}
+          defaultMode: 0440
+      {{- end }}
+      {{- if .Values.zitadel.configSecretName }}
+      - name: zitadel-secret-config-yaml
+        secret:
+          secretName: {{ .Values.zitadel.configSecretName }}
+          defaultMode: 0440
+      {{- end }}
+      {{- if .Values.zitadel.dbSslCaCrt }}
+      - name: db-ssl-ca-crt
+        secret:
+          secretName: {{ include "zitadel.dbSslCaCrtSecretName" . }}
+          defaultMode: 0440
+      {{- end }}
+      {{- if .Values.zitadel.dbSslCaCrtSecret }}
+      - name: db-ssl-ca-crt
+        secret:
+          secretName: {{ .Values.zitadel.dbSslCaCrtSecret }}
+          defaultMode: 0440
+      {{- end }}
+      {{- if .Values.zitadel.dbSslUserCrtSecret }}
+      - name: db-ssl-user-crt
+        secret:
+          secretName: {{ .Values.zitadel.dbSslUserCrtSecret }}
+          defaultMode: 0440
+      {{- end }}
+      {{- if .Values.zitadel.serverSslCrtSecret }}
+      - name: server-ssl-crt
+        secret:
+          secretName: {{ .Values.zitadel.serverSslCrtSecret }}
+          defaultMode: 0440
+      {{- end }}
+      {{- if .Values.zitadel.selfSignedCert.enabled }}
+      - name: tls
+        secret:
+          secretName: {{ include "zitadel.fullname" . }}-self-signed-tls
+      {{- end }}
+      {{- with .Values.extraVolumes }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -28,3 +28,13 @@ public class KafkaSettings
     public string User { get; set; } = string.Empty;
     public string Secret { get; set; } = string.Empty;
 }
+
+public class ZitadelConfig
+{
+    public const string Section = "Zitadel";
+
+    public string Authority { get; set; } = string.Empty;
+    public string Issuer { get; set; } = string.Empty;
+    public string ClientId { get; set; } = string.Empty;
+    public Dictionary<string, List<string>> RolePermissions { get; set; } = [];
+}

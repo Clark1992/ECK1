@@ -6,6 +6,7 @@ namespace ECK1.Kafka;
 public interface IKafkaProducer<T>
 {
     Task ProduceAsync(string topic, T value, string key = null, CancellationToken ct = default);
+    Task ProduceAsync(string topic, T value, string key, Headers headers, CancellationToken ct = default);
 }
 
 public class KafkaProducerBase<T>
@@ -22,12 +23,16 @@ public class KafkaProducerBase<T>
         this.logger = logger;
     }
 
-    public async Task ProduceAsync(string topic, T value, string key, CancellationToken ct)
+    public Task ProduceAsync(string topic, T value, string key, CancellationToken ct)
+        => ProduceAsync(topic, value, key, null, ct);
+
+    public async Task ProduceAsync(string topic, T value, string key, Headers headers, CancellationToken ct)
     {
         var message = new Message<string, T>
         {
             Key = key,
-            Value = value
+            Value = value,
+            Headers = headers
         };
 
         try

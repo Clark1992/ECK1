@@ -36,6 +36,7 @@
     <PackageVersion Include="RocksDB" Version="10.4.2.63147" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="9.0.4" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
     <PackageVersion Include="Confluent.Kafka" Version="2.11.1" />
@@ -51,6 +52,7 @@
     <PackageVersion Include="Microsoft.Orleans.Server" Version="9.2.1" />
     <PackageVersion Include="Microsoft.Orleans.Streaming" Version="9.2.1" />
     <PackageVersion Include="Microsoft.Orleans.Persistence.Redis" Version="9.2.1" />
+    <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="9.0.4" />
     <PackageVersion Include="System.Linq.Dynamic.Core" Version="1.6.7" />
     <PackageVersion Include="coverlet.collector" Version="6.0.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
@@ -78,6 +80,9 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.9.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Process" Version="1.14.0-beta.2" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.StackExchangeRedis" Version="1.0.0-rc9.14" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.13" />
+    <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.7.0" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.7.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.15.0" />
     <PackageVersion Include="NetEscapades.Configuration.Yaml" Version="3.1.0" />
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.2.0" />
