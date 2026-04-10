@@ -1,4 +1,5 @@
-﻿using ECK1.CommonUtils.AspNet;
+﻿using ECK1.CommonUtils.ActorContext;
+using ECK1.CommonUtils.AspNet;
 using ECK1.CommonUtils.Chaos;
 using ECK1.CommonUtils.OpenTelemetry;
 using ECK1.Kafka.OpenTelemetry;
@@ -79,6 +80,7 @@ else
 
 app.UseRouting();
 app.UseCors("AllowAllOrigins");
+app.UseActorLogging();
 app.UseAuthorization();
 
 // Swagger

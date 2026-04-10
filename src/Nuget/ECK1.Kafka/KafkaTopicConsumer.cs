@@ -2,8 +2,24 @@
 using Confluent.Kafka.SyncOverAsync;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace ECK1.Kafka;
+
+internal static class KafkaActorScope
+{
+    public static IDisposable BeginActorScope(ILogger logger)
+    {
+        var actorId = Activity.Current?.GetBaggageItem("actor_id") ?? "system";
+        var actorName = Activity.Current?.GetBaggageItem("actor_name") ?? "system";
+
+        return logger.BeginScope(new Dictionary<string, object>
+        {
+            ["actor_id"] = actorId,
+            ["actor_name"] = actorName
+        });
+    }
+}
 
 public class KafkaMessageId(TopicPartitionOffset o)
 {
@@ -27,6 +43,7 @@ public abstract class KafkaConsumerBase<TValue>(
     public Task StartConsumingAsync(CancellationToken ct) =>
         base.StartConsumingAsync(async result =>
         {
+            using var actorScope = KafkaActorScope.BeginActorScope(Logger);
             using var scope = scopeFactory.CreateScope();
             var handler = handlerResolver.Resolve(scope);
 
@@ -73,6 +90,7 @@ public abstract class KafkaSimpleConsumerBase<TValue>(
     public Task StartConsumingAsync(CancellationToken ct) =>
         base.StartConsumingAsync(async result =>
         {
+            using var actorScope = KafkaActorScope.BeginActorScope(Logger);
             using var scope = scopeFactory.CreateScope();
             var handler = handlerResolver.Resolve(scope);
 
@@ -129,6 +147,7 @@ public abstract class KafkaRawByteConsumerBase<TValue>(
     public Task StartConsumingAsync(CancellationToken ct) =>
         base.StartConsumingAsync(async result =>
         {
+            using var actorScope = KafkaActorScope.BeginActorScope(Logger);
             using var scope = scopeFactory.CreateScope();
             var handler = handlerResolver.Resolve(scope);
 

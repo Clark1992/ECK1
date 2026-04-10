@@ -53,11 +53,11 @@ spec:
               $sqlcmd = "/opt/mssql-tools18/bin/sqlcmd"
               if (-not (Test-Path $sqlcmd)) { throw "sqlcmd not found at $sqlcmd" }
               $ready = $false
-              Write-Host "Waiting for SQL Server at $env:SQLSERVER_HOST:$env:SQLSERVER_PORT..."
+              Write-Host "Waiting for SQL Server at $env:SQLSERVER_HOST:$env:SQLSERVER_PORT (database: $env:SQLSERVER_DB)..."
               for ($i = 0; $i -lt 60; $i++) {
                 Write-Host ("Attempt {0} to connect to SQL Server..." -f ($i + 1))
                 try {
-                  & $sqlcmd -b -V 16 -l 5 -C -S "$env:SQLSERVER_HOST,$env:SQLSERVER_PORT" -U $dbUser -P $dbPass -Q "SELECT 1" | Out-Null
+                  & $sqlcmd -b -V 16 -l 5 -C -S "$env:SQLSERVER_HOST,$env:SQLSERVER_PORT" -U $dbUser -P $dbPass -d $env:SQLSERVER_DB -Q "SELECT 1" | Out-Null
                   if ($LASTEXITCODE -eq 0) {
                     $ready = $true
                     break
@@ -67,7 +67,7 @@ spec:
                 }
                 Start-Sleep -Seconds 10
               }
-              if (-not $ready) { throw "SQL Server is not ready" }
+              if (-not $ready) { throw "SQL Server is not ready or database '$env:SQLSERVER_DB' does not exist" }
               $scripts = Get-ChildItem -Path /migrations -Filter "*.sql" -File | Sort-Object Name
               if (-not $scripts -or $scripts.Count -eq 0) { throw "No migration scripts found in /migrations" }
               Write-Host ("Found {0} migration(s)." -f $scripts.Count)

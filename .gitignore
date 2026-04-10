@@ -56,3 +56,4 @@ Chart.lock
 COPILOT_CONTEXT.md
 Zitadel.md
 infra/k8s/charts/analytics/clickhouse/files/queries/*
+infra/.kubed-cert-values.yaml

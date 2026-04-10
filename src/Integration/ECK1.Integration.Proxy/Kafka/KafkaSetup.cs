@@ -6,6 +6,7 @@ using ECK1.Integration.Common;
 using ECK1.Integration.Config;
 using ECK1.Integration.EntityStore.Configuration.Generated;
 using ECK1.Integration.Plugin.Abstractions;
+using ECK1.Kafka;
 using ECK1.Kafka.Extensions;
 
 namespace ECK1.Integration.Proxy.Kafka;
@@ -43,7 +44,7 @@ public static class KafkaSetup
             SubjectNameStrategy.Topic,
             SerializerType.JSON);
 
-        services.AddScoped<ReconcileRequestHandler>();
+        services.AddScoped<IKafkaMessageHandler<ReconcileRequest>, ReconcileRequestHandler>();
 
         services.ConfigTopicConsumer<ReconcileRequest>(
             kafkaSettings.BootstrapServers,

@@ -35,6 +35,8 @@ public class KafkaProducerBase<T>
             Headers = headers
         };
 
+        KafkaBaggagePropagation.InjectBaggage(message);
+
         try
         {
             await producer.ProduceAsync(topic, message, ct);

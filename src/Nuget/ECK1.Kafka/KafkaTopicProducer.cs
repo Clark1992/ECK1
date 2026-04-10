@@ -27,6 +27,8 @@ public class KafkaTopicProducerBase<TValue> where TValue : class
             Value = value
         };
 
+        KafkaBaggagePropagation.InjectBaggage(message);
+
         try
         {
             await producer.ProduceAsync(topic, message, ct);
@@ -117,6 +119,8 @@ public class KafkaRawBytesProducer : IKafkaRawBytesProducer
             Value = value
         };
 
+        KafkaBaggagePropagation.InjectBaggage(message);
+
         try
         {
             await producer.ProduceAsync(topic, message, ct);
@@ -152,6 +156,8 @@ public class KafkaSimpleProducer<TValue> : IKafkaSimpleProducer<TValue>
             Key = key,
             Value = value.ToString()
         };
+
+        KafkaBaggagePropagation.InjectBaggage(message);
 
         try
         {

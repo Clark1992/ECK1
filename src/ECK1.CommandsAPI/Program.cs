@@ -8,6 +8,7 @@ using ECK1.CommandsAPI.Domain.Samples;
 using ECK1.CommandsAPI.Kafka;
 using ECK1.CommandsAPI.Kafka.Orleans;
 using ECK1.CommandsAPI.Startup;
+using ECK1.CommonUtils.ActorContext;
 using ECK1.CommonUtils.AspNet;
 using ECK1.CommonUtils.Chaos;
 using ECK1.Integration.Config;
@@ -115,6 +116,7 @@ else
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("AllowAllOrigins");
+app.UseActorLogging();
 
 app.UseAuthorization();
 

@@ -135,6 +135,7 @@ else
       "devMode": true,
       "accessTokenType": "OIDC_TOKEN_TYPE_JWT",
       "idTokenRoleAssertion": true,
+      "idTokenUserinfoAssertion": true,
       "accessTokenRoleAssertion": true
     }')
 
@@ -312,6 +313,58 @@ if [ -n "$SA_USER_ID" ]; then
   echo "[*] SA IAM roles granted (IAM_OWNER, IAM_LOGIN_CLIENT)"
 else
   echo "[!] Could not find SA user 'zitadel-admin-sa'"
+fi
+
+# --------------------------------------------------------
+# Create Zitadel Action: add profile claims to JWT access token
+# --------------------------------------------------------
+
+echo "[*] Creating Zitadel Action for JWT profile claims..."
+ACTION_SCRIPT='function addProfileClaimsToAccessToken(ctx, api) { var c = ctx.v1.claims; api.v1.claims.setClaim("preferred_username", c.preferred_username); api.v1.claims.setClaim("name", c.name); api.v1.claims.setClaim("email", c.email); }'
+
+ACTION_RESP=$(curl -s -w "\n%{http_code}" -H "$AUTH_HEADER" \
+  -H "Content-Type: application/json" \
+  -H "x-zitadel-orgid: ${ORG_ID}" -H "$HOST_HEADER" \
+  -X POST "${ZITADEL_URL}/management/v1/actions" \
+  -d "{\"name\":\"addProfileClaimsToAccessToken\",\"script\":\"${ACTION_SCRIPT}\",\"timeout\":\"10s\",\"allowedToFail\":false}")
+
+ACTION_STATUS=$(echo "$ACTION_RESP" | tail -1)
+ACTION_BODY=$(echo "$ACTION_RESP" | sed '$d')
+ACTION_ID=$(echo "$ACTION_BODY" | sed -n 's/.*"id"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
+
+if [ "$ACTION_STATUS" = "200" ]; then
+  echo "[*] Action created: ${ACTION_ID}"
+elif echo "$ACTION_BODY" | grep -q "AlreadyExists"; then
+  echo "[*] Action already exists, looking up ID..."
+  # Flow 2 (Complement Token) may already have it
+  FLOW_RESP=$(curl -s -H "$AUTH_HEADER" -H "Content-Type: application/json" \
+    -H "x-zitadel-orgid: ${ORG_ID}" -H "$HOST_HEADER" \
+    "${ZITADEL_URL}/management/v1/flows/2")
+  ACTION_ID=$(echo "$FLOW_RESP" | sed -n 's/.*"id"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
+  if [ -z "$ACTION_ID" ]; then
+    echo "[!] Could not find existing action ID"
+  else
+    echo "[*] Found existing action: ${ACTION_ID}"
+  fi
+else
+  echo "[!] Action creation failed (status: ${ACTION_STATUS})"
+fi
+
+if [ -n "$ACTION_ID" ]; then
+  echo "[*] Setting action on Complement Token triggers..."
+  # Flow 2, Trigger 5 = Pre Access Token Creation
+  curl -s -H "$AUTH_HEADER" -H "Content-Type: application/json" \
+    -H "x-zitadel-orgid: ${ORG_ID}" -H "$HOST_HEADER" \
+    -X POST "${ZITADEL_URL}/management/v1/flows/2/trigger/5" \
+    -d "{\"actionIds\":[\"${ACTION_ID}\"]}" > /dev/null 2>&1
+  echo "[*] Set action on Pre Access Token Creation trigger"
+
+  # Flow 2, Trigger 4 = Pre Userinfo Creation
+  curl -s -H "$AUTH_HEADER" -H "Content-Type: application/json" \
+    -H "x-zitadel-orgid: ${ORG_ID}" -H "$HOST_HEADER" \
+    -X POST "${ZITADEL_URL}/management/v1/flows/2/trigger/4" \
+    -d "{\"actionIds\":[\"${ACTION_ID}\"]}" > /dev/null 2>&1
+  echo "[*] Set action on Pre Userinfo Creation trigger"
 fi
 
 # --------------------------------------------------------

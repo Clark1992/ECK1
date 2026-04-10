@@ -38,7 +38,9 @@ public class SampleCommandHandlers :
         this.logger.LogInformation("Handling {Type} command (Name = '{Name}').", command.Command.GetType(), command.Command.Name);
 
         var cmd = command.Command;
-        var address = new Address(cmd.Address.Street, cmd.Address.City, cmd.Address.Country);
+        var address = cmd.Address is not null
+            ? new Address(cmd.Address.Street, cmd.Address.City, cmd.Address.Country)
+            : null;
         return await SaveAndNotify(
             () => Sample.Create(command.Command.Name, command.Command.Description, address),
             ct);

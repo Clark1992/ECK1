@@ -7,7 +7,7 @@ namespace ECK1.Kafka;
 public abstract class ConsumerLoop<TValue>
 {
     private readonly IConsumer<string, TValue> consumer;
-    private readonly ILogger logger;
+    protected readonly ILogger Logger;
 
     protected ConsumerLoop(
         ConsumerConfig consumerConfig,
@@ -15,12 +15,12 @@ public abstract class ConsumerLoop<TValue>
         ILogger logger,
         Action<ConsumerBuilder<string, TValue>> configBuilder = null)
     {
-        this.logger = logger;
+        Logger = logger;
 
         var builder = new ConsumerBuilder<string, TValue>(consumerConfig);
         configBuilder?.Invoke(builder);
         consumer = builder
-            .SetErrorHandler((_, e) => logger.LogError("Kafka Error: {Error}", e))
+            .SetErrorHandler((_, e) => Logger.LogError("Kafka Error: {Error}", e))
             .Build();
 
         consumer.Subscribe(topic);
@@ -44,6 +44,8 @@ public abstract class ConsumerLoop<TValue>
                                 return;
                             }
 
+                            KafkaBaggagePropagation.ExtractBaggage(result.Message.Headers);
+
                             try
                             {
                                 handler(result).GetAwaiter().GetResult();
@@ -51,13 +53,13 @@ public abstract class ConsumerLoop<TValue>
                             }
                             catch (Exception e)
                             {
-                                logger.LogError(e, "Error during handling {type}", result.Message.Value.GetType().Name);
+                                Logger.LogError(e, "Error during handling {type}", result.Message.Value.GetType().Name);
                             }
                         }, 1000);
                     }
                     catch (ConsumeException ex)
                     {
-                        logger.LogError(ex, "Consume error: {Reason}", ex.Error.Reason);
+                        Logger.LogError(ex, "Consume error: {Reason}", ex.Error.Reason);
                     }
                     catch (OperationCanceledException)
                     {

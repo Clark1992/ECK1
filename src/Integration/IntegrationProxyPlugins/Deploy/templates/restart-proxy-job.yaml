@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: restart-proxy-{{ .Values.plugin.name | lower }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      serviceAccountName: plugin-deployer-sa
+      restartPolicy: Never
+      containers:
+        - name: restart
+          image: alpine/k8s:1.31.13
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              DEPLOY="eck1-integration-proxy-{{ .Values.plugin.name | lower }}"
+              echo "Checking if deployment/$DEPLOY exists..."
+              if kubectl get deployment "$DEPLOY" > /dev/null 2>&1; then
+                echo "Restarting deployment/$DEPLOY to reload plugin DLLs..."
+                kubectl rollout restart deployment/"$DEPLOY"
+              else
+                echo "Deployment $DEPLOY not found (proxy not yet deployed), skipping restart."
+              fi

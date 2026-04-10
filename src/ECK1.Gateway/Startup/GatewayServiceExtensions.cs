@@ -36,6 +36,7 @@ public static class GatewayServiceExtensions
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
+                options.MapInboundClaims = false;
                 options.RequireHttpsMetadata = false;
                 // Use the external Issuer URL so ZitadelBackchannelHandler can
                 // intercept and rewrite it to the internal Authority URL.

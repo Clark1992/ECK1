@@ -18,16 +18,24 @@ public class GenericGrain<TInput, TMetadata, TState, TResult>(
     {
         var traceId = Activity.Current?.TraceId.ToString();
         var spanId = Activity.Current?.SpanId.ToString();
+        var actorId = Activity.Current?.GetBaggageItem("actor_id");
+        var actorName = Activity.Current?.GetBaggageItem("actor_name");
 
-        using var _ = string.IsNullOrWhiteSpace(traceId)
-            ? null
-            : logger.BeginScope(new Dictionary<string, object>
-            {
-                ["TraceId"] = traceId,
-                ["SpanId"] = spanId,
-                ["trace_id"] = traceId,
-                ["span_id"] = spanId,
-            });
+        var scopeState = new Dictionary<string, object>();
+        if (!string.IsNullOrWhiteSpace(traceId))
+        {
+            scopeState["TraceId"] = traceId;
+            scopeState["SpanId"] = spanId;
+            scopeState["trace_id"] = traceId;
+            scopeState["span_id"] = spanId;
+        }
+        if (!string.IsNullOrWhiteSpace(actorId))
+        {
+            scopeState["actor_id"] = actorId;
+            scopeState["actor_name"] = actorName ?? "system";
+        }
+
+        using var _ = scopeState.Count > 0 ? logger.BeginScope(scopeState) : null;
 
         if (dupChecker.IsMessageProcessed(e, MetadataStorage.Metadata))
         {

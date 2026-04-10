@@ -9,6 +9,12 @@ repositories:
 
 ---
 
+{{/* Reuse existing kubed TLS certificate to avoid unnecessary redeployments.
+     On first deploy the secret does not exist, so chart generates certs.
+     On subsequent deploys the exec outputs a temp values file path that feeds
+     the cached certs back with generate=false, producing no helm diff. */}}
+{{- $kubedCertFile := exec "pwsh" (list "-NoProfile" "-Command" "$ErrorActionPreference='Stop'; $j=kubectl get secret kubed-apiserver-cert -n kubed -o json 2>$null; if(-not $j){exit 0}; $s=($j|ConvertFrom-Json); if(-not $s.data.'tls.crt' -or -not $s.data.'tls.key'){exit 0}; $cwd=[IO.Directory]::GetCurrentDirectory(); $f=Join-Path $cwd '.kubed-cert-values.yaml'; $n=[char]10; $y=('apiserver:'+$n+'  servingCerts:'+$n+'    generate: false'+$n+'    serverCrt: '+$s.data.'tls.crt'+$n+'    serverKey: '+$s.data.'tls.key'); [IO.File]::WriteAllText($f,$y); '.kubed-cert-values.yaml'") | trim }}
+
 releases:
   - name: global-vars
     namespace: global
@@ -26,6 +32,9 @@ releases:
     version: "0.13.2"
     values:
       - k8s/charts/kubed/values.yaml
+{{- if ne $kubedCertFile "" }}
+      - {{ $kubedCertFile }}
+{{- end }}
 
   - name: metrics-server
     namespace: kube-system

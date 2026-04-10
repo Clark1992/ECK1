@@ -214,8 +214,8 @@ public class ClickhouseReconciliationPlugin(
             return ReconciliationCheckResult.NeedsFullRebuild;
         }
 
-        var maxVer = reader.GetInt32(0);
-        var cnt = reader.GetInt64(1);
+        var maxVer = Convert.ToInt32(reader.GetValue(0));
+        var cnt = Convert.ToInt64(reader.GetValue(1));
 
         if (cnt == 0)
         {

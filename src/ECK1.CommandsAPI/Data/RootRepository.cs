@@ -114,17 +114,21 @@ internal class RootRepository<TAggregate, TEventEntity, TSnapshotEntity>(
 
     private async Task<List<IDomainEvent>> LoadHistory(Guid aggregateId, int? takeLast, CancellationToken ct)
     {
-        var query = Db.Set<TEventEntity>()
+        IQueryable<TEventEntity> entityQuery = Db.Set<TEventEntity>()
             .Where(e => e.AggregateId == aggregateId)
-            .OrderBy(e => e.Version)
-            .Select(e => e.ToDomainEvent());
+            .OrderBy(e => e.Version);
 
         if (takeLast.HasValue)
         {
-            query = query.TakeLast(takeLast.Value);
+            entityQuery = entityQuery
+                .OrderByDescending(e => e.Version)
+                .Take(takeLast.Value)
+                .OrderBy(e => e.Version);
         }
 
-        return await query.ToListAsync(ct);
+        return await entityQuery
+            .Select(e => e.ToDomainEvent())
+            .ToListAsync(ct);
     }
 
     private async Task SaveSnapshotAsync(TAggregate aggregate, CancellationToken ct)

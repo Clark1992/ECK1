@@ -1,3 +1,4 @@
+using ECK1.CommonUtils.ActorContext;
 using ECK1.CommonUtils.AspNet;
 using ECK1.Integration.Cache.LongTerm;
 using ECK1.Integration.Cache.LongTerm.Kafka;
@@ -58,6 +59,7 @@ else
 
 app.UseRouting();
 app.UseCors("AllowAllOrigins");
+app.UseActorLogging();
 app.UseAuthorization();
 
 // Swagger

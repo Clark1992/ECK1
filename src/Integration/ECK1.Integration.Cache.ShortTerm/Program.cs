@@ -1,4 +1,5 @@
-﻿using ECK1.CommonUtils.AspNet;
+﻿using ECK1.CommonUtils.ActorContext;
+using ECK1.CommonUtils.AspNet;
 using ECK1.Integration.Cache.ShortTerm;
 using ECK1.Integration.Cache.ShortTerm.Kafka;
 using ECK1.Integration.Cache.ShortTerm.Services;
@@ -59,6 +60,7 @@ else
 
 app.UseRouting();
 app.UseCors("AllowAllOrigins");
+app.UseActorLogging();
 app.UseAuthorization();
 
 // Swagger

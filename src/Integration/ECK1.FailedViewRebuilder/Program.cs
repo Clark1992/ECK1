@@ -1,4 +1,5 @@
-﻿using ECK1.CommonUtils.AspNet;
+﻿using ECK1.CommonUtils.ActorContext;
+using ECK1.CommonUtils.AspNet;
 using ECK1.CommonUtils.Chaos;
 using ECK1.CommonUtils.JobQueue;
 using ECK1.CommonUtils.OpenTelemetry;
@@ -78,6 +79,7 @@ else
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("AllowAllOrigins");
+app.UseActorLogging();
 app.UseAuthorization();
 
 app.UseSwagger();
