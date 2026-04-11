@@ -16,11 +16,15 @@ RUN for file in $(ls *.csproj); do name=$(basename "$file" .csproj); mkdir -p sr
 COPY src/Nuget/*/*.csproj ./Nuget/
 RUN for file in $(ls Nuget/*.csproj); do name=$(basename "$file" .csproj); mkdir -p src/Nuget/${name}/ && mv $file src/Nuget/${name}/; done
 
-RUN dotnet restore ./src/ECK1.FailedViewRebuilder/ECK1.FailedViewRebuilder.csproj
+# Copy Integration projects
+COPY src/Integration/*/*.csproj ./Integration/
+RUN for file in $(ls Integration/*.csproj); do name=$(basename "$file" .csproj); mkdir -p src/Integration/${name}/ && mv $file src/Integration/${name}/; done
+
+RUN dotnet restore ./src/Integration/ECK1.FailedViewRebuilder/ECK1.FailedViewRebuilder.csproj
 
 COPY src/ ./
 
-WORKDIR /src/ECK1.FailedViewRebuilder
+WORKDIR /src/Integration/ECK1.FailedViewRebuilder
 RUN dotnet publish -c Release -o /app/publish
 
 # ENTRYPOINT ["/bin/bash"]

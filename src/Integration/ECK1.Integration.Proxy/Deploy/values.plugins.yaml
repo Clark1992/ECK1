@@ -1,5 +1,5 @@
 plugins:
-  - name: ElasticSearch
+  - name: Elasticsearch
     replicaCount: 1
     spec:
       volumeMounts:

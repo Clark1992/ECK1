@@ -60,7 +60,7 @@ public class EventConsumerConfig(
                         var occuredAt = @event.OccuredAt;
                         logger.LogInformation("{Topic}: Start handle '{message}:{id} (OccureAt: {occuredAt})'", topic, @event.EventType, @event.EntityId, occuredAt);
 
-                        if (@event.Targets.Count > 0 && !@event.Targets.Contains(plugin))
+                        if (@event.Targets is { Count: > 0 } && !@event.Targets.Contains(plugin, StringComparer.OrdinalIgnoreCase))
                         {
                             logger.LogInformation(
                                 "{Topic}: Shortcircuit message addressed to another target: '{message}:{id} (OccureAt: {occuredAt})'",
@@ -129,6 +129,7 @@ public class EventConsumerConfig(
                                 @event,
                                 entry.EntityType,
                                 reason,
+                                "",
                                 logger,
                                 ct);
                         }
@@ -139,6 +140,7 @@ public class EventConsumerConfig(
                                 @event,
                                 entry.EntityType,
                                 $"[{plugin}] {ex.GetType().Name}: {ex.Message}",
+                                ex.StackTrace,
                                 logger,
                                 ct);
                         }
@@ -157,6 +159,7 @@ public class EventConsumerConfig(
         ThinEvent @event,
         string entityType,
         string reason,
+        string stackTrace,
         ILogger logger,
         CancellationToken ct)
     {
@@ -166,6 +169,7 @@ public class EventConsumerConfig(
             EntityType = entityType,
             ErrorMessage = reason,
             FailedEventType = @event.EventType,
+            StackTrace = stackTrace,
         };
 
         await producer.ProduceAsync(payload, @event.EntityId.ToString(), ct);

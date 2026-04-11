@@ -90,10 +90,14 @@ public class Sample2CommandHandlers :
         return await SaveAndNotify(command.Command.Id, command.State, sample2 => sample2.RemoveTag(command.Command.Tag), ct);
     }
 
-    public Task<(ICommandResult, Sample2)> Handle(CommandRequest<RebuildSample2ViewCommand, Sample2> command, CancellationToken ct) =>
-        command.Command.IsFullHistoryRebuild ?
-        RebuildFullHistory(command.Command, ct) :
-        RebuildLatest(command.Command, ct);
+    public async Task<(ICommandResult, Sample2)> Handle(CommandRequest<RebuildSample2ViewCommand, Sample2> command, CancellationToken ct)
+    {
+        Logger.LogInformation("RebuildSample2ViewCommand: {Id}:[{Failed}]", command.Command.Id, string.Join(", ", command.Command.FailedTargets));
+
+        return command.Command.IsFullHistoryRebuild ?
+        await RebuildFullHistory(command.Command, ct) :
+        await RebuildLatest(command.Command, ct);
+    }
 
     public async Task<(ICommandResult, Sample2)> RebuildFullHistory(RebuildSample2ViewCommand cmd, CancellationToken ct)
     {

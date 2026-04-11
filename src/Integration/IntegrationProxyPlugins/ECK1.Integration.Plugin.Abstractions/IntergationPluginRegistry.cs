@@ -21,7 +21,7 @@ public class IntergationPluginRegistry(ILogger<IntergationPluginRegistry> logger
         ["Clickhouse"] = "ECK1.Integration.Plugin.Clickhouse/bin/Debug/net8.0/ECK1.Integration.Plugin.Clickhouse.dll",
         ["Mongo"] = "ECK1.Integration.Plugin.Mongo/bin/Debug/net8.0/ECK1.Integration.Plugin.Mongo.dll",
 #else
-        ["Elasticsearch"] = "ElasticSearch/ECK1.Integration.Plugin.ElasticSearch.dll",
+        ["Elasticsearch"] = "Elasticsearch/ECK1.Integration.Plugin.ElasticSearch.dll",
         ["Clickhouse"] = "Clickhouse/ECK1.Integration.Plugin.Clickhouse.dll",
         ["Mongo"] = "Mongo/ECK1.Integration.Plugin.Mongo.dll",
 #endif

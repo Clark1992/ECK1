@@ -73,6 +73,11 @@ public class ElasticSearchPluginLoader : IIntergationPluginLoader
 public class ElasticSearchWriter<TEvent, TMessage> : IIntergationPlugin<TEvent, TMessage>
     where TEvent : Generated.ThinEvent
 {
+    private static readonly JsonSerializerOptions CamelCaseOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     private readonly ElasticsearchClient client;
     private readonly ILogger<ElasticSearchWriter<TEvent, TMessage>> logger;
     private readonly List<string> indexes;
@@ -110,19 +115,21 @@ public class ElasticSearchWriter<TEvent, TMessage> : IIntergationPlugin<TEvent, 
             {
                 if (eventFieldExtractor.HasFields)
                 {
-                    var jsonNode = JsonSerializer.SerializeToNode(message);
+                    var jsonNode = JsonSerializer.SerializeToNode(message, CamelCaseOptions);
                     if (jsonNode is JsonObject jsonObj)
                     {
                         foreach (var (fieldName, value) in eventFieldExtractor.Extract(@event))
                             jsonObj[fieldName] = JsonValue.Create(value);
                     }
-                    var response = await client.IndexAsync(jsonNode, i => i.Index(index));
-                    this.logger.LogInformation("Response from ElasticSearchPlugin: {res}", response);
+                    var entityId = @event.EntityId.ToString();
+                    var response = await client.IndexAsync(jsonNode, index, entityId);
+                    this.logger.LogInformation("Response from ElasticSearchPlugin [{Id}]: {res}", entityId, response);
                 }
                 else
                 {
-                    var response = await client.IndexAsync(message, i => i.Index(index));
-                    this.logger.LogInformation("Response from ElasticSearchPlugin: {res}", response);
+                    var entityId = @event.EntityId.ToString();
+                    var response = await client.IndexAsync(message, index, entityId);
+                    this.logger.LogInformation("Response from ElasticSearchPlugin [{Id}]: {res}", entityId, response);
                 }
             }
             catch (Exception e)

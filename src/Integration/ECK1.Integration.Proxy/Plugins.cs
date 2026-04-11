@@ -2,5 +2,5 @@
 
 public static class Constants
 {
-    public static readonly string[] Plugins = ["ElasticSearch", "Clickhouse", "Mongo"];
+    public static readonly string[] Plugins = ["Elasticsearch", "Clickhouse", "Mongo"];
 }

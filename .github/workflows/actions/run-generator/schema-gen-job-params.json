@@ -2,9 +2,9 @@
   {
     "assemblyPath": "__ECK1_CONTRACTS_ASSEMBLY_PATH__",
     "typeName": "ECK1.Contracts.Kafka.BusinessEvents.EventFailure",
-    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/failure-events.dlq",
+    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.FailedViewRebuilder/failure-events.dlq",
     "format": "json",
-    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/failure-events.dlq",
+    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.FailedViewRebuilder/failure-events.dlq",
     "topic": "failure-events.dlq"
   },
   {

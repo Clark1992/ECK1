@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 
 . ".github\scripts\common.ps1"
 
-$baseDir = "src/ECK1.FailedViewRebuilder"
+$baseDir = "src/Integration/ECK1.FailedViewRebuilder"
 $dockerfilePath = "$baseDir/Dockerfile"
 $imageName = "failed-view-rebuilder"
 $imageTag = "dev"

@@ -30,8 +30,7 @@ public class EventFailureMapping : IEntityTypeConfiguration<EventFailure>
             .HasColumnType("nvarchar(4000)");
 
         builder.Property(x => x.StackTrace)
-            .HasColumnType("nvarchar(4000)")
-            .IsRequired();
+            .HasColumnType("nvarchar(4000)");
 
         builder.HasIndex(x => x.FailureOccurredAt)
             .HasDatabaseName("IX_EventFailures_FailureOccurredAt");

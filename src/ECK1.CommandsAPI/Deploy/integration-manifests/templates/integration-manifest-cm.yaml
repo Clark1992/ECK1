@@ -61,7 +61,7 @@ data:
               type: System.Guid
 
             entity_type:
-              source: const.Sample
+              source: const.ECK1.Sample
               type: string
 
             entity_version:
@@ -171,7 +171,7 @@ data:
               type: System.Guid
 
             entity_type:
-              source: const.Sample2
+              source: const.ECK1.Sample2
               type: string
 
             entity_version:

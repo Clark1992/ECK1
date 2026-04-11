@@ -19,23 +19,17 @@ public class SampleCommandHandlers :
     IRequestHandler<CommandRequest<UpdateSampleAttachmentCommand, Sample>, (ICommandResult, Sample)>,
     IRequestHandler<CommandRequest<RebuildSampleViewCommand, Sample>, (ICommandResult, Sample)>
 {
-    private readonly IMapper mapper;
-    private readonly ILogger<SampleCommandHandlers> logger;
-
     public SampleCommandHandlers(
         IRootRepository<Sample> repo,
         IMediator mediator,
-        IMapper mapper,
         ILogger<SampleCommandHandlers> logger)
         : base(repo, mediator, logger)
     {
-        this.mapper = mapper;
-        this.logger = logger;
     }
 
     public async Task<(ICommandResult, Sample)> Handle(CommandRequest<CreateSampleCommand, Sample> command, CancellationToken ct)
     {
-        this.logger.LogInformation("Handling {Type} command (Name = '{Name}').", command.Command.GetType(), command.Command.Name);
+        Logger.LogInformation("Handling {Type} command (Name = '{Name}').", command.Command.GetType(), command.Command.Name);
 
         var cmd = command.Command;
         var address = cmd.Address is not null
@@ -84,10 +78,14 @@ public class SampleCommandHandlers :
             ct);
     }
 
-    public Task<(ICommandResult, Sample)> Handle(CommandRequest<RebuildSampleViewCommand, Sample> command, CancellationToken ct) =>
-        command.Command.IsFullHistoryRebuild ?
-        RebuildFullHistory(command.Command, ct) :
-        RebuildLatest(command.Command, ct);
+    public async Task<(ICommandResult, Sample)> Handle(CommandRequest<RebuildSampleViewCommand, Sample> command, CancellationToken ct)
+    {
+        Logger.LogInformation("RebuildSampleViewCommand: {Id}:[{Failed}]", command.Command.Id, string.Join(", ", command.Command.FailedTargets));
+
+        return command.Command.IsFullHistoryRebuild ?
+            await RebuildFullHistory(command.Command, ct) :
+            await RebuildLatest(command.Command, ct);
+    }
 
     public async Task<(ICommandResult, Sample)> RebuildFullHistory(RebuildSampleViewCommand cmd, CancellationToken ct)
     {
