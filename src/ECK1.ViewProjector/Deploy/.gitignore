@@ -1,2 +1,0 @@
-# Ignore local secrets/overrides for deploy
-values.secret.yaml
