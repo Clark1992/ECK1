@@ -19,4 +19,4 @@ data:
 resources: {}
 
 otelCollector:
-  serviceName: "eck1-viewprojector.eck1-queriesapi"
+  serviceName: "eck1-integration-proxy-elasticsearch.eck1-queriesapi"
