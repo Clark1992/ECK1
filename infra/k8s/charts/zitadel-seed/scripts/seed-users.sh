@@ -126,12 +126,12 @@ else
     -X POST "${ZITADEL_URL}/management/v1/projects/${PROJECT_ID}/apps/oidc" \
     -d '{
       "name": "ECK1 Platform",
-      "redirectUris": ["http://localhost:30090/signin-oidc", "http://localhost:30090/swagger/oauth2-redirect.html", "http://localhost:30200/ui/console/auth/callback"],
+      "redirectUris": ["http://localhost:30090/signin-oidc", "http://localhost:30090/swagger/oauth2-redirect.html", "http://localhost:30200/ui/console/auth/callback", "http://app.localhost:30200/auth/callback", "http://localhost:5173/auth/callback"],
       "responseTypes": ["OIDC_RESPONSE_TYPE_CODE"],
       "grantTypes": ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE", "OIDC_GRANT_TYPE_REFRESH_TOKEN", "OIDC_GRANT_TYPE_TOKEN_EXCHANGE"],
       "appType": "OIDC_APP_TYPE_WEB",
       "authMethodType": "OIDC_AUTH_METHOD_TYPE_NONE",
-      "postLogoutRedirectUris": ["http://localhost:30090"],
+      "postLogoutRedirectUris": ["http://localhost:30090", "http://app.localhost:30200", "http://localhost:5173"],
       "devMode": true,
       "accessTokenType": "OIDC_TOKEN_TYPE_JWT",
       "idTokenRoleAssertion": true,

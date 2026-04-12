@@ -4,3 +4,4 @@
 .git/
 **/.vs
 **/Deploy/
+**/node_modules/

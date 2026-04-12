@@ -1,19 +1,18 @@
 replicaCount: 1
 
 image:
-  repository: localhost:5000/gateway
+  repository: localhost:5000/eck1-fe
   tag: dev
   pullPolicy: IfNotPresent
 
 service:
-  type: NodePort
+  type: ClusterIP
   port: 80
-  nodePort: 30090
 
 ingress:
   enabled: true
-  host: api.localhost
+  host: app.localhost
   ingressClassName: nginx
 
-env:
-  ASPNETCORE_ENVIRONMENT: Production
+gateway:
+  host: eck1-gateway

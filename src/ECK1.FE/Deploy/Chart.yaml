@@ -1,0 +1,5 @@
+apiVersion: v2
+name: eck1-fe
+description: Helm chart for ECK1 Frontend SPA
+version: 0.1.0
+appVersion: "1.0"

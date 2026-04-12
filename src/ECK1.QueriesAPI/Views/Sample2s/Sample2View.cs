@@ -16,6 +16,10 @@ public class Sample2View
     public List<Sample2LineItemView> LineItems { get; set; } = new();
     public List<Sample2TagView> Tags { get; set; } = new();
     public Sample2Status Status { get; set; }
+
+    [BsonElement("lastModified")]
+    [BsonIgnoreIfNull]
+    public DateTime? LastModified { get; set; }
 }
 
 [BsonNoId]

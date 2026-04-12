@@ -13,6 +13,10 @@ public class SampleView
     public Guid SampleId { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
+
+    [BsonElement("lastModified")]
+    [BsonIgnoreIfNull]
+    public DateTime? LastModified { get; set; }
     public SampleAddressView Address { get; set; }
     public List<SampleAttachmentView> Attachments { get; set; } = new();
 }
