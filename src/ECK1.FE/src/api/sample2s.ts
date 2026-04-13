@@ -1,4 +1,4 @@
-import { API, apiFetch, jsonBody, queryString } from './client';
+import { API, apiFetch, queryString } from './client';
 import type { PagedResponse, CommandAccepted, Address, Money, EntityResponse } from '../types/common';
 import type { Sample2, CreateSample2Request, ChangeStatusRequest } from '../types/sample2';
 import { correlationHeaders } from '../realtime/useRealtimeFeedback';
