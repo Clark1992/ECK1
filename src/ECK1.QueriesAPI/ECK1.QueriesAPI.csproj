@@ -21,10 +21,12 @@
     <PackageReference Include="MongoDB.Driver" />
     <PackageReference Include="System.Linq.Dynamic.Core" />
     <PackageReference Include="Elastic.Clients.Elasticsearch" />
+    <PackageReference Include="protobuf-net.Grpc" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Nuget\ECK1.CommonUtils\ECK1.CommonUtils.csproj" />
+    <ProjectReference Include="..\Nuget\ECK1.VersionTracker.Contracts\ECK1.VersionTracker.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

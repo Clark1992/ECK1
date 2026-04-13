@@ -2,6 +2,7 @@
 using Confluent.SchemaRegistry;
 using ECK1.Contracts.Kafka.BusinessEvents;
 using ECK1.Reconciliation.Contracts;
+using ECK1.RealtimeFeedback.Contracts;
 using ECK1.Integration.Common;
 using ECK1.Integration.Config;
 using ECK1.Integration.EntityStore.Configuration.Generated;
@@ -35,6 +36,11 @@ public static class KafkaSetup
 
         services.ConfigTopicProducer<EventFailure>(
             kafkaSettings.FailureEventsTopic,
+            SubjectNameStrategy.Topic,
+            SerializerType.JSON);
+
+        services.ConfigTopicProducer<RealtimeFeedbackEvent>(
+            kafkaSettings.RealtimeFeedbackTopic,
             SubjectNameStrategy.Topic,
             SerializerType.JSON);
 

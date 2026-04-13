@@ -9,8 +9,14 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
+      '/api/hubs/realtime': {
+        target: 'http://api.localhost:30200',
+        changeOrigin: true,
+        ws: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
       '/api': {
-        target: 'http://localhost:30090',
+        target: 'http://api.localhost:30200',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },

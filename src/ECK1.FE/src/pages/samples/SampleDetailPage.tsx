@@ -10,6 +10,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { samplesApi } from '../../api/samples';
+import { useEntityUpdateFeedback } from '../../realtime/useRealtimeFeedback';
+import { useEntityEvents } from '../../realtime/useEntityEvents';
+import { useNotification } from '../../notifications/NotificationProvider';
 
 export default function SampleDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -20,22 +23,55 @@ export default function SampleDetailPage() {
   const [editValue, setEditValue] = useState('');
   const [error, setError] = useState('');
 
-  const { data: sample, isLoading } = useQuery({
+  const { data: response, isLoading } = useQuery({
     queryKey: ['samples', id],
     queryFn: () => samplesApi.get(id!),
     enabled: !!id,
   });
 
+  const sample = response?.data;
+  const isRebuilding = response?.isRebuilding ?? false;
+  const showNotification = useNotification();
+
+  // Realtime feedback for update operations — memorize version, show notification
+  const { startCorrelatedCall, clearCorrelation, pendingVersion, clearPendingVersion } = useEntityUpdateFeedback(
+    queryClient, 'samples', id, showNotification,
+    (event) => setError(event?.message || event?.outcomeCode || 'Operation failed or timed out'),
+  );
+
+  // Subscribe to entity-level events (from any user/source) — auto-refetch on view update
+  useEntityEvents({
+    entityType: 'ECK1.Sample',
+    entityId: id,
+    onEvent: (event) => {
+      queryClient.invalidateQueries({ queryKey: ['samples', id] });
+      if (pendingVersion !== null && event.version >= pendingVersion) {
+        clearPendingVersion();
+        showNotification({
+          title: event.title || 'Updated',
+          message: event.message || 'View has been updated',
+          severity: 'success',
+        });
+      }
+    },
+  });
+
   const nameMutation = useMutation({
-    mutationFn: (name: string) => samplesApi.changeName(id!, name),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['samples', id] }); setEditingField(null); setError(''); },
-    onError: (err: Error) => setError(err.message),
+    mutationFn: (name: string) => {
+      const { correlationId } = startCorrelatedCall();
+      return samplesApi.changeName(id!, name, sample?.version ?? 0, correlationId);
+    },
+    onSuccess: () => { setEditingField(null); setError(''); },
+    onError: (err: Error) => { setError(err.message); clearCorrelation(); },
   });
 
   const descMutation = useMutation({
-    mutationFn: (desc: string) => samplesApi.changeDescription(id!, desc),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['samples', id] }); setEditingField(null); setError(''); },
-    onError: (err: Error) => setError(err.message),
+    mutationFn: (desc: string) => {
+      const { correlationId } = startCorrelatedCall();
+      return samplesApi.changeDescription(id!, desc, sample?.version ?? 0, correlationId);
+    },
+    onSuccess: () => { setEditingField(null); setError(''); },
+    onError: (err: Error) => { setError(err.message); clearCorrelation(); },
   });
 
   const startEdit = (field: 'name' | 'description', value: string) => {
@@ -69,6 +105,11 @@ export default function SampleDetailPage() {
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
+      {isRebuilding && (
+        <Alert severity="info" icon={<CircularProgress size={20} />} sx={{ mb: 2 }}>
+          View is updating — displayed data may be stale.
+        </Alert>
+      )}
 
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 6 }}>
@@ -94,7 +135,7 @@ export default function SampleDetailPage() {
                 <Box display="flex" alignItems="center" gap={1}>
                   <Typography>{sample.name}</Typography>
                   <Tooltip title="Edit name">
-                    <IconButton size="small" onClick={() => startEdit('name', sample.name)}><EditIcon fontSize="small" /></IconButton>
+                    <IconButton size="small" onClick={() => startEdit('name', sample.name)} disabled={isRebuilding}><EditIcon fontSize="small" /></IconButton>
                   </Tooltip>
                 </Box>
               )}
@@ -121,7 +162,7 @@ export default function SampleDetailPage() {
                 <Box display="flex" alignItems="center" gap={1}>
                   <Typography>{sample.description}</Typography>
                   <Tooltip title="Edit description">
-                    <IconButton size="small" onClick={() => startEdit('description', sample.description)}><EditIcon fontSize="small" /></IconButton>
+                    <IconButton size="small" onClick={() => startEdit('description', sample.description)} disabled={isRebuilding}><EditIcon fontSize="small" /></IconButton>
                   </Tooltip>
                 </Box>
               )}

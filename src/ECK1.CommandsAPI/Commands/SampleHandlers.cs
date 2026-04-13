@@ -4,6 +4,9 @@ using ECK1.CommandsAPI.Domain;
 using ECK1.CommandsAPI.Domain.Samples;
 using ECK1.CommandsAPI.Domain.Shared;
 using ECK1.CommandsAPI.Kafka;
+using ECK1.Kafka;
+using ECK1.RealtimeFeedback.Contracts;
+using ECK1.VersionTracker.Contracts;
 using MediatR;
 
 namespace ECK1.CommandsAPI.Commands;
@@ -19,12 +22,17 @@ public class SampleCommandHandlers :
     IRequestHandler<CommandRequest<UpdateSampleAttachmentCommand, Sample>, (ICommandResult, Sample)>,
     IRequestHandler<CommandRequest<RebuildSampleViewCommand, Sample>, (ICommandResult, Sample)>
 {
+    private readonly IVersionTrackerService _versionTracker;
+
     public SampleCommandHandlers(
         IRootRepository<Sample> repo,
         IMediator mediator,
+        IKafkaTopicProducer<RealtimeFeedbackEvent> feedbackProducer,
+        IVersionTrackerService versionTracker,
         ILogger<SampleCommandHandlers> logger)
-        : base(repo, mediator, logger)
+        : base(repo, mediator, logger, feedbackProducer)
     {
+        _versionTracker = versionTracker;
     }
 
     public async Task<(ICommandResult, Sample)> Handle(CommandRequest<CreateSampleCommand, Sample> command, CancellationToken ct)
@@ -42,31 +50,31 @@ public class SampleCommandHandlers :
 
     public async Task<(ICommandResult, Sample)> Handle(CommandRequest<ChangeSampleNameCommand, Sample> command, CancellationToken ct)
     {
-        return await SaveAndNotify(command.Command.Id, command.State, sample => sample.ChangeName(command.Command.NewName), ct);
+        return await SaveAndNotify(command.Command.Id, command.State, sample => sample.ChangeName(command.Command.NewName), ct, command.Command.ExpectedVersion);
     }
 
     public async Task<(ICommandResult, Sample)> Handle(CommandRequest<ChangeSampleDescriptionCommand, Sample> command, CancellationToken ct)
     {
-        return await SaveAndNotify(command.Command.Id, command.State, sample => sample.ChangeDescription(command.Command.NewDescription), ct);
+        return await SaveAndNotify(command.Command.Id, command.State, sample => sample.ChangeDescription(command.Command.NewDescription), ct, command.Command.ExpectedVersion);
     }
 
     public async Task<(ICommandResult, Sample)> Handle(CommandRequest<ChangeSampleAddressCommand, Sample> command, CancellationToken ct)
     {
         var dto = command.Command.NewAddress;
         var newAddress = new Address(dto.Street, dto.City, dto.Country);
-        return await SaveAndNotify(command.Command.Id, command.State, sample => sample.ChangeAddress(newAddress), ct);
+        return await SaveAndNotify(command.Command.Id, command.State, sample => sample.ChangeAddress(newAddress), ct, command.Command.ExpectedVersion);
     }
 
     public async Task<(ICommandResult, Sample)> Handle(CommandRequest<AddSampleAttachmentCommand, Sample> command, CancellationToken ct)
     {
         var dto = command.Command.Attachment;
         var attachment = new SampleAttachment(dto.FileName, dto.Url);
-        return await SaveAndNotify(command.Command.Id, command.State, sample => sample.AddAttachment(attachment), ct);
+        return await SaveAndNotify(command.Command.Id, command.State, sample => sample.AddAttachment(attachment), ct, command.Command.ExpectedVersion);
     }
 
     public async Task<(ICommandResult, Sample)> Handle(CommandRequest<RemoveSampleAttachmentCommand, Sample> command, CancellationToken ct)
     {
-        return await SaveAndNotify(command.Command.Id, command.State, sample => sample.RemoveAttachment(command.Command.AttachmentId), ct);
+        return await SaveAndNotify(command.Command.Id, command.State, sample => sample.RemoveAttachment(command.Command.AttachmentId), ct, command.Command.ExpectedVersion);
     }
 
     public async Task<(ICommandResult, Sample)> Handle(CommandRequest<UpdateSampleAttachmentCommand, Sample> command, CancellationToken ct)
@@ -75,7 +83,8 @@ public class SampleCommandHandlers :
             command.Command.Id,
             command.State,
             sample => sample.UpdateAttachment(command.Command.AttachmentId, command.Command.NewFileName, command.Command.NewUrl),
-            ct);
+            ct,
+            command.Command.ExpectedVersion);
     }
 
     public async Task<(ICommandResult, Sample)> Handle(CommandRequest<RebuildSampleViewCommand, Sample> command, CancellationToken ct)
@@ -110,9 +119,19 @@ public class SampleCommandHandlers :
 
         if (sample is null || latest is null) return (new NotFound(), null);
 
-        await Mediator.Publish(
-            new AggregateSavedNotification<Sample>(sample, [latest], cmd.FailedTargets),
-            ct);
+        await _versionTracker.PutVersion(new PutVersionRequest
+        {
+            EntityType = $"ECK1.{typeof(Sample).Name}",
+            EntityId = sample.Id.ToString(),
+            Version = sample.Version
+        });
+
+        if (cmd.FailedTargets is not [VersionTrackerConstants.TargetName])
+        {
+            await Mediator.Publish(
+                new AggregateSavedNotification<Sample>(sample, [latest], cmd.FailedTargets),
+                ct);
+        }
 
         return (new Success(sample.Id, []), sample);
     }

@@ -20,10 +20,12 @@ public class IntergationPluginRegistry(ILogger<IntergationPluginRegistry> logger
         ["Elasticsearch"] = "ECK1.Integration.Plugin.ElasticSearch/bin/Debug/net8.0/ECK1.Integration.Plugin.ElasticSearch.dll",
         ["Clickhouse"] = "ECK1.Integration.Plugin.Clickhouse/bin/Debug/net8.0/ECK1.Integration.Plugin.Clickhouse.dll",
         ["Mongo"] = "ECK1.Integration.Plugin.Mongo/bin/Debug/net8.0/ECK1.Integration.Plugin.Mongo.dll",
+        ["RealtimeFeedback"] = "ECK1.Integration.Plugin.RealtimeFeedback/bin/Debug/net8.0/ECK1.Integration.Plugin.RealtimeFeedback.dll",
 #else
         ["Elasticsearch"] = "Elasticsearch/ECK1.Integration.Plugin.ElasticSearch.dll",
         ["Clickhouse"] = "Clickhouse/ECK1.Integration.Plugin.Clickhouse.dll",
         ["Mongo"] = "Mongo/ECK1.Integration.Plugin.Mongo.dll",
+        ["RealtimeFeedback"] = "RealtimeFeedback/ECK1.Integration.Plugin.RealtimeFeedback.dll",
 #endif
     };
 

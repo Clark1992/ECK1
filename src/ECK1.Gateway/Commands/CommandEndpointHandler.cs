@@ -3,6 +3,12 @@ using Newtonsoft.Json.Linq;
 
 namespace ECK1.Gateway.Commands;
 
+public static class RealtimeCorrelation
+{
+    public const string HeaderName = "X-Realtime-Correlation-Id";
+    public const string BaggageKey = "realtime_correlation_id";
+}
+
 /// <summary>
 /// Handles HTTP requests matched to async command endpoints.
 /// Binds request data into a command JSON and publishes to Kafka.
@@ -21,6 +27,13 @@ public class CommandEndpointHandler(
             await context.Response.WriteAsJsonAsync(new { error = "No command route metadata found." });
             return;
         }
+
+        // Read or generate correlation ID for realtime feedback
+        var correlationId = context.Request.Headers[RealtimeCorrelation.HeaderName].FirstOrDefault();
+        if (string.IsNullOrEmpty(correlationId))
+            correlationId = Guid.NewGuid().ToString();
+
+        System.Diagnostics.Activity.Current?.SetBaggage(RealtimeCorrelation.BaggageKey, correlationId);
 
         var routeValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var (key, value) in context.Request.RouteValues)
@@ -54,7 +67,8 @@ public class CommandEndpointHandler(
                 status = "accepted",
                 command = entry.CommandName,
                 topic = entry.Topic,
-                key = bindingResult.MessageKey
+                key = bindingResult.MessageKey,
+                correlationId
             });
         }
         catch (Exception ex)

@@ -3,6 +3,7 @@ using ECK1.CommonUtils.AspNet;
 using ECK1.CommonUtils.OpenTelemetry;
 using ECK1.CommonUtils.Secrets.Doppler;
 using ECK1.CommonUtils.Secrets.K8s;
+using ECK1.Gateway.Realtime;
 using ECK1.Gateway.Startup;
 using ECK1.Gateway.Workers;
 using ECK1.Kafka.OpenTelemetry;
@@ -26,6 +27,7 @@ builder.Services
     .AddGatewayProxy()
     .AddGatewaySwagger()
     .AddCommandPipeline(builder.Configuration)
+    .AddRealtimeNotifications(builder.Configuration)
     .AddHostedService<GatewayRefreshWorker>();
 
 var app = builder.Build();
@@ -38,6 +40,7 @@ app.UseMiddleware<RouteAuthorizationMiddleware>();
 app.UseTraceResponseEnricher();
 
 app.MapSwaggerEndpoints();
+app.MapRealtimeEndpoints();
 app.MapGatewayEndpoints();
 
 app.Run();

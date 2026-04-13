@@ -13,6 +13,9 @@ inputs:
   eck1-reconciliation-contracts-assembly-path:
     type: string
     required: true
+  eck1-realtime-feedback-contracts-assembly-path:
+    type: string
+    required: true
   schema-backup-path:
     type: string
     required: true
@@ -38,6 +41,7 @@ runs:
         $content = $content -replace "__ECK1_INTEGRATION_CONTRACTS_ASSEMBLY_PATH__", "${{ inputs.eck1-integration-contracts-assembly-path }}"
         $content = $content -replace "__ECK1_COMMANDS_ASSEMBLY_PATH__", "${{ inputs.eck1-commands-assembly-path }}"
         $content = $content -replace "__ECK1_RECONCILIATION_CONTRACTS_ASSEMBLY_PATH__", "${{ inputs.eck1-reconciliation-contracts-assembly-path }}"
+        $content = $content -replace "__ECK1_REALTIME_FEEDBACK_CONTRACTS_ASSEMBLY_PATH__", "${{ inputs.eck1-realtime-feedback-contracts-assembly-path }}"
         $content = $content -replace "__SOLUTION_DIR__", "${{ inputs.solution-dir }}"
         $content | Out-File "/tmp/evolve-schema/params.json" -Encoding utf8
 

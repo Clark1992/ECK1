@@ -1,6 +1,7 @@
 import { API, apiFetch, jsonBody, queryString } from './client';
-import type { PagedResponse, CommandAccepted, Address, Money } from '../types/common';
+import type { PagedResponse, CommandAccepted, Address, Money, EntityResponse } from '../types/common';
 import type { Sample2, CreateSample2Request, ChangeStatusRequest } from '../types/sample2';
+import { correlationHeaders } from '../realtime/useRealtimeFeedback';
 
 export interface Sample2ListParams {
   skip?: number;
@@ -28,7 +29,7 @@ export const sample2sApi = {
   },
 
   get(id: string) {
-    return apiFetch<Sample2>(API.sample2s.get(id));
+    return apiFetch<EntityResponse<Sample2>>(API.sample2s.get(id));
   },
 
   search(params: Sample2SearchParams = {}) {
@@ -46,58 +47,75 @@ export const sample2sApi = {
     return apiFetch<PagedResponse<Sample2>>(API.sample2s.search + qs);
   },
 
-  create(data: CreateSample2Request) {
+  create(data: CreateSample2Request, correlationId?: string) {
+    const corr = correlationId ? correlationHeaders(correlationId) : undefined;
     return apiFetch<CommandAccepted>(API.sample2s.create, {
       method: 'POST',
-      ...jsonBody(data),
+      headers: { 'Content-Type': 'application/json', ...corr?.headers },
+      body: JSON.stringify(data),
     });
   },
 
-  changeCustomerEmail(id: string, newEmail: string) {
+  changeCustomerEmail(id: string, newEmail: string, expectedVersion: number, correlationId?: string) {
+    const corr = correlationId ? correlationHeaders(correlationId) : undefined;
     return apiFetch<CommandAccepted>(API.sample2s.changeCustomerEmail(id), {
       method: 'PUT',
-      ...jsonBody({ newEmail }),
+      headers: { 'Content-Type': 'application/json', ...corr?.headers },
+      body: JSON.stringify({ newEmail, expectedVersion }),
     });
   },
 
-  changeShippingAddress(id: string, newAddress: Address) {
+  changeShippingAddress(id: string, newAddress: Address, expectedVersion: number, correlationId?: string) {
+    const corr = correlationId ? correlationHeaders(correlationId) : undefined;
     return apiFetch<CommandAccepted>(API.sample2s.changeShippingAddress(id), {
       method: 'PUT',
-      ...jsonBody({ newAddress }),
+      headers: { 'Content-Type': 'application/json', ...corr?.headers },
+      body: JSON.stringify({ newAddress, expectedVersion }),
     });
   },
 
-  addLineItem(id: string, item: { sku: string; quantity: number; unitPrice: Money }) {
+  addLineItem(id: string, item: { sku: string; quantity: number; unitPrice: Money }, expectedVersion: number, correlationId?: string) {
+    const corr = correlationId ? correlationHeaders(correlationId) : undefined;
     return apiFetch<CommandAccepted>(API.sample2s.addLineItem(id), {
       method: 'POST',
-      ...jsonBody({ item }),
+      headers: { 'Content-Type': 'application/json', ...corr?.headers },
+      body: JSON.stringify({ item, expectedVersion }),
     });
   },
 
-  removeLineItem(id: string, itemId: string) {
+  removeLineItem(id: string, itemId: string, correlationId?: string) {
+    const corr = correlationId ? correlationHeaders(correlationId) : undefined;
     return apiFetch<CommandAccepted>(API.sample2s.removeLineItem(id, itemId), {
       method: 'DELETE',
+      headers: { ...corr?.headers },
     });
   },
 
-  changeStatus(id: string, data: ChangeStatusRequest) {
+  changeStatus(id: string, data: ChangeStatusRequest, expectedVersion: number, correlationId?: string) {
+    const corr = correlationId ? correlationHeaders(correlationId) : undefined;
     return apiFetch<CommandAccepted>(API.sample2s.changeStatus(id), {
       method: 'PUT',
-      ...jsonBody(data),
+      headers: { 'Content-Type': 'application/json', ...corr?.headers },
+      body: JSON.stringify({ ...data, expectedVersion }),
     });
   },
 
-  addTag(id: string, tag: string) {
+  addTag(id: string, tag: string, expectedVersion: number, correlationId?: string) {
     const qs = queryString({ tag });
+    const corr = correlationId ? correlationHeaders(correlationId) : undefined;
     return apiFetch<CommandAccepted>(API.sample2s.addTag(id) + qs, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...corr?.headers },
+      body: JSON.stringify({ expectedVersion }),
     });
   },
 
-  removeTag(id: string, tag: string) {
+  removeTag(id: string, tag: string, correlationId?: string) {
     const qs = queryString({ tag });
+    const corr = correlationId ? correlationHeaders(correlationId) : undefined;
     return apiFetch<CommandAccepted>(API.sample2s.removeTag(id) + qs, {
       method: 'DELETE',
+      headers: { ...corr?.headers },
     });
   },
 };

@@ -25,13 +25,14 @@ data:
         EventMappings:
           lastModified:
             source: event.OccuredAt
+          version:
+            source: event.Version
         Indexes: 
           - sample-full-records
 
       Clickhouse:
         Fields:
           - sampleId
-          - version
           - name
           - address.street
           - address.city
@@ -65,7 +66,7 @@ data:
               type: string
 
             entity_version:
-              source: record.Version
+              source: event.Version
               type: int
 
             payload:
@@ -73,7 +74,7 @@ data:
               fields:
                 sample_id: record.SampleId
                 name: record.Name
-                version: record.Version
+                version: event.Version
 
                 address_city: record.Address.City
                 address_country: record.Address.Country
@@ -99,6 +100,8 @@ data:
         EventMappings:
           lastModified:
             source: event.OccuredAt
+          version:
+            source: event.Version
         Connection: eck1
         Collection: samples
         EntityIdField: sampleId
@@ -112,7 +115,6 @@ data:
       Elasticsearch:
         Fields:
           - "sample2Id"
-          - "version"
           - "customer.customerId"
           - "customer.email"
           - "customer.segment"
@@ -129,13 +131,14 @@ data:
         EventMappings:
           lastModified:
             source: event.OccuredAt
+          version:
+            source: event.Version
         Indexes:
           - sample2-full-records
 
       Clickhouse:
         Fields:
           - sample2Id
-          - version
           - status
           - customer.customerId
           - customer.email
@@ -175,14 +178,14 @@ data:
               type: string
 
             entity_version:
-              source: record.Version
+              source: event.Version
               type: int
 
             payload:
               format: json
               fields:
                 sample2Id: record.Sample2Id
-                version: record.Version
+                version: event.Version
                 status: record.Status
 
                 customer:
@@ -215,7 +218,6 @@ data:
       Mongo:
         Fields:
           - sample2Id
-          - version
           - status
           - customer.customerId
           - customer.email
@@ -232,6 +234,8 @@ data:
         EventMappings:
           lastModified:
             source: event.OccuredAt
+          version:
+            source: event.Version
         Connection: eck1
         Collection: sample2s
         EntityIdField: sample2Id

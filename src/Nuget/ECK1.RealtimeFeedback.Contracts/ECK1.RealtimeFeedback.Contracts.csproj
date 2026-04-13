@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <PackageId>ECK1.RealtimeFeedback.Contracts</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Random</Authors>
+    <Company>Random</Company>
+    <Description>ECK1 Realtime Feedback Contracts</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+</Project>

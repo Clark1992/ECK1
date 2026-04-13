@@ -76,5 +76,13 @@
     "format": "json",
     "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/sample2-commands",
     "topic": "sample2-commands"
+  },
+  {
+    "assemblyPath": "__ECK1_REALTIME_FEEDBACK_CONTRACTS_ASSEMBLY_PATH__",
+    "typeName": "ECK1.RealtimeFeedback.Contracts.RealtimeFeedbackEvent",
+    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.Gateway/realtime-feedback",
+    "format": "json",
+    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.Gateway/realtime-feedback",
+    "topic": "realtime-feedback"
   }
 ]

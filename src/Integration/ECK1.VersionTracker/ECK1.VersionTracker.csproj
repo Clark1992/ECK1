@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Nuget\ECK1.VersionTracker.Contracts\ECK1.VersionTracker.Contracts.csproj" />
+    <ProjectReference Include="..\..\Nuget\ECK1.CommonUtils\ECK1.CommonUtils.csproj" />
+    <ProjectReference Include="..\..\Nuget\ECK1.Kafka\ECK1.Kafka.csproj" />
+    <ProjectReference Include="..\..\Nuget\ECK1.Reconciliation.Contracts\ECK1.Reconciliation.Contracts.csproj" />
+    <ProjectReference Include="..\..\Nuget\ECK1.Integration.Config\ECK1.Integration.Config.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MongoDB.Driver" />
+    <PackageReference Include="protobuf-net.Grpc.AspNetCore" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+  </ItemGroup>
+
+</Project>

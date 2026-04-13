@@ -60,6 +60,12 @@ spec:
                   name: {{ .Chart.Name }}-secrets
                   key: appConnectionString
 
+            - name: VersionTracker__Url
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: VersionTracker__Url
+
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}
               value: "{{ $value }}"

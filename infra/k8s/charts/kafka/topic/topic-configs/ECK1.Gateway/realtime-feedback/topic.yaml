@@ -1,0 +1,6 @@
+name: realtime-feedback
+partitions: 2
+replicationFactor: 1
+config:
+  cleanup.policy: delete
+  retention.ms: "300000"

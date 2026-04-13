@@ -1,0 +1,19 @@
+replicaCount: 1
+
+image:
+  repository: localhost:5000/eck1-version-tracker
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+
+resources:
+  requests:
+    memory: "64Mi"
+    cpu: "50m"
+  limits:
+    memory: "256Mi"
+    cpu: "200m"
+
+env: {}

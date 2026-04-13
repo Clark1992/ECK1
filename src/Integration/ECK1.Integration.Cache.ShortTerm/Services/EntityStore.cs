@@ -18,12 +18,19 @@ public class EntityStore : IDisposable, IEntityStore
     private RocksDb _db;
     private readonly object _dbLock = new();
     private bool _disposed;
+    private MemoryCacheEntryOptions _opts;
 
     public EntityStore(IOptions<CacheConfig> config, IMemoryCache memory, ILogger<EntityStore> logger)
     {
         _memory = memory ?? throw new ArgumentNullException(nameof(memory));
         _config = config?.Value ?? throw new ArgumentNullException(nameof(config));
         _logger = logger;
+
+        _opts = new MemoryCacheEntryOptions
+        {
+            SlidingExpiration = TimeSpan.FromMinutes(_config.Memory.ExpirationMinutes),
+            Size = _config.Memory.EntrySize
+        };
 
         EnsureDbPath(_config.RocksDb.DbPath);
         _db = OpenDb(_config.RocksDb.DbPath);
@@ -169,12 +176,7 @@ public class EntityStore : IDisposable, IEntityStore
     {
         try
         {
-            var opts = new MemoryCacheEntryOptions
-            {
-                SlidingExpiration = TimeSpan.FromMinutes(_config.Memory.ExpirationMinutes),
-                Size = _config.Memory.EntrySize
-            };
-            _memory.Set(key, entry, opts);
+            _memory.Set(key, entry, _opts);
         }
         catch (Exception ex)
         {

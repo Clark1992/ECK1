@@ -8,7 +8,7 @@ namespace ECK1.CommandsAPI.Controllers;
 [Route("api/sync/[controller]")]
 [ProducesResponseType(typeof(Success), StatusCodes.Status202Accepted)]
 [ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
-[ProducesResponseType(typeof(ConcurrencyConflict), StatusCodes.Status409Conflict)]
+[ProducesResponseType(typeof(VersionConflict), StatusCodes.Status409Conflict)]
 [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
 public class SampleController(IGrainRouter<ISampleCommand, NullGrainMetadata, ICommandResult> grainRouter) : ControllerBase
 {
@@ -20,16 +20,16 @@ public class SampleController(IGrainRouter<ISampleCommand, NullGrainMetadata, IC
     }
 
     [HttpPut("{id}/name")]
-    public async Task<IActionResult> ChangeName(Guid id, [FromBody] string newName, CancellationToken ct)
+    public async Task<IActionResult> ChangeName(Guid id, [FromQuery] int version, [FromBody] string newName, CancellationToken ct)
     {
-        var result = await grainRouter.RouteToGrain(new ChangeSampleNameCommand(id, newName), ct);
+        var result = await grainRouter.RouteToGrain(new ChangeSampleNameCommand(id, newName, version), ct);
         return this.ToResult(result);
     }
 
     [HttpPut("{id}/description")]
-    public async Task<IActionResult> ChangeDescription(Guid id, [FromBody] string newDescription, CancellationToken ct)
+    public async Task<IActionResult> ChangeDescription(Guid id, [FromQuery] int version, [FromBody] string newDescription, CancellationToken ct)
     {
-        var result = await grainRouter.RouteToGrain(new ChangeSampleDescriptionCommand(id, newDescription), ct);
+        var result = await grainRouter.RouteToGrain(new ChangeSampleDescriptionCommand(id, newDescription, version), ct);
         return this.ToResult(result);
     }
 }

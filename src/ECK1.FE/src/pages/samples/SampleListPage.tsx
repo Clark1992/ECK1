@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -11,6 +11,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import { samplesApi } from '../../api/samples';
 import SampleFormDialog from './SampleFormDialog';
+import { useCreateEntityFeedback } from '../../realtime/useRealtimeFeedback';
+import { useNotification } from '../../notifications/NotificationProvider';
 import type { CreateSampleRequest } from '../../types/sample';
 
 type OrderField = 'name' | 'description' | 'lastModified';
@@ -49,7 +51,14 @@ export default function SampleListPage() {
     searchParams.get('create') === '1',
     (open: boolean) => updateParams({ create: open ? '1' : null }),
   ] as const;
-  const [error, setError] = ['', (_v: string) => {}] as [string, (v: string) => void];
+  const [error, setError] = useState('');
+  const showNotification = useNotification();
+
+  // Realtime feedback for create operation
+  const { startCorrelatedCall, clearCorrelation } = useCreateEntityFeedback(
+    queryClient, 'samples', '/samples', showNotification,
+    (event) => setError(event?.message || event?.outcomeCode || 'Operation failed or timed out'),
+  );
 
   const orderParam = orderDir === 'desc' ? `-${orderField}` : orderField;
   const isSearch = search.length > 0;
@@ -65,12 +74,17 @@ export default function SampleListPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (req: CreateSampleRequest) => samplesApi.create(req),
+    mutationFn: (req: CreateSampleRequest) => {
+      const { correlationId } = startCorrelatedCall();
+      return samplesApi.create(req, correlationId);
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['samples'] });
       setCreateOpen(false);
     },
-    onError: (err: Error) => setError(err.message),
+    onError: (err: Error) => {
+      clearCorrelation();
+      setError(err.message);
+    },
   });
 
   const handleSort = useCallback((field: OrderField) => {

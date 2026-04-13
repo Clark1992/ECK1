@@ -1,7 +1,3 @@
-using ECK1.AsyncApi.Attributes;
-using ECK1.CommandsAPI.Domain.Sample2s;
-using ECK1.CommandsAPI.Domain.Samples;
-using MediatR;
 using Orleans;
 
 namespace ECK1.CommandsAPI.Commands;
@@ -31,19 +27,50 @@ public class NotFound : ICommandResult { }
 public class Error : ICommandResult { [Id(0)] public string ErrorMessage { get; set; } }
 
 [GenerateSerializer]
-public class ConcurrencyConflict : Error
+public class VersionConflict : Error
 {
-    public ConcurrencyConflict() { }
+    public VersionConflict() { }
 
-    public ConcurrencyConflict(string aggregate, Guid aggregateId, string message, bool retryable)
+    public VersionConflict(
+        int currentVersion,
+        int expectedVersion,
+        string aggregate,
+        Guid aggregateId)
     {
+        CurrentVersion = currentVersion;
+        ExpectedVersion = expectedVersion;
         Aggregate = aggregate;
         AggregateId = aggregateId;
-        ErrorMessage = message;
-        Retryable = retryable;
+        ErrorMessage = $"{Aggregate} entity: {AggregateId} - Version conflict: expected {expectedVersion}, but current is {currentVersion}.";
     }
 
-    [Id(1)] public string Aggregate { get; set; } = string.Empty;
-    [Id(2)] public Guid AggregateId { get; set; }
-    [Id(3)] public bool Retryable { get; set; } = true;
+    public VersionConflict(
+        int currentVersion,
+        string aggregate,
+        Guid aggregateId,
+        string message)
+    {
+        CurrentVersion = currentVersion;
+        Aggregate = aggregate;
+        AggregateId = aggregateId;
+        ErrorMessage = $"Error saving {Aggregate} entity: {AggregateId}, version: {currentVersion}.\n{message}";
+    }
+
+    [Id(1)] public int CurrentVersion { get; set; }
+    [Id(2)] public int ExpectedVersion { get; set; }
+    [Id(3)] public string Aggregate { get; set; } = string.Empty;
+    [Id(4)] public Guid AggregateId { get; set; }
+}
+
+public static class CommandResultHelper
+{
+    public static (bool, string, string) GetOutcomeData(this ICommandResult result) => result switch
+    {
+        Success => (true, "OK", string.Empty),
+        VersionConflict vc => (false, "VERSION_CONFLICT", vc.ErrorMessage),
+        //ConcurrencyConflict cc => (false, "CONCURRENCY_CONFLICT", cc.ErrorMessage),
+        NotFound => (false, "NOT_FOUND", "Entity not found."),
+        Error err => (false, "ERROR", err.ErrorMessage),
+        _ => (false, "UNKNOWN", string.Empty),
+    };
 }

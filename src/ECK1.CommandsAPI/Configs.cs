@@ -13,4 +13,11 @@ public class KafkaSettings
     public string User { get; set; }
     public string Secret { get; set; }
     public string GroupId { get; set; }
+    public string RealtimeFeedbackTopic { get; set; }
+}
+
+public class VersionTrackerConfig
+{
+    public static string Section => "VersionTracker";
+    public string Url { get; set; }
 }

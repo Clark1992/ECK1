@@ -63,6 +63,14 @@ spec:
                 secretKeyRef:
                   name: zitadel-oidc-client
                   key: client_id
+            {{- if .Values.realtime }}
+            {{- if .Values.realtime.redisConnectionString }}
+            - name: Realtime__RedisConnectionString
+              value: "{{ .Values.realtime.redisConnectionString }}"
+            {{- end }}
+            - name: Realtime__FeedbackTopic
+              value: "{{ .Values.realtime.feedbackTopic | default "realtime-feedback" }}"
+            {{- end }}
           volumeMounts:
             - name: kafka-client-secret
               mountPath: /etc/secrets

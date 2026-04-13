@@ -17,3 +17,7 @@ ingress:
 
 env:
   ASPNETCORE_ENVIRONMENT: Production
+
+realtime:
+  redisConnectionString: "eck1-redis.app-services.svc.cluster.local:6379"
+  feedbackTopic: "realtime-feedback"

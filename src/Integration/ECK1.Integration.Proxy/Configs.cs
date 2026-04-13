@@ -11,6 +11,7 @@ public class KafkaSettings
     public string FailureEventsTopic { get; set; }
     public string ReconcileRequestsTopic { get; set; }
     public string ReconcileResultsTopic { get; set; }
+    public string RealtimeFeedbackTopic { get; set; }
 }
 
 public class CacheServiceSettings

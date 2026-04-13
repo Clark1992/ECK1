@@ -5,6 +5,7 @@ using ECK1.CommonUtils.Secrets.Doppler;
 using ECK1.CommonUtils.Secrets.K8s;
 using ECK1.QueriesAPI.Data;
 using ECK1.QueriesAPI.Elasticsearch;
+using ECK1.VersionTracker.Contracts;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -58,6 +59,8 @@ builder.Services.AddLogging();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+
+builder.Services.AddVersionTrackerClient(configuration);
 
 var app = builder.Build();
 

@@ -14,6 +14,7 @@ export interface SampleAddress {
 
 export interface Sample {
   sampleId: string;
+  version: number;
   name: string;
   description: string;
   address: SampleAddress | null;

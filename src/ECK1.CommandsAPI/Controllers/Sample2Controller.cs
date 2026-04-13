@@ -17,7 +17,7 @@ namespace ECK1.CommandsAPI.Controllers;
 [Route("api/sync/[controller]")]
 [ProducesResponseType(typeof(Success), StatusCodes.Status202Accepted)]
 [ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
-[ProducesResponseType(typeof(ConcurrencyConflict), StatusCodes.Status409Conflict)]
+[ProducesResponseType(typeof(VersionConflict), StatusCodes.Status409Conflict)]
 [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
 public class Sample2Controller(IGrainRouter<ISample2Command, NullGrainMetadata, ICommandResult> grainRouter) : ControllerBase
 {
@@ -29,55 +29,55 @@ public class Sample2Controller(IGrainRouter<ISample2Command, NullGrainMetadata, 
     }
 
     [HttpPut("{id}/customer-email")]
-    public async Task<IActionResult> ChangeCustomerEmail(Guid id, [FromBody] string newEmail, CancellationToken ct)
+    public async Task<IActionResult> ChangeCustomerEmail(Guid id, [FromQuery] int version, [FromBody] string newEmail, CancellationToken ct)
     {
-        var result = await grainRouter.RouteToGrain(new ChangeSample2CustomerEmailCommand(id, newEmail), ct);
+        var result = await grainRouter.RouteToGrain(new ChangeSample2CustomerEmailCommand(id, newEmail, version), ct);
         return this.ToResult(result);
     }
 
     [HttpPut("{id}/shipping-address")]
-    public async Task<IActionResult> ChangeShippingAddress(Guid id, [FromBody] Address newAddress, CancellationToken ct)
+    public async Task<IActionResult> ChangeShippingAddress(Guid id, [FromQuery] int version, [FromBody] Address newAddress, CancellationToken ct)
     {
-        var result = await grainRouter.RouteToGrain(new ChangeSample2ShippingAddressCommand(id, newAddress), ct);
+        var result = await grainRouter.RouteToGrain(new ChangeSample2ShippingAddressCommand(id, newAddress, version), ct);
         return this.ToResult(result);
     }
 
     [HttpPost("{id}/line-items")]
-    public async Task<IActionResult> AddLineItem(Guid id, [FromBody] LineItem item, CancellationToken ct)
+    public async Task<IActionResult> AddLineItem(Guid id, [FromQuery] int version, [FromBody] LineItem item, CancellationToken ct)
     {
-        var result = await grainRouter.RouteToGrain(new AddSample2LineItemCommand(id, item), ct);
+        var result = await grainRouter.RouteToGrain(new AddSample2LineItemCommand(id, item, version), ct);
         return this.ToResult(result);
     }
 
     [HttpDelete("{id}/line-items/{itemId}")]
     [RequirePermission("delete")]
-    public async Task<IActionResult> RemoveLineItem(Guid id, Guid itemId, CancellationToken ct)
+    public async Task<IActionResult> RemoveLineItem(Guid id, [FromQuery] int version, Guid itemId, CancellationToken ct)
     {
-        var result = await grainRouter.RouteToGrain(new RemoveSample2LineItemCommand(id, itemId), ct);
+        var result = await grainRouter.RouteToGrain(new RemoveSample2LineItemCommand(id, itemId, version), ct);
         return this.ToResult(result);
     }
 
     public record ChangeStatusRequest(Sample2Status NewStatus, string Reason);
 
     [HttpPut("{id}/status")]
-    public async Task<IActionResult> ChangeStatus(Guid id, [FromBody] ChangeStatusRequest request, CancellationToken ct)
+    public async Task<IActionResult> ChangeStatus(Guid id, [FromQuery] int version, [FromBody] ChangeStatusRequest request, CancellationToken ct)
     {
-        var result = await grainRouter.RouteToGrain(new ChangeSample2StatusCommand(id, request.NewStatus, request.Reason), ct);
+        var result = await grainRouter.RouteToGrain(new ChangeSample2StatusCommand(id, request.NewStatus, request.Reason, version), ct);
         return this.ToResult(result);
     }
 
     [HttpPost("{id}/tags")]
-    public async Task<IActionResult> AddTag(Guid id, [FromBody] string tag, CancellationToken ct)
+    public async Task<IActionResult> AddTag(Guid id, [FromQuery] int version, [FromBody] string tag, CancellationToken ct)
     {
-        var result = await grainRouter.RouteToGrain(new AddSample2TagCommand(id, tag), ct);
+        var result = await grainRouter.RouteToGrain(new AddSample2TagCommand(id, tag, version), ct);
         return this.ToResult(result);
     }
 
     [HttpDelete("{id}/tags")]
     [RequirePermission("delete")]
-    public async Task<IActionResult> RemoveTag(Guid id, [FromQuery] string tag, CancellationToken ct)
+    public async Task<IActionResult> RemoveTag(Guid id, [FromQuery] int version, [FromQuery] string tag, CancellationToken ct)
     {
-        var result = await grainRouter.RouteToGrain(new RemoveSample2TagCommand(id, tag), ct);
+        var result = await grainRouter.RouteToGrain(new RemoveSample2TagCommand(id, tag, version), ct);
         return this.ToResult(result);
     }
 }

@@ -2,6 +2,8 @@ using ECK1.Integration.Plugin.Abstractions;
 using ECK1.Integration.Plugin.Abstractions.ProjectionCompiler;
 using ECK1.Integration.Config;
 using ECK1.CommonUtils.OpenTelemetry;
+using ECK1.Kafka;
+using ECK1.RealtimeFeedback.Contracts;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -11,6 +13,7 @@ using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using OpenTelemetry.Trace;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using Generated = ECK1.IntegrationContracts.Kafka.IntegrationRecords.Generated;
 
 namespace ECK1.Integration.Plugin.Mongo;
@@ -77,21 +80,26 @@ public class MongoWriter<TEvent, TMessage> : IIntergationPlugin<TEvent, TMessage
     private readonly ILogger<MongoWriter<TEvent, TMessage>> logger;
     private readonly IMongoCollection<BsonDocument> collection;
     private readonly string entityIdField;
+    private readonly string entityType;
     private readonly BsonProjectionPlan<TMessage> plan;
     private readonly EventFieldExtractor eventFieldExtractor;
+    private readonly IKafkaTopicProducer<RealtimeFeedbackEvent> feedbackProducer;
 
     public MongoWriter(
         ILogger<MongoWriter<TEvent, TMessage>> logger,
         MongoConnectionFactory connectionFactory,
-        IntegrationConfig integrationConfig)
+        IntegrationConfig integrationConfig,
+        IKafkaTopicProducer<RealtimeFeedbackEvent> feedbackProducer)
     {
         this.logger = logger;
+        this.feedbackProducer = feedbackProducer;
 
         string messageType = typeof(TMessage).FullName;
 
         if (!integrationConfig.TryGetValue(messageType, out var entry))
             throw new InvalidOperationException($"Missing plugin config for {messageType}");
 
+        this.entityType = entry.EntityType;
         var pluginConfig = entry.PluginConfig;
 
         var connectionName = pluginConfig["Connection"]
@@ -143,10 +151,44 @@ public class MongoWriter<TEvent, TMessage> : IIntergationPlugin<TEvent, TMessage
 
             logger.LogInformation("MongoPlugin: Upserted document with {field}={value}",
                 entityIdField, entityIdValue);
+
+            await ProduceFeedbackAsync(@event);
         }
         catch (Exception e)
         {
             logger.LogError(e, "Error during calling MongoDB");
+        }
+    }
+
+    private async Task ProduceFeedbackAsync(TEvent @event)
+    {
+        try
+        {
+            bool isCreate = @event.Version == 1;
+            string outcomeCode = isCreate ? "read.view.created" : "read.view.updated";
+            string title = isCreate ? $"{entityType} created" : $"{entityType} updated";
+            string msg = isCreate ? "View is ready" : "View has been updated";
+
+            var correlationId = Activity.Current?.GetBaggageItem("realtime_correlation_id") ?? string.Empty;
+
+            await feedbackProducer.ProduceAsync(new RealtimeFeedbackEvent
+            {
+                CorrelationId = correlationId,
+                EntityType = entityType,
+                EntityId = @event.EntityId.ToString(),
+                Version = @event.Version,
+                EventType = @event.EventType,
+                Success = true,
+                OutcomeCode = outcomeCode,
+                Title = title,
+                Message = msg,
+                Timestamp = DateTimeOffset.UtcNow
+            });
+        }
+        catch (Exception e)
+        {
+            logger.LogWarning(e, "Failed to produce feedback event for {EntityType}/{EntityId}",
+                entityType, @event.EntityId);
         }
     }
 }

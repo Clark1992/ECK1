@@ -19,4 +19,10 @@ export interface CommandAccepted {
   command: string;
   topic: string;
   key: string;
+  correlationId: string;
+}
+
+export interface EntityResponse<T> {
+  data: T;
+  isRebuilding: boolean;
 }

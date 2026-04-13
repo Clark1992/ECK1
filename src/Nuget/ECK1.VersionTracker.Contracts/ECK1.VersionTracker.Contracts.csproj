@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <PackageId>ECK1.VersionTracker.Contracts</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Random</Authors>
+    <Company>Random</Company>
+    <Description>ECK1 VersionTracker Contracts - gRPC service interface and DTOs</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.Net.Client" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="protobuf-net" />
+    <PackageReference Include="protobuf-net.Grpc" />
+    <PackageReference Include="System.ServiceModel.Primitives" />
+  </ItemGroup>
+
+</Project>

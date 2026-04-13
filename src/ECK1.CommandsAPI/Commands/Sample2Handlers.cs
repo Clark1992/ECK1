@@ -4,6 +4,9 @@ using ECK1.CommandsAPI.Domain;
 using ECK1.CommandsAPI.Domain.Sample2s;
 using ECK1.CommandsAPI.Domain.Shared;
 using ECK1.CommandsAPI.Kafka;
+using ECK1.Kafka;
+using ECK1.RealtimeFeedback.Contracts;
+using ECK1.VersionTracker.Contracts;
 using MediatR;
 
 namespace ECK1.CommandsAPI.Commands;
@@ -21,15 +24,19 @@ public class Sample2CommandHandlers :
     IRequestHandler<CommandRequest<RebuildSample2ViewCommand, Sample2>, (ICommandResult, Sample2)>
 {
     private readonly IMapper mapper;
+    private readonly IVersionTrackerService _versionTracker;
 
     public Sample2CommandHandlers(
         IRootRepository<Sample2> repo,
         IMediator mediator,
         IMapper mapper,
+        IKafkaTopicProducer<RealtimeFeedbackEvent> feedbackProducer,
+        IVersionTrackerService versionTracker,
         ILogger<Sample2CommandHandlers> logger)
-        : base(repo, mediator, logger)
+        : base(repo, mediator, logger, feedbackProducer)
     {
         this.mapper = mapper;
+        _versionTracker = versionTracker;
     }
 
     public async Task<(ICommandResult, Sample2)> Handle(CommandRequest<CreateSample2Command, Sample2> command, CancellationToken ct)
@@ -53,41 +60,42 @@ public class Sample2CommandHandlers :
             command.Command.Id,
             command.State,
             sample2 => sample2.ChangeCustomerEmail(command.Command.NewEmail),
-            ct);
+            ct,
+            command.Command.ExpectedVersion);
     }
 
     public async Task<(ICommandResult, Sample2)> Handle(CommandRequest<ChangeSample2ShippingAddressCommand, Sample2> command, CancellationToken ct)
     {
         var dto = command.Command.NewAddress;
         var newAddress = new Address(dto.Street, dto.City, dto.Country);
-        return await SaveAndNotify(command.Command.Id, command.State, sample2 => sample2.ChangeShippingAddress(newAddress), ct);
+        return await SaveAndNotify(command.Command.Id, command.State, sample2 => sample2.ChangeShippingAddress(newAddress), ct, command.Command.ExpectedVersion);
     }
 
     public async Task<(ICommandResult, Sample2)> Handle(CommandRequest<AddSample2LineItemCommand, Sample2> command, CancellationToken ct)
     {
         var dto = command.Command.Item;
         var lineItem = new Sample2LineItem(dto.Sku, dto.Quantity, new Sample2Money(dto.UnitPrice.Amount, dto.UnitPrice.Currency));
-        return await SaveAndNotify(command.Command.Id, command.State, sample2 => sample2.AddLineItem(lineItem), ct);
+        return await SaveAndNotify(command.Command.Id, command.State, sample2 => sample2.AddLineItem(lineItem), ct, command.Command.ExpectedVersion);
     }
 
     public async Task<(ICommandResult, Sample2)> Handle(CommandRequest<RemoveSample2LineItemCommand, Sample2> command, CancellationToken ct)
     {
-        return await SaveAndNotify(command.Command.Id, command.State, sample2 => sample2.RemoveLineItem(command.Command.ItemId), ct);
+        return await SaveAndNotify(command.Command.Id, command.State, sample2 => sample2.RemoveLineItem(command.Command.ItemId), ct, command.Command.ExpectedVersion);
     }
 
     public async Task<(ICommandResult, Sample2)> Handle(CommandRequest<ChangeSample2StatusCommand, Sample2> command, CancellationToken ct)
     {
-        return await SaveAndNotify(command.Command.Id, command.State, sample2 => sample2.ChangeStatus(command.Command.NewStatus, command.Command.Reason), ct);
+        return await SaveAndNotify(command.Command.Id, command.State, sample2 => sample2.ChangeStatus(command.Command.NewStatus, command.Command.Reason), ct, command.Command.ExpectedVersion);
     }
 
     public async Task<(ICommandResult, Sample2)> Handle(CommandRequest<AddSample2TagCommand, Sample2> command, CancellationToken ct)
     {
-        return await SaveAndNotify(command.Command.Id, command.State, sample2 => sample2.AddTag(command.Command.Tag), ct);
+        return await SaveAndNotify(command.Command.Id, command.State, sample2 => sample2.AddTag(command.Command.Tag), ct, command.Command.ExpectedVersion);
     }
 
     public async Task<(ICommandResult, Sample2)> Handle(CommandRequest<RemoveSample2TagCommand, Sample2> command, CancellationToken ct)
     {
-        return await SaveAndNotify(command.Command.Id, command.State, sample2 => sample2.RemoveTag(command.Command.Tag), ct);
+        return await SaveAndNotify(command.Command.Id, command.State, sample2 => sample2.RemoveTag(command.Command.Tag), ct, command.Command.ExpectedVersion);
     }
 
     public async Task<(ICommandResult, Sample2)> Handle(CommandRequest<RebuildSample2ViewCommand, Sample2> command, CancellationToken ct)
@@ -122,9 +130,19 @@ public class Sample2CommandHandlers :
 
         if (sample2 is null || latest is null) return (new NotFound(), null);
 
-        await Mediator.Publish(
-            new AggregateSavedNotification<Sample2>(sample2, [latest], cmd.FailedTargets),
-            ct);
+        await _versionTracker.PutVersion(new PutVersionRequest
+        {
+            EntityType = $"ECK1.{typeof(Sample2).Name}",
+            EntityId = sample2.Id.ToString(),
+            Version = sample2.Version
+        });
+
+        if (cmd.FailedTargets is not [VersionTrackerConstants.TargetName])
+        {
+            await Mediator.Publish(
+                new AggregateSavedNotification<Sample2>(sample2, [latest], cmd.FailedTargets),
+                ct);
+        }
 
         return (new Success(sample2.Id, []), sample2);
     }

@@ -60,6 +60,11 @@ spec:
                 configMapKeyRef:
                   name: global-vars
                   key: MongoConnections__eck1__DatabaseName
+            - name: VersionTracker__Url
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: VersionTracker__Url
           {{- if .Values.resources }}
           resources: {{- toYaml .Values.resources | nindent 12 }}
           {{- end }}

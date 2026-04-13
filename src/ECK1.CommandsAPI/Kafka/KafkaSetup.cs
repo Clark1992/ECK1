@@ -4,10 +4,12 @@ using ECK1.CommandsAPI.Commands;
 using ECK1.Reconciliation.Contracts;
 using ECK1.Integration.Config;
 using ECK1.IntegrationContracts.Kafka.IntegrationRecords.Generated;
-using ECK1.Kafka;
 using ECK1.Kafka.Extensions;
+using ECK1.RealtimeFeedback.Contracts;
 
 using static ECK1.Integration.Config.ConfigHelpers;
+using ECK1.CommandsAPI.Domain.Samples;
+using ECK1.CommandsAPI.Domain.Sample2s;
 
 namespace ECK1.CommandsAPI.Kafka;
 
@@ -40,10 +42,19 @@ public static class KafkaSetup
 
         services.AddSingleton<IIntegrationEventProducerFactory, IntegrationEventProducerFactory>();
 
+        var realTimeFeedbackTopic = !string.IsNullOrEmpty(kafkaSettings.RealtimeFeedbackTopic) ?
+            kafkaSettings.RealtimeFeedbackTopic :
+            throw new Exception("RealtimeFeedbackTopic not set");
+
+        services.ConfigTopicProducer<RealtimeFeedbackEvent>(
+            realTimeFeedbackTopic,
+            SubjectNameStrategy.Topic,
+            SerializerType.JSON);
+
         services.AddCommands(config, kafkaSettings);
 
-        services.AddKeyedScoped<IRebuildHandler, RebuildHandler<RebuildSampleViewCommand>>("ECK1.Sample");
-        services.AddKeyedScoped<IRebuildHandler, RebuildHandler<RebuildSample2ViewCommand>>("ECK1.Sample2");
+        services.AddKeyedScoped<IRebuildHandler, RebuildHandler<RebuildSampleViewCommand>>($"ECK1.{typeof(Sample).Name}");
+        services.AddKeyedScoped<IRebuildHandler, RebuildHandler<RebuildSample2ViewCommand>>($"ECK1.{typeof(Sample2).Name}");
 
         // Register rebuild-request consumers per distinct RebuildRequestTopic from the manifest
         var integrationConfig = ConfigHelpers.LoadConfig(config);

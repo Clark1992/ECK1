@@ -7,12 +7,14 @@ import SampleListPage from './pages/samples/SampleListPage';
 import SampleDetailPage from './pages/samples/SampleDetailPage';
 import Sample2ListPage from './pages/sample2s/Sample2ListPage';
 import Sample2DetailPage from './pages/sample2s/Sample2DetailPage';
+import { NotificationProvider } from './notifications/NotificationProvider';
 
 export default function App() {
   return (
     <BrowserRouter>
-      <Layout>
-        <Routes>
+      <NotificationProvider>
+        <Layout>
+          <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route
@@ -32,7 +34,8 @@ export default function App() {
             element={<ProtectedRoute><Sample2DetailPage /></ProtectedRoute>}
           />
         </Routes>
-      </Layout>
+        </Layout>
+      </NotificationProvider>
     </BrowserRouter>
   );
 }

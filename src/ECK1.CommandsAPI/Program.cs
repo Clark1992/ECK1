@@ -19,6 +19,7 @@ using ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample;
 using ECK1.IntegrationContracts.Kafka.IntegrationRecords.Sample2;
 using ECK1.Kafka.OpenTelemetry;
 using ECK1.Orleans.Extensions;
+using ECK1.VersionTracker.Contracts;
 using MediatR;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.EntityFrameworkCore;
@@ -100,6 +101,10 @@ builder.Services.AddChaosEngine(builder.Configuration);
 
 builder.Services.AddScoped<INotificationHandler<AggregateSavedNotification<Sample>>, IntegrationSender<Sample, SampleFullRecord>>();
 builder.Services.AddScoped<INotificationHandler<AggregateSavedNotification<Sample2>>, IntegrationSender<Sample2, Sample2FullRecord>>();
+
+builder.Services.AddVersionTrackerClient(configuration);
+builder.Services.AddScoped<INotificationHandler<AggregateSavedNotification<Sample>>, VersionNotifier<Sample>>();
+builder.Services.AddScoped<INotificationHandler<AggregateSavedNotification<Sample2>>, VersionNotifier<Sample2>>();
 
 var app = builder.Build();
 

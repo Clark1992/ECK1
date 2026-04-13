@@ -17,6 +17,9 @@ import AddIcon from '@mui/icons-material/Add';
 import { sample2sApi } from '../../api/sample2s';
 import { Sample2Status, Sample2StatusLabels } from '../../types/sample2';
 import { usePermissions } from '../../hooks/usePermissions';
+import { useEntityUpdateFeedback } from '../../realtime/useRealtimeFeedback';
+import { useEntityEvents } from '../../realtime/useEntityEvents';
+import { useNotification } from '../../notifications/NotificationProvider';
 
 export default function Sample2DetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -37,65 +40,110 @@ export default function Sample2DetailPage() {
   const [addTagDialog, setAddTagDialog] = useState(false);
   const [newTag, setNewTag] = useState('');
 
-  const { data: order, isLoading } = useQuery({
+  const { data: response, isLoading } = useQuery({
     queryKey: ['sample2s', id],
     queryFn: () => sample2sApi.get(id!),
     enabled: !!id,
   });
 
+  const order = response?.data;
+  const isRebuilding = response?.isRebuilding ?? false;
+  const showNotification = useNotification();
+
+  // Realtime feedback for update operations — memorize version, show notification
+  const { startCorrelatedCall, clearCorrelation, pendingVersion, clearPendingVersion } = useEntityUpdateFeedback(
+    queryClient, 'sample2s', id, showNotification,
+    (event) => setError(event?.message || event?.outcomeCode || 'Operation failed or timed out'),
+  );
+
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['sample2s', id] });
 
+  // Subscribe to entity-level events (from any user/source) — auto-refetch on view update
+  useEntityEvents({
+    entityType: 'ECK1.Sample2',
+    entityId: id,
+    onEvent: (event) => {
+      invalidate();
+      if (pendingVersion !== null && event.version >= pendingVersion) {
+        clearPendingVersion();
+        showNotification({
+          title: event.title || 'Updated',
+          message: event.message || 'View has been updated',
+          severity: 'success',
+        });
+      }
+    },
+  });
+
   const emailMutation = useMutation({
-    mutationFn: (email: string) => sample2sApi.changeCustomerEmail(id!, email),
-    onSuccess: () => { invalidate(); setEditingEmail(false); setError(''); },
-    onError: (e: Error) => setError(e.message),
+    mutationFn: (email: string) => {
+      const { correlationId } = startCorrelatedCall();
+      return sample2sApi.changeCustomerEmail(id!, email, order?.version ?? 0, correlationId);
+    },
+    onSuccess: () => { setEditingEmail(false); setError(''); },
+    onError: (e: Error) => { setError(e.message); clearCorrelation(); },
   });
 
   const addressMutation = useMutation({
-    mutationFn: (addr: { street: string; city: string; country: string }) =>
-      sample2sApi.changeShippingAddress(id!, addr),
-    onSuccess: () => { invalidate(); setEditingAddress(false); setError(''); },
-    onError: (e: Error) => setError(e.message),
+    mutationFn: (addr: { street: string; city: string; country: string }) => {
+      const { correlationId } = startCorrelatedCall();
+      return sample2sApi.changeShippingAddress(id!, addr, order?.version ?? 0, correlationId);
+    },
+    onSuccess: () => { setEditingAddress(false); setError(''); },
+    onError: (e: Error) => { setError(e.message); clearCorrelation(); },
   });
 
   const statusMutation = useMutation({
-    mutationFn: () => sample2sApi.changeStatus(id!, { newStatus, reason: statusReason }),
-    onSuccess: () => { invalidate(); setStatusDialog(false); setStatusReason(''); setError(''); },
-    onError: (e: Error) => setError(e.message),
+    mutationFn: () => {
+      const { correlationId } = startCorrelatedCall();
+      return sample2sApi.changeStatus(id!, { newStatus, reason: statusReason }, order?.version ?? 0, correlationId);
+    },
+    onSuccess: () => { setStatusDialog(false); setStatusReason(''); setError(''); },
+    onError: (e: Error) => { setError(e.message); clearCorrelation(); },
   });
 
   const addItemMutation = useMutation({
-    mutationFn: () =>
-      sample2sApi.addLineItem(id!, {
+    mutationFn: () => {
+      const { correlationId } = startCorrelatedCall();
+      return sample2sApi.addLineItem(id!, {
         sku: newItem.sku,
         quantity: parseInt(newItem.quantity, 10) || 1,
         unitPrice: { amount: parseFloat(newItem.amount) || 0, currency: newItem.currency },
-      }),
+      }, order?.version ?? 0, correlationId);
+    },
     onSuccess: () => {
-      invalidate();
       setAddItemDialog(false);
       setNewItem({ sku: '', quantity: '1', amount: '0', currency: 'USD' });
       setError('');
     },
-    onError: (e: Error) => setError(e.message),
+    onError: (e: Error) => { setError(e.message); clearCorrelation(); },
   });
 
   const removeItemMutation = useMutation({
-    mutationFn: (itemId: string) => sample2sApi.removeLineItem(id!, itemId),
-    onSuccess: () => { invalidate(); setError(''); },
-    onError: (e: Error) => setError(e.message),
+    mutationFn: (itemId: string) => {
+      const { correlationId } = startCorrelatedCall();
+      return sample2sApi.removeLineItem(id!, itemId, correlationId);
+    },
+    onSuccess: () => { setError(''); },
+    onError: (e: Error) => { setError(e.message); clearCorrelation(); },
   });
 
   const addTagMutation = useMutation({
-    mutationFn: (tag: string) => sample2sApi.addTag(id!, tag),
-    onSuccess: () => { invalidate(); setAddTagDialog(false); setNewTag(''); setError(''); },
-    onError: (e: Error) => setError(e.message),
+    mutationFn: (tag: string) => {
+      const { correlationId } = startCorrelatedCall();
+      return sample2sApi.addTag(id!, tag, order?.version ?? 0, correlationId);
+    },
+    onSuccess: () => { setAddTagDialog(false); setNewTag(''); setError(''); },
+    onError: (e: Error) => { setError(e.message); clearCorrelation(); },
   });
 
   const removeTagMutation = useMutation({
-    mutationFn: (tag: string) => sample2sApi.removeTag(id!, tag),
-    onSuccess: () => { invalidate(); setError(''); },
-    onError: (e: Error) => setError(e.message),
+    mutationFn: (tag: string) => {
+      const { correlationId } = startCorrelatedCall();
+      return sample2sApi.removeTag(id!, tag, correlationId);
+    },
+    onSuccess: () => { setError(''); },
+    onError: (e: Error) => { setError(e.message); clearCorrelation(); },
   });
 
   if (isLoading) {
@@ -119,7 +167,7 @@ export default function Sample2DetailPage() {
           color={statusColor[order.status] ?? 'default'}
           sx={{ ml: 1 }}
         />
-        <Button size="small" variant="outlined" onClick={() => { setNewStatus(order.status); setStatusDialog(true); }}>
+        <Button size="small" variant="outlined" onClick={() => { setNewStatus(order.status); setStatusDialog(true); }} disabled={isRebuilding}>
           Change Status
         </Button>
         <Typography variant="body2" color="text.secondary">({
@@ -130,6 +178,11 @@ export default function Sample2DetailPage() {
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
+      {isRebuilding && (
+        <Alert severity="info" icon={<CircularProgress size={20} />} sx={{ mb: 2 }}>
+          View is updating — displayed data may be stale.
+        </Alert>
+      )}
 
       <Grid container spacing={3}>
         {/* Customer */}
@@ -147,7 +200,7 @@ export default function Sample2DetailPage() {
               ) : (
                 <Box display="flex" alignItems="center" gap={1}>
                   <Typography>{order.customer?.email}</Typography>
-                  <Tooltip title="Edit email"><IconButton size="small" onClick={() => { setEmailValue(order.customer?.email ?? ''); setEditingEmail(true); }}><EditIcon fontSize="small" /></IconButton></Tooltip>
+                  <Tooltip title="Edit email"><IconButton size="small" disabled={isRebuilding} onClick={() => { setEmailValue(order.customer?.email ?? ''); setEditingEmail(true); }}><EditIcon fontSize="small" /></IconButton></Tooltip>
                 </Box>
               )}
             </Box>
@@ -165,7 +218,7 @@ export default function Sample2DetailPage() {
               <Typography variant="h6" gutterBottom>Shipping Address</Typography>
               {!editingAddress && (
                 <Tooltip title="Edit address">
-                  <IconButton size="small" onClick={() => {
+                  <IconButton size="small" disabled={isRebuilding} onClick={() => {
                     setAddressValue({
                       street: order.shippingAddress?.street ?? '',
                       city: order.shippingAddress?.city ?? '',
@@ -201,7 +254,7 @@ export default function Sample2DetailPage() {
           <Paper sx={{ p: 3 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
               <Typography variant="h6">Line Items</Typography>
-              <Button size="small" startIcon={<AddIcon />} onClick={() => setAddItemDialog(true)}>Add Item</Button>
+              <Button size="small" startIcon={<AddIcon />} onClick={() => setAddItemDialog(true)} disabled={isRebuilding}>Add Item</Button>
             </Box>
             <Table size="small">
               <TableHead>
@@ -223,7 +276,7 @@ export default function Sample2DetailPage() {
                     {canDelete && (
                       <TableCell>
                         <Tooltip title="Remove item">
-                          <IconButton size="small" color="error" onClick={() => removeItemMutation.mutate(li.itemId)} disabled={removeItemMutation.isPending}>
+                          <IconButton size="small" color="error" onClick={() => removeItemMutation.mutate(li.itemId)} disabled={removeItemMutation.isPending || isRebuilding}>
                             <DeleteIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
@@ -244,14 +297,14 @@ export default function Sample2DetailPage() {
           <Paper sx={{ p: 3 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
               <Typography variant="h6">Tags</Typography>
-              <Button size="small" startIcon={<AddIcon />} onClick={() => setAddTagDialog(true)}>Add Tag</Button>
+              <Button size="small" startIcon={<AddIcon />} onClick={() => setAddTagDialog(true)} disabled={isRebuilding}>Add Tag</Button>
             </Box>
             <Box display="flex" flexWrap="wrap" gap={1}>
               {order.tags?.map((t) => (
                 <Chip
                   key={t.value}
                   label={t.value}
-                  onDelete={canDelete ? () => removeTagMutation.mutate(t.value) : undefined}
+                  onDelete={canDelete && !isRebuilding ? () => removeTagMutation.mutate(t.value) : undefined}
                 />
               ))}
               {(!order.tags || order.tags.length === 0) && (

@@ -11,6 +11,7 @@ public class SampleView
     public ObjectId Id { get; set; }
 
     public Guid SampleId { get; set; }
+    public int Version { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
 

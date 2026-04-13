@@ -1,6 +1,7 @@
-import { API, apiFetch, jsonBody, queryString } from './client';
-import type { PagedResponse, CommandAccepted } from '../types/common';
+import { API, apiFetch, queryString } from './client';
+import type { PagedResponse, CommandAccepted, EntityResponse } from '../types/common';
 import type { Sample, CreateSampleRequest } from '../types/sample';
+import { correlationHeaders } from '../realtime/useRealtimeFeedback';
 
 export interface SampleListParams {
   skip?: number;
@@ -25,7 +26,7 @@ export const samplesApi = {
   },
 
   get(id: string) {
-    return apiFetch<Sample>(API.samples.get(id));
+    return apiFetch<EntityResponse<Sample>>(API.samples.get(id));
   },
 
   search(params: SampleSearchParams = {}) {
@@ -40,24 +41,30 @@ export const samplesApi = {
     return apiFetch<PagedResponse<Sample>>(API.samples.search + qs);
   },
 
-  create(data: CreateSampleRequest) {
+  create(data: CreateSampleRequest, correlationId?: string) {
+    const corr = correlationId ? correlationHeaders(correlationId) : undefined;
     return apiFetch<CommandAccepted>(API.samples.create, {
       method: 'POST',
-      ...jsonBody(data),
+      headers: { 'Content-Type': 'application/json', ...corr?.headers },
+      body: JSON.stringify(data),
     });
   },
 
-  changeName(id: string, newName: string) {
+  changeName(id: string, newName: string, expectedVersion: number, correlationId?: string) {
+    const corr = correlationId ? correlationHeaders(correlationId) : undefined;
     return apiFetch<CommandAccepted>(API.samples.changeName(id), {
       method: 'PUT',
-      ...jsonBody({ newName }),
+      headers: { 'Content-Type': 'application/json', ...corr?.headers },
+      body: JSON.stringify({ newName, expectedVersion }),
     });
   },
 
-  changeDescription(id: string, newDescription: string) {
+  changeDescription(id: string, newDescription: string, expectedVersion: number, correlationId?: string) {
+    const corr = correlationId ? correlationHeaders(correlationId) : undefined;
     return apiFetch<CommandAccepted>(API.samples.changeDescription(id), {
       method: 'PUT',
-      ...jsonBody({ newDescription }),
+      headers: { 'Content-Type': 'application/json', ...corr?.headers },
+      body: JSON.stringify({ newDescription, expectedVersion }),
     });
   },
 };

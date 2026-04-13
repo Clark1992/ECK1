@@ -11,6 +11,7 @@ public class Sample2View
     public ObjectId Id { get; set; }
 
     public Guid Sample2Id { get; set; }
+    public int Version { get; set; }
     public Sample2CustomerView Customer { get; set; }
     public Sample2AddressView ShippingAddress { get; set; }
     public List<Sample2LineItemView> LineItems { get; set; } = new();

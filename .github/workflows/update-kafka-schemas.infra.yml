@@ -74,6 +74,7 @@ jobs:
             [ECK1.IntegrationContracts.dll]="ECK1_INTEGRATION_CONTRACTS_ASSEMBLY_PATH"
             [ECK1.CommandsAPI.dll]="ECK1_COMMANDS_ASSEMBLY_PATH"
             [ECK1.Reconciliation.Contracts.dll]="ECK1_RECONCILIATION_CONTRACTS_ASSEMBLY_PATH"
+            [ECK1.RealtimeFeedback.Contracts.dll]="ECK1_REALTIME_FEEDBACK_CONTRACTS_ASSEMBLY_PATH"
           )
 
           for DLL_NAME in "${!DLL_MAP[@]}"; do
@@ -104,6 +105,7 @@ jobs:
           eck1-integration-contracts-assembly-path: ${{ env.ECK1_INTEGRATION_CONTRACTS_ASSEMBLY_PATH }}
           eck1-commands-assembly-path: ${{ env.ECK1_COMMANDS_ASSEMBLY_PATH }}
           eck1-reconciliation-contracts-assembly-path: ${{ env.ECK1_RECONCILIATION_CONTRACTS_ASSEMBLY_PATH }}
+          eck1-realtime-feedback-contracts-assembly-path: ${{ env.ECK1_REALTIME_FEEDBACK_CONTRACTS_ASSEMBLY_PATH }}
           schema-backup-path: ""
           solution-file: ECK1.sln
           solution-dir: src

@@ -41,6 +41,7 @@ export interface Sample2Tag {
 
 export interface Sample2 {
   sample2Id: string;
+  version: number;
   customer: Sample2Customer;
   shippingAddress: Sample2Address;
   lineItems: Sample2LineItem[];
