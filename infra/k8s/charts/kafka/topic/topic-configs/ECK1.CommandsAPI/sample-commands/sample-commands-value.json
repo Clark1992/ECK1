@@ -85,6 +85,14 @@
           ],
           "default": null
         },
+        "ExpectedVersion": {
+          "type": [
+            "null",
+            "integer"
+          ],
+          "format": "int32",
+          "default": null
+        },
         "$type": {
           "type": "string",
           "enum": [
@@ -109,6 +117,14 @@
             "null",
             "string"
           ],
+          "default": null
+        },
+        "ExpectedVersion": {
+          "type": [
+            "null",
+            "integer"
+          ],
+          "format": "int32",
           "default": null
         },
         "$type": {
@@ -141,6 +157,14 @@
             }
           ]
         },
+        "ExpectedVersion": {
+          "type": [
+            "null",
+            "integer"
+          ],
+          "format": "int32",
+          "default": null
+        },
         "$type": {
           "type": "string",
           "enum": [
@@ -170,6 +194,14 @@
               "$ref": "#/definitions/Attachment"
             }
           ]
+        },
+        "ExpectedVersion": {
+          "type": [
+            "null",
+            "integer"
+          ],
+          "format": "int32",
+          "default": null
         },
         "$type": {
           "type": "string",
@@ -216,6 +248,14 @@
           "type": "string",
           "format": "uuid"
         },
+        "ExpectedVersion": {
+          "type": [
+            "null",
+            "integer"
+          ],
+          "format": "int32",
+          "default": null
+        },
         "$type": {
           "type": "string",
           "enum": [
@@ -251,6 +291,14 @@
             "null",
             "string"
           ],
+          "default": null
+        },
+        "ExpectedVersion": {
+          "type": [
+            "null",
+            "integer"
+          ],
+          "format": "int32",
           "default": null
         },
         "$type": {

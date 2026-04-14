@@ -1,0 +1,82 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "RealtimeFeedbackEvent",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "CorrelationId": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    "UserId": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    "EventType": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    "EntityType": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    "EntityId": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    "Success": {
+      "type": "boolean"
+    },
+    "OutcomeCode": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    "Title": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    "Message": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    "Payload": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    "Version": {
+      "type": "integer",
+      "format": "int32"
+    },
+    "Timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

@@ -169,6 +169,14 @@
           ],
           "default": null
         },
+        "ExpectedVersion": {
+          "type": [
+            "null",
+            "integer"
+          ],
+          "format": "int32",
+          "default": null
+        },
         "$type": {
           "type": "string",
           "enum": [
@@ -198,6 +206,14 @@
               "$ref": "#/definitions/Address"
             }
           ]
+        },
+        "ExpectedVersion": {
+          "type": [
+            "null",
+            "integer"
+          ],
+          "format": "int32",
+          "default": null
         },
         "$type": {
           "type": "string",
@@ -229,6 +245,14 @@
             }
           ]
         },
+        "ExpectedVersion": {
+          "type": [
+            "null",
+            "integer"
+          ],
+          "format": "int32",
+          "default": null
+        },
         "$type": {
           "type": "string",
           "enum": [
@@ -251,6 +275,14 @@
         "ItemId": {
           "type": "string",
           "format": "uuid"
+        },
+        "ExpectedVersion": {
+          "type": [
+            "null",
+            "integer"
+          ],
+          "format": "int32",
+          "default": null
         },
         "$type": {
           "type": "string",
@@ -279,6 +311,14 @@
             "null",
             "string"
           ],
+          "default": null
+        },
+        "ExpectedVersion": {
+          "type": [
+            "null",
+            "integer"
+          ],
+          "format": "int32",
           "default": null
         },
         "$type": {
@@ -325,6 +365,14 @@
           ],
           "default": null
         },
+        "ExpectedVersion": {
+          "type": [
+            "null",
+            "integer"
+          ],
+          "format": "int32",
+          "default": null
+        },
         "$type": {
           "type": "string",
           "enum": [
@@ -349,6 +397,14 @@
             "null",
             "string"
           ],
+          "default": null
+        },
+        "ExpectedVersion": {
+          "type": [
+            "null",
+            "integer"
+          ],
+          "format": "int32",
           "default": null
         },
         "$type": {
