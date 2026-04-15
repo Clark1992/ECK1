@@ -74,6 +74,16 @@ public sealed class JsonPlanCompiler<TEvent, TRecord> : IJsonPlanCompiler<TEvent
             return CompileRecordEmitter(mapping);
         }
 
+        if (mapping.StartsWith("event."))
+        {
+            return CompileEventEmitter(mapping);
+        }
+
+        if (mapping.StartsWith("const."))
+        {
+            return CompileConstEmitter(mapping);
+        }
+
         throw new InvalidOperationException(
            $"Wrong mapping:{mapping}");
     }
@@ -111,6 +121,53 @@ public sealed class JsonPlanCompiler<TEvent, TRecord> : IJsonPlanCompiler<TEvent
 
         throw new InvalidOperationException(
             $"Field '{propertyName}' not found on {typeof(TRecord).Name}");
+    }
+
+    private static Action<Utf8JsonWriter, JsonExecutionContext<TEvent, TRecord>> CompileEventEmitter(string mapping)
+    {
+        if (!mapping.StartsWith("event.", StringComparison.Ordinal))
+            throw new NotSupportedException($"Unsupported mapping '{mapping}'");
+
+        var propertyName = mapping["event.".Length..];
+
+        if (EventAccessor<TEvent>.TryGetInt(propertyName, out var intGetter))
+        {
+            return (w, ctx) =>
+                w.WriteNumberValue(intGetter(ctx.Event));
+        }
+
+        if (EventAccessor<TEvent>.TryGetString(propertyName, out var stringGetter))
+        {
+            return (w, ctx) =>
+                w.WriteStringValue(stringGetter(ctx.Event));
+        }
+
+        if (EventAccessor<TEvent>.TryGetGuid(propertyName, out var guidGetter))
+        {
+            return (w, ctx) =>
+                w.WriteStringValue(guidGetter(ctx.Event));
+        }
+
+        if (EventAccessor<TEvent>.TryGetDateTime(propertyName, out var dateTimeGetter))
+        {
+            return (w, ctx) =>
+                w.WriteStringValue(dateTimeGetter(ctx.Event));
+        }
+
+        if (EventAccessor<TEvent>.TryGetDecimal(propertyName, out var decimalGetter))
+        {
+            return (w, ctx) =>
+                w.WriteNumberValue(decimalGetter(ctx.Event));
+        }
+
+        throw new InvalidOperationException(
+            $"Field '{propertyName}' not found on {typeof(TEvent).Name}");
+    }
+
+    private static Action<Utf8JsonWriter, JsonExecutionContext<TEvent, TRecord>> CompileConstEmitter(string mapping)
+    {
+        var value = mapping["const.".Length..];
+        return (w, _) => w.WriteStringValue(value);
     }
 
     private static Action<Utf8JsonWriter, JsonExecutionContext<TEvent, TRecord>> CompileItemEmitter<TItem>(string mapping)
@@ -315,6 +372,16 @@ public sealed class JsonPlanCompiler<TEvent, TRecord> : IJsonPlanCompiler<TEvent
         if (mapping.StartsWith("record."))
         {
             return CompileRecordEmitter(mapping);
+        }
+
+        if (mapping.StartsWith("event."))
+        {
+            return CompileEventEmitter(mapping);
+        }
+
+        if (mapping.StartsWith("const."))
+        {
+            return CompileConstEmitter(mapping);
         }
 
         throw new NotSupportedException(mapping);

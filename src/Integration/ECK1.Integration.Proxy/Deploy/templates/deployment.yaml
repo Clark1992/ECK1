@@ -36,6 +36,12 @@ spec:
             - name: CacheService__LongTerm__Url
               value: http://{{ include "common-values.cacheLongTermServiceName" . }}
 
+            - name: Kafka__RealtimeFeedbackTopic
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: Kafka__RealtimeFeedbackTopic
+
             {{- range $key, $value := $.Values.env }}
             - name: {{ $key }}
               value: "{{ $value }}"

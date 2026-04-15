@@ -1,5 +1,5 @@
 apiVersion: v2
-name: eck1-version-tracker
+name: version-tracker
 description: A Helm chart for ECK1 Version Tracker service
 version: 0.1.0
 appVersion: "1.0"
@@ -7,4 +7,4 @@ appVersion: "1.0"
 dependencies:
   - name: common-values
     version: 0.1.0
-    repository: "file://../../common/helm/common-values"
+    repository: "file://../../../common/helm/common-values"

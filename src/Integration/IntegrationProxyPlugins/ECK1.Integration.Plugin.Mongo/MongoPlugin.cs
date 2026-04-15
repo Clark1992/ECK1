@@ -170,10 +170,12 @@ public class MongoWriter<TEvent, TMessage> : IIntergationPlugin<TEvent, TMessage
             string msg = isCreate ? "View is ready" : "View has been updated";
 
             var correlationId = Activity.Current?.GetBaggageItem("realtime_correlation_id") ?? string.Empty;
+            var userId = Activity.Current?.GetBaggageItem("actor_id") ?? "system";
 
             await feedbackProducer.ProduceAsync(new RealtimeFeedbackEvent
             {
                 CorrelationId = correlationId,
+                UserId = userId,
                 EntityType = entityType,
                 EntityId = @event.EntityId.ToString(),
                 Version = @event.Version,

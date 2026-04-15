@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: localhost:5000/eck1-version-tracker
+  repository: localhost:5000/version-tracker
   tag: latest
   pullPolicy: Always
 

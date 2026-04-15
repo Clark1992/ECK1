@@ -18,6 +18,15 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - |
+              JOB="plugin-{{ .Values.plugin.name | lower }}"
+              echo "Waiting for job/$JOB to succeed..."
+              kubectl wait --for=condition=complete "job/$JOB" --timeout=120s
+              if [ $? -ne 0 ]; then
+                echo "Job $JOB did not complete successfully, aborting restart."
+                exit 1
+              fi
+              echo "Job $JOB completed successfully."
+
               DEPLOY="eck1-integration-proxy-{{ .Values.plugin.name | lower }}"
               echo "Checking if deployment/$DEPLOY exists..."
               if kubectl get deployment "$DEPLOY" > /dev/null 2>&1; then

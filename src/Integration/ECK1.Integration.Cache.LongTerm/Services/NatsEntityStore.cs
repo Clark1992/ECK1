@@ -43,7 +43,7 @@ public class NatsEntityStore : IDisposable, IEntityStore
     public void Put<T>(string key, int version, T obj) where T : class
     {
         var store = GetStoreForType(typeof(T));
-        var versionedKey = $"{key}:{version}";
+        var versionedKey = $"{key}.{version}";
         using var activity = _natsTelemetry.Start("nats.kv.put", obj is null ? "delete" : "put", store.Bucket, versionedKey);
 
         try
@@ -78,7 +78,7 @@ public class NatsEntityStore : IDisposable, IEntityStore
         foreach (var (key, version, obj) in items)
         {
             count++;
-            var versionedKey = $"{key}:{version}";
+            var versionedKey = $"{key}.{version}";
             try
             {
                 if (obj == null)
@@ -106,7 +106,7 @@ public class NatsEntityStore : IDisposable, IEntityStore
     public EntityEntry<T> Get<T>(string key, int version) where T : class
     {
         var store = GetStoreForType(typeof(T));
-        var versionedKey = $"{key}:{version}";
+        var versionedKey = $"{key}.{version}";
         using var activity = _natsTelemetry.Start("nats.kv.get", "get", store.Bucket, versionedKey);
 
         try
