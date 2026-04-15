@@ -40,7 +40,7 @@ export default function Sample2DetailPage() {
   const [addTagDialog, setAddTagDialog] = useState(false);
   const [newTag, setNewTag] = useState('');
 
-  const { data: response, isLoading } = useQuery({
+  const { data: response, isLoading, error: errorResponse  } = useQuery({
     queryKey: ['sample2s', id],
     queryFn: () => sample2sApi.get(id!),
     enabled: !!id,
@@ -51,8 +51,8 @@ export default function Sample2DetailPage() {
   const showNotification = useNotification();
 
   // Realtime feedback for update operations — memorize version, show notification
-  const { startCorrelatedCall, clearCorrelation, pendingVersion, clearPendingVersion } = useEntityUpdateFeedback(
-    queryClient, 'sample2s', id, showNotification,
+  const { startCorrelatedCall, clearCorrelation, pendingVersionRef, clearPendingVersion, isPending } = useEntityUpdateFeedback(
+    showNotification,
     (event) => setError(event?.message || event?.outcomeCode || 'Operation failed or timed out'),
   );
 
@@ -64,7 +64,7 @@ export default function Sample2DetailPage() {
     entityId: id,
     onEvent: (event) => {
       invalidate();
-      if (pendingVersion !== null && event.version >= pendingVersion) {
+      if (pendingVersionRef.current !== null && event.version >= pendingVersionRef.current) {
         clearPendingVersion();
         showNotification({
           title: event.title || 'Updated',
@@ -80,18 +80,30 @@ export default function Sample2DetailPage() {
       const { correlationId } = startCorrelatedCall();
       return sample2sApi.changeCustomerEmail(id!, email, order?.version ?? 0, correlationId);
     },
-    onSuccess: () => { setEditingEmail(false); setError(''); },
+    onSuccess: () => { setError(''); },
     onError: (e: Error) => { setError(e.message); clearCorrelation(); },
   });
+
+  const submitEmail = () => {
+    const value = emailValue;
+    setEditingEmail(false);
+    emailMutation.mutate(value);
+  };
 
   const addressMutation = useMutation({
     mutationFn: (addr: { street: string; city: string; country: string }) => {
       const { correlationId } = startCorrelatedCall();
       return sample2sApi.changeShippingAddress(id!, addr, order?.version ?? 0, correlationId);
     },
-    onSuccess: () => { setEditingAddress(false); setError(''); },
+    onSuccess: () => { setError(''); },
     onError: (e: Error) => { setError(e.message); clearCorrelation(); },
   });
+
+  const submitAddress = () => {
+    const value = { ...addressValue };
+    setEditingAddress(false);
+    addressMutation.mutate(value);
+  };
 
   const statusMutation = useMutation({
     mutationFn: () => {
@@ -149,6 +161,11 @@ export default function Sample2DetailPage() {
   if (isLoading) {
     return <Box display="flex" justifyContent="center" mt={4}><CircularProgress /></Box>;
   }
+
+  if (errorResponse) {
+    return <Typography>Error!</Typography>;
+  }
+
   if (!order) {
     return <Typography>Order not found</Typography>;
   }
@@ -167,7 +184,7 @@ export default function Sample2DetailPage() {
           color={statusColor[order.status] ?? 'default'}
           sx={{ ml: 1 }}
         />
-        <Button size="small" variant="outlined" onClick={() => { setNewStatus(order.status); setStatusDialog(true); }} disabled={isRebuilding}>
+        <Button size="small" variant="outlined" onClick={() => { setNewStatus(order.status); setStatusDialog(true); }} disabled={isPending || isRebuilding}>
           Change Status
         </Button>
         <Typography variant="body2" color="text.secondary">({
@@ -178,7 +195,12 @@ export default function Sample2DetailPage() {
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
-      {isRebuilding && (
+      {isPending && (
+        <Alert severity="info" icon={<CircularProgress size={20} />} sx={{ mb: 2 }}>
+          Processing — waiting for view to update…
+        </Alert>
+      )}
+      {!isPending && isRebuilding && (
         <Alert severity="info" icon={<CircularProgress size={20} />} sx={{ mb: 2 }}>
           View is updating — displayed data may be stale.
         </Alert>
@@ -193,14 +215,14 @@ export default function Sample2DetailPage() {
               <Typography variant="caption" color="text.secondary">Email</Typography>
               {editingEmail ? (
                 <Box display="flex" gap={1}>
-                  <TextField size="small" fullWidth value={emailValue} onChange={(e) => setEmailValue(e.target.value)} autoFocus />
-                  <IconButton color="primary" onClick={() => emailMutation.mutate(emailValue)} disabled={emailMutation.isPending}><CheckIcon /></IconButton>
+                  <TextField size="small" fullWidth value={emailValue} onChange={(e) => setEmailValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') submitEmail(); }} autoFocus />
+                  <IconButton color="primary" onClick={submitEmail} disabled={emailMutation.isPending}><CheckIcon /></IconButton>
                   <IconButton onClick={() => setEditingEmail(false)}><CloseIcon /></IconButton>
                 </Box>
               ) : (
                 <Box display="flex" alignItems="center" gap={1}>
                   <Typography>{order.customer?.email}</Typography>
-                  <Tooltip title="Edit email"><IconButton size="small" disabled={isRebuilding} onClick={() => { setEmailValue(order.customer?.email ?? ''); setEditingEmail(true); }}><EditIcon fontSize="small" /></IconButton></Tooltip>
+                  <Tooltip title="Edit email"><IconButton size="small" disabled={isPending || isRebuilding} onClick={() => { setEmailValue(order.customer?.email ?? ''); setEditingEmail(true); }}><EditIcon fontSize="small" /></IconButton></Tooltip>
                 </Box>
               )}
             </Box>
@@ -218,7 +240,7 @@ export default function Sample2DetailPage() {
               <Typography variant="h6" gutterBottom>Shipping Address</Typography>
               {!editingAddress && (
                 <Tooltip title="Edit address">
-                  <IconButton size="small" disabled={isRebuilding} onClick={() => {
+                  <IconButton size="small" disabled={isPending || isRebuilding} onClick={() => {
                     setAddressValue({
                       street: order.shippingAddress?.street ?? '',
                       city: order.shippingAddress?.city ?? '',
@@ -235,7 +257,7 @@ export default function Sample2DetailPage() {
                 <TextField size="small" label="City" value={addressValue.city} onChange={(e) => setAddressValue({ ...addressValue, city: e.target.value })} />
                 <TextField size="small" label="Country" value={addressValue.country} onChange={(e) => setAddressValue({ ...addressValue, country: e.target.value })} />
                 <Box display="flex" gap={1}>
-                  <Button size="small" variant="contained" onClick={() => addressMutation.mutate(addressValue)} disabled={addressMutation.isPending}>Save</Button>
+                  <Button size="small" variant="contained" onClick={submitAddress} disabled={addressMutation.isPending}>Save</Button>
                   <Button size="small" onClick={() => setEditingAddress(false)}>Cancel</Button>
                 </Box>
               </Box>
@@ -254,7 +276,7 @@ export default function Sample2DetailPage() {
           <Paper sx={{ p: 3 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
               <Typography variant="h6">Line Items</Typography>
-              <Button size="small" startIcon={<AddIcon />} onClick={() => setAddItemDialog(true)} disabled={isRebuilding}>Add Item</Button>
+              <Button size="small" startIcon={<AddIcon />} onClick={() => setAddItemDialog(true)} disabled={isPending || isRebuilding}>Add Item</Button>
             </Box>
             <Table size="small">
               <TableHead>
@@ -276,7 +298,7 @@ export default function Sample2DetailPage() {
                     {canDelete && (
                       <TableCell>
                         <Tooltip title="Remove item">
-                          <IconButton size="small" color="error" onClick={() => removeItemMutation.mutate(li.itemId)} disabled={removeItemMutation.isPending || isRebuilding}>
+                          <IconButton size="small" color="error" onClick={() => removeItemMutation.mutate(li.itemId)} disabled={removeItemMutation.isPending || isPending || isRebuilding}>
                             <DeleteIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
@@ -297,14 +319,14 @@ export default function Sample2DetailPage() {
           <Paper sx={{ p: 3 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
               <Typography variant="h6">Tags</Typography>
-              <Button size="small" startIcon={<AddIcon />} onClick={() => setAddTagDialog(true)} disabled={isRebuilding}>Add Tag</Button>
+              <Button size="small" startIcon={<AddIcon />} onClick={() => setAddTagDialog(true)} disabled={isPending || isRebuilding}>Add Tag</Button>
             </Box>
             <Box display="flex" flexWrap="wrap" gap={1}>
               {order.tags?.map((t) => (
                 <Chip
                   key={t.value}
                   label={t.value}
-                  onDelete={canDelete && !isRebuilding ? () => removeTagMutation.mutate(t.value) : undefined}
+                  onDelete={canDelete && !isPending && !isRebuilding ? () => removeTagMutation.mutate(t.value) : undefined}
                 />
               ))}
               {(!order.tags || order.tags.length === 0) && (

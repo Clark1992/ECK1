@@ -8,7 +8,7 @@ public class RouteAuthorizationMiddleware(
     RouteAuthorizationState authState,
     IOptions<ZitadelConfig> zitadelOptions)
 {
-    private static readonly string[] ExcludedPrefixes = ["/swagger", "/health"];
+    private static readonly string[] ExcludedPrefixes = ["/swagger", "/health", "/hubs"];
 
     public async Task InvokeAsync(HttpContext context)
     {

@@ -23,7 +23,7 @@ export default function SampleDetailPage() {
   const [editValue, setEditValue] = useState('');
   const [error, setError] = useState('');
 
-  const { data: response, isLoading } = useQuery({
+  const { data: response, isLoading, error: errorResponse } = useQuery({
     queryKey: ['samples', id],
     queryFn: () => samplesApi.get(id!),
     enabled: !!id,
@@ -34,8 +34,8 @@ export default function SampleDetailPage() {
   const showNotification = useNotification();
 
   // Realtime feedback for update operations — memorize version, show notification
-  const { startCorrelatedCall, clearCorrelation, pendingVersion, clearPendingVersion } = useEntityUpdateFeedback(
-    queryClient, 'samples', id, showNotification,
+  const { startCorrelatedCall, clearCorrelation, pendingVersionRef, clearPendingVersion, isPending } = useEntityUpdateFeedback(
+    showNotification,
     (event) => setError(event?.message || event?.outcomeCode || 'Operation failed or timed out'),
   );
 
@@ -45,7 +45,7 @@ export default function SampleDetailPage() {
     entityId: id,
     onEvent: (event) => {
       queryClient.invalidateQueries({ queryKey: ['samples', id] });
-      if (pendingVersion !== null && event.version >= pendingVersion) {
+      if (pendingVersionRef.current !== null && event.version >= pendingVersionRef.current) {
         clearPendingVersion();
         showNotification({
           title: event.title || 'Updated',
@@ -61,7 +61,7 @@ export default function SampleDetailPage() {
       const { correlationId } = startCorrelatedCall();
       return samplesApi.changeName(id!, name, sample?.version ?? 0, correlationId);
     },
-    onSuccess: () => { setEditingField(null); setError(''); },
+    onSuccess: () => { setError(''); },
     onError: (err: Error) => { setError(err.message); clearCorrelation(); },
   });
 
@@ -70,7 +70,7 @@ export default function SampleDetailPage() {
       const { correlationId } = startCorrelatedCall();
       return samplesApi.changeDescription(id!, desc, sample?.version ?? 0, correlationId);
     },
-    onSuccess: () => { setEditingField(null); setError(''); },
+    onSuccess: () => { setError(''); },
     onError: (err: Error) => { setError(err.message); clearCorrelation(); },
   });
 
@@ -81,13 +81,21 @@ export default function SampleDetailPage() {
 
   const submitEdit = () => {
     if (!editingField) return;
-    if (editingField === 'name') nameMutation.mutate(editValue);
-    else descMutation.mutate(editValue);
+    const field = editingField;
+    const value = editValue;
+    setEditingField(null);
+    if (field === 'name') nameMutation.mutate(value);
+    else descMutation.mutate(value);
   };
 
   if (isLoading) {
     return <Box display="flex" justifyContent="center" mt={4}><CircularProgress /></Box>;
   }
+
+  if (errorResponse) {
+    return <Typography>Error!</Typography>;
+  }
+
   if (!sample) {
     return <Typography>Sample not found</Typography>;
   }
@@ -105,7 +113,12 @@ export default function SampleDetailPage() {
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
-      {isRebuilding && (
+      {isPending && (
+        <Alert severity="info" icon={<CircularProgress size={20} />} sx={{ mb: 2 }}>
+          Processing — waiting for view to update…
+        </Alert>
+      )}
+      {!isPending && isRebuilding && (
         <Alert severity="info" icon={<CircularProgress size={20} />} sx={{ mb: 2 }}>
           View is updating — displayed data may be stale.
         </Alert>
@@ -126,6 +139,7 @@ export default function SampleDetailPage() {
                     fullWidth
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') submitEdit(); }}
                     autoFocus
                   />
                   <IconButton color="primary" onClick={submitEdit} disabled={nameMutation.isPending}><CheckIcon /></IconButton>
@@ -135,7 +149,7 @@ export default function SampleDetailPage() {
                 <Box display="flex" alignItems="center" gap={1}>
                   <Typography>{sample.name}</Typography>
                   <Tooltip title="Edit name">
-                    <IconButton size="small" onClick={() => startEdit('name', sample.name)} disabled={isRebuilding}><EditIcon fontSize="small" /></IconButton>
+                    <IconButton size="small" onClick={() => startEdit('name', sample.name)} disabled={isPending || isRebuilding}><EditIcon fontSize="small" /></IconButton>
                   </Tooltip>
                 </Box>
               )}
@@ -162,7 +176,7 @@ export default function SampleDetailPage() {
                 <Box display="flex" alignItems="center" gap={1}>
                   <Typography>{sample.description}</Typography>
                   <Tooltip title="Edit description">
-                    <IconButton size="small" onClick={() => startEdit('description', sample.description)} disabled={isRebuilding}><EditIcon fontSize="small" /></IconButton>
+                    <IconButton size="small" onClick={() => startEdit('description', sample.description)} disabled={isPending || isRebuilding}><EditIcon fontSize="small" /></IconButton>
                   </Tooltip>
                 </Box>
               )}

@@ -60,6 +60,31 @@ public static class GatewayServiceExtensions
                         zitadelConfig.Issuer.TrimEnd('/'),
                         zitadelConfig.Authority.TrimEnd('/'));
                 }
+
+                // Allow SignalR WebSocket connections to pass the JWT via query string
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    },
+                    OnAuthenticationFailed = context =>
+                    {
+                        var logger = context.HttpContext.RequestServices
+                            .GetRequiredService<ILoggerFactory>()
+                            .CreateLogger("JwtBearer");
+                        logger.LogWarning(context.Exception,
+                            "JWT authentication failed for {Path}",
+                            context.HttpContext.Request.Path);
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
         services.AddTransient<IClaimsTransformation, ZitadelRoleClaimsTransformation>();

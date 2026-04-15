@@ -1,5 +1,7 @@
 $ErrorActionPreference = "Stop"
 try {
+    & 'src\Integration\ECK1.VersionTracker\Deploy\RunLocally.ps1'
+
     & 'src\ECK1.CommandsAPI\Deploy\RunLocally.ps1'
 
     & 'src\ECK1.FailedViewRebuilder\Deploy\RunLocally.ps1'

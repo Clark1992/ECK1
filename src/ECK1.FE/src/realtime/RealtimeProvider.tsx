@@ -15,11 +15,21 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     const connect = async () => {
-      try {
-        await startConnection();
-      } catch (err) {
-        if (!cancelled) {
-          console.warn('[Realtime] Initial connection failed, will retry on reconnect:', err);
+      const maxRetries = 4;
+      const delays = [0, 2000, 5000, 10000];
+      for (let i = 0; i < maxRetries; i++) {
+        if (cancelled) return;
+        try {
+          await startConnection();
+          return;
+        } catch (err) {
+          if (cancelled) return;
+          if (i < maxRetries - 1) {
+            console.warn(`[Realtime] Connection attempt ${i + 1} failed, retrying in ${delays[i + 1]}ms…`, err);
+            await new Promise((r) => setTimeout(r, delays[i + 1]));
+          } else {
+            console.warn('[Realtime] All connection attempts failed:', err);
+          }
         }
       }
     };

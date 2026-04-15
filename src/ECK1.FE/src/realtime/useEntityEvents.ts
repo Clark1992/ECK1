@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
+  addConnectionListener,
   getConnection,
   subscribeToEntity,
   unsubscribeFromEntity,
@@ -21,6 +22,9 @@ export function useEntityEvents({ entityType, entityId, onEvent }: UseEntityEven
   const onEventRef = useRef(onEvent);
   onEventRef.current = onEvent;
 
+  const [connReady, setConnReady] = useState(0);
+  useEffect(() => addConnectionListener(() => setConnReady((v) => v + 1)), []);
+
   useEffect(() => {
     if (!entityType || !entityId) return;
 
@@ -37,5 +41,5 @@ export function useEntityEvents({ entityType, entityId, onEvent }: UseEntityEven
       conn?.off('ReceiveFeedback', handler);
       unsubscribeFromEntity(entityType, entityId).catch(() => {});
     };
-  }, [entityType, entityId]);
+  }, [entityType, entityId, connReady]);
 }

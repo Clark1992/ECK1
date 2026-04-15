@@ -49,7 +49,7 @@ internal static class KafkaBaggagePropagation
     /// Reads the W3C <c>baggage</c> Kafka header and sets the items as
     /// baggage on <see cref="Activity.Current"/>.
     /// </summary>
-    internal static void ExtractBaggage(Headers? headers)
+    internal static void ExtractBaggage(Headers headers)
     {
         var activity = Activity.Current;
         if (activity is null || headers is null)

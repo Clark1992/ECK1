@@ -33,6 +33,7 @@ builder.Services
 var app = builder.Build();
 
 app.UseAuthentication();
+app.UseAuthorization();
 app.UseMiddleware<UserContextMiddleware>();
 app.UseActorLogging();
 app.UseMiddleware<RouteAuthorizationMiddleware>();

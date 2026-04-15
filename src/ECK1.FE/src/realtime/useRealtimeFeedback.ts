@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  addConnectionListener,
   getConnection,
   subscribeToCorrelation,
   unsubscribeFromCorrelation,
@@ -32,6 +33,13 @@ export function correlationHeaders(correlationId?: string): {
 export function useRealtimeFeedback(options: RealtimeFeedbackOptions | null) {
   const { correlationId, timeoutMs = 30_000, keepAlive = false, onFeedback, onTimeout } = options ?? {};
   const cleanedUp = useRef(false);
+  const onFeedbackRef = useRef(onFeedback);
+  const onTimeoutRef = useRef(onTimeout);
+  onFeedbackRef.current = onFeedback;
+  onTimeoutRef.current = onTimeout;
+
+  const [connReady, setConnReady] = useState(0);
+  useEffect(() => addConnectionListener(() => setConnReady((v) => v + 1)), []);
 
   useEffect(() => {
     if (!correlationId) return;
@@ -47,7 +55,7 @@ export function useRealtimeFeedback(options: RealtimeFeedbackOptions | null) {
         clearTimeout(timeoutHandle);
         cleanup();
       }
-      onFeedback?.(event);
+      onFeedbackRef.current?.(event);
     };
 
     const cleanup = () => {
@@ -69,12 +77,12 @@ export function useRealtimeFeedback(options: RealtimeFeedbackOptions | null) {
       timeoutHandle = setTimeout(() => {
         if (cleanedUp.current) return;
         cleanup();
-        onTimeout?.();
+        onTimeoutRef.current?.();
       }, timeoutMs);
     }
 
     return cleanup;
-  }, [correlationId, timeoutMs, keepAlive, onFeedback, onTimeout]);
+  }, [correlationId, timeoutMs, keepAlive, connReady]);
 }
 
 export function useCorrelatedCommand() {
@@ -168,14 +176,12 @@ export function useCreateEntityFeedback(
  * 2. Entity events (via useEntityEvents in the page) check pendingVersion → refetch
  */
 export function useEntityUpdateFeedback(
-  queryClient: QueryClient,
-  queryKeyPrefix: string,
-  entityId: string | undefined,
   showNotification: ShowNotification,
   onError?: (event?: RealtimeFeedbackEvent) => void,
 ) {
   const { pendingCorrelation, startCorrelatedCall, clearCorrelation } = useCorrelatedCommand();
   const [pendingVersion, setPendingVersion] = useState<number | null>(null);
+  const pendingVersionRef = useRef<number | null>(null);
 
   useRealtimeFeedback(
     pendingCorrelation
@@ -194,11 +200,7 @@ export function useEntityUpdateFeedback(
               return;
             }
             setPendingVersion(event.version);
-            showNotification({
-              title: event.title || 'Updating...',
-              message: event.message || 'View is being updated',
-              severity: 'info',
-            });
+            pendingVersionRef.current = event.version;
           },
           onTimeout: () => {
             clearCorrelation();
@@ -208,7 +210,11 @@ export function useEntityUpdateFeedback(
       : null,
   );
 
-  const clearPendingVersion = useCallback(() => setPendingVersion(null), []);
+  const clearPendingVersion = useCallback(() => {
+    setPendingVersion(null);
+    pendingVersionRef.current = null;
+  }, []);
+  const isPending = pendingCorrelation !== null || pendingVersion !== null;
 
-  return { startCorrelatedCall, clearCorrelation, pendingVersion, clearPendingVersion };
+  return { startCorrelatedCall, clearCorrelation, pendingVersion, pendingVersionRef, clearPendingVersion, isPending };
 }

@@ -66,6 +66,12 @@ spec:
                   name: global-vars
                   key: VersionTracker__Url
 
+            - name: Kafka__RealtimeFeedbackTopic
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: Kafka__RealtimeFeedbackTopic
+
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}
               value: "{{ $value }}"

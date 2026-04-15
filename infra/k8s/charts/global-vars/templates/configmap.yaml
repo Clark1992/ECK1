@@ -30,7 +30,8 @@ data:
   HELM_CHART_REGISTRY: {{ .Values.helmChartRegistry | quote }}
   DOCKER_REGISTRY: {{ .Values.dockerRegistry | quote }}
 
-  VersionTracker__Url: "http://eck1-version-tracker.{{ .Values.appServiceNamespace }}.svc.cluster.local:80"
+  VersionTracker__Url: "http://version-tracker.{{ .Values.appServiceNamespace }}.svc.cluster.local:80"
+  Kafka__RealtimeFeedbackTopic: "realtime-feedback"
 
   {{- if .Values.envSpecific }}
   {{- range $key, $value := .Values.envSpecific }}
