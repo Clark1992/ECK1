@@ -16,6 +16,7 @@
     <PackageVersion Include="Elastic.Clients.Elasticsearch" Version="9.2.2" />
     <PackageVersion Include="MediatR" Version="13.0.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.8" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.8" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.8" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.8" />
@@ -82,6 +83,7 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.Process" Version="1.14.0-beta.2" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.StackExchangeRedis" Version="1.0.0-rc9.14" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.13" />
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.13" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="8.0.13" />
     <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.7.0" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.7.0" />

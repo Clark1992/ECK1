@@ -25,6 +25,8 @@ spec:
           env:
             - name: GATEWAY_HOST
               value: "{{ .Values.gateway.host }}"
+            - name: TESTPLATFORM_HOST
+              value: "{{ .Values.testplatform.host }}"
             - name: ZITADEL_AUTHORITY
               valueFrom:
                 configMapKeyRef:

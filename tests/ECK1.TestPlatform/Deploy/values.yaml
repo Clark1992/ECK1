@@ -1,5 +1,3 @@
-replicaCount: 1
-
 image:
   repository: myregistry.azurecr.io/test-platform
   tag: latest
@@ -10,12 +8,22 @@ service:
   port: 80
   nodePort: 30280
 
+ingress:
+  enabled: false
+  host: testplatform.localhost
+  ingressClassName: nginx
+
 env:
   ASPNETCORE_ENVIRONMENT: Development
-  # Prefer in-cluster DNS for CommandsAPI.
-  # CommandsAPI Service name comes from its chart: eck1-commandsapi
-  CommandsApi__BaseUrl: "http://eck1-commandsapi:80/"
+  # Async routes (api/async/*) live on the Gateway, not CommandsAPI directly.
+  # Gateway discovers commands from the AsyncAPI document and publishes to Kafka.
+  # The service name prefix is required because Gateway routes are /{serviceName}{command.Route}.
+  CommandsApi__BaseUrl: "http://eck1-gateway:80/eck1-commandsapi/"
   CommandsApi__TimeoutSeconds: "300"
+  GatewayRealtime__HubUrl: "http://eck1-gateway:80/hubs/realtime"
+  QueriesApi__BaseUrl: "http://eck1-queriesapi:80/"
+  QueriesApi__TimeoutSeconds: "30"
+  ReconcilerApi__BaseUrl: "http://eck1-reconciler:80/"
 
 resources:
   limits:
@@ -24,3 +32,9 @@ resources:
   requests:
     cpu: "100m"
     memory: "256Mi"
+
+persistence:
+  enabled: true
+  size: "1Gi"
+  storageClassName: "manual"
+  hostPath: "/mnt/host/testplatform-data"

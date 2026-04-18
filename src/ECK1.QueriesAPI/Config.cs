@@ -6,3 +6,8 @@ public class ElasticSearchConfig
 
     public string ClusterUrl { get; set; }
 }
+
+public class ClickhouseConfig
+{
+    public string ConnectionString { get; set; } = "";
+}

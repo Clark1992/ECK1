@@ -15,3 +15,6 @@ sqlserver:
   credentials:
     appUser: "eck1_reconciler_app"
     appPassword: "RecApp!S3cure2026"
+
+env:
+  Chaos__Enabled: "true"

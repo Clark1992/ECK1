@@ -41,6 +41,9 @@ bld/
 *.swo
 *.sln.ide
 
+# SQLite databases
+*.db
+
 HiddenREADME.md
 **/values.secrets.yaml
 *.env

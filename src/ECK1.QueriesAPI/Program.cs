@@ -5,12 +5,15 @@ using ECK1.CommonUtils.Secrets.Doppler;
 using ECK1.CommonUtils.Secrets.K8s;
 using ECK1.QueriesAPI.Data;
 using ECK1.QueriesAPI.Elasticsearch;
+using ECK1.QueriesAPI;
 using ECK1.VersionTracker.Contracts;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Serializers;
+using ClickHouse.Client.ADO;
+using Microsoft.Extensions.Options;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -48,6 +51,15 @@ builder.Services.AddSingleton(sp =>
 });
 
 builder.Services.SetupElasticsearch(builder.Configuration);
+
+builder.Services.Configure<ClickhouseConfig>(configuration.GetSection(nameof(ClickhouseConfig)));
+builder.Services.AddSingleton(sp =>
+{
+    var chConfig = sp.GetRequiredService<IOptions<ClickhouseConfig>>().Value;
+    if (string.IsNullOrWhiteSpace(chConfig.ConnectionString))
+        throw new Exception("Missing ClickhouseConfig:ConnectionString");
+    return new ClickHouseConnection(chConfig.ConnectionString);
+});
 
 builder.Services.AddCors(options =>
 {

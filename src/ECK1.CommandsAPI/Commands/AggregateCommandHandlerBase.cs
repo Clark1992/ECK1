@@ -10,8 +10,6 @@ namespace ECK1.CommandsAPI.Commands;
 public abstract class AggregateCommandHandlerBase<TAggregate>
     where TAggregate : class, IAggregateRoot, IAggregateRootInternal
 {
-    private const int MaxSaveRetries = 2;
-
     protected AggregateCommandHandlerBase(
         IRootRepository<TAggregate> repository,
         IMediator mediator,

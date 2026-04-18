@@ -7,7 +7,11 @@ import SampleListPage from './pages/samples/SampleListPage';
 import SampleDetailPage from './pages/samples/SampleDetailPage';
 import Sample2ListPage from './pages/sample2s/Sample2ListPage';
 import Sample2DetailPage from './pages/sample2s/Sample2DetailPage';
+import SampleHistoryPage, { Sample2HistoryPage } from './pages/history/EntityHistoryPage';
+import ScenarioListPage from './pages/chaos-testing/ScenarioListPage';
+import ScenarioRunPage from './pages/chaos-testing/ScenarioRunPage';
 import { NotificationProvider } from './notifications/NotificationProvider';
+import AdminRoute from './auth/AdminRoute';
 
 export default function App() {
   return (
@@ -26,12 +30,28 @@ export default function App() {
             element={<ProtectedRoute><SampleDetailPage /></ProtectedRoute>}
           />
           <Route
+            path="/samples/:id/history"
+            element={<ProtectedRoute><SampleHistoryPage /></ProtectedRoute>}
+          />
+          <Route
             path="/sample2s"
             element={<ProtectedRoute><Sample2ListPage /></ProtectedRoute>}
           />
           <Route
             path="/sample2s/:id"
             element={<ProtectedRoute><Sample2DetailPage /></ProtectedRoute>}
+          />
+          <Route
+            path="/sample2s/:id/history"
+            element={<ProtectedRoute><Sample2HistoryPage /></ProtectedRoute>}
+          />
+          <Route
+            path="/chaos-testing"
+            element={<AdminRoute><ScenarioListPage /></AdminRoute>}
+          />
+          <Route
+            path="/chaos-testing/run/:runId"
+            element={<AdminRoute><ScenarioRunPage /></AdminRoute>}
           />
         </Routes>
         </Layout>

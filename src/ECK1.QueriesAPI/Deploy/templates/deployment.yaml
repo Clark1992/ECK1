@@ -65,6 +65,11 @@ spec:
                 configMapKeyRef:
                   name: global-vars
                   key: VersionTracker__Url
+            - name: ClickhouseConfig__ConnectionString
+              valueFrom:
+                configMapKeyRef:
+                  name: global-vars
+                  key: ClickhouseConfig__ConnectionString
           {{- if .Values.resources }}
           resources: {{- toYaml .Values.resources | nindent 12 }}
           {{- end }}

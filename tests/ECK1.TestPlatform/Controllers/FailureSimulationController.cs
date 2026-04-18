@@ -10,7 +10,7 @@ namespace ECK1.TestPlatform.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 public sealed class FailureSimulationController(
-    ChaosOrchestratorService chaos,
+    ChaosManager chaos,
     CommandsApiClient commands,
     FakeSampleDataFactory fakeSample,
     ILogger<FailureSimulationController> logger) : ControllerBase
@@ -29,7 +29,7 @@ public sealed class FailureSimulationController(
     {
         List<string> targets = ResolvePlugins(plugins);
 
-        await chaos.ActivateOnPluginsAsync(targets, scenarioId, ct);
+        await chaos.ActivateOnAsync(targets, scenarioId, ct);
         try
         {
             var createdIds = new List<Guid>();
@@ -58,7 +58,7 @@ public sealed class FailureSimulationController(
         }
         finally
         {
-            await chaos.DeactivateOnPluginsAsync(targets, scenarioId, ct);
+            await chaos.DeactivateOnAsync(targets, scenarioId, ct);
         }
     }
 
@@ -97,7 +97,7 @@ public sealed class FailureSimulationController(
         await Task.Delay(TimeSpan.FromSeconds(propagationDelaySec), ct);
 
         // Phase 3: activate chaos, then update entities
-        await chaos.ActivateOnPluginsAsync(targets, scenarioId, ct);
+        await chaos.ActivateOnAsync(targets, scenarioId, ct);
         int updatesApplied = 0;
         int updatesFailed = 0;
         try
@@ -120,7 +120,7 @@ public sealed class FailureSimulationController(
         }
         finally
         {
-            await chaos.DeactivateOnPluginsAsync(targets, scenarioId, ct);
+            await chaos.DeactivateOnAsync(targets, scenarioId, ct);
         }
 
         return Ok(new StaleDataResult(
@@ -168,7 +168,7 @@ public sealed class FailureSimulationController(
         await Task.Delay(TimeSpan.FromSeconds(propagationDelaySec), ct);
 
         // Phase 2: activate chaos, create missing + update stale
-        await chaos.ActivateOnPluginsAsync(targets, scenarioId, ct);
+        await chaos.ActivateOnAsync(targets, scenarioId, ct);
         var missingIds = new List<Guid>();
         int updatesApplied = 0;
         try
@@ -198,7 +198,7 @@ public sealed class FailureSimulationController(
         }
         finally
         {
-            await chaos.DeactivateOnPluginsAsync(targets, scenarioId, ct);
+            await chaos.DeactivateOnAsync(targets, scenarioId, ct);
         }
 
         return Ok(new MixedBatchResult(
@@ -257,12 +257,12 @@ public sealed class FailureSimulationController(
 
                 if (shouldDrop && !chaosActive)
                 {
-                    await chaos.ActivateOnPluginsAsync(targets, scenarioId, ct);
+                    await chaos.ActivateOnAsync(targets, scenarioId, ct);
                     chaosActive = true;
                 }
                 else if (!shouldDrop && chaosActive)
                 {
-                    await chaos.DeactivateOnPluginsAsync(targets, scenarioId, ct);
+                    await chaos.DeactivateOnAsync(targets, scenarioId, ct);
                     chaosActive = false;
                 }
 
@@ -284,7 +284,7 @@ public sealed class FailureSimulationController(
         finally
         {
             if (chaosActive)
-                await chaos.DeactivateOnPluginsAsync(targets, scenarioId, ct);
+                await chaos.DeactivateOnAsync(targets, scenarioId, ct);
         }
 
         logger.LogInformation(

@@ -7,3 +7,4 @@ image:
 
 env:
   ASPNETCORE_ENVIRONMENT: Development
+  Chaos__Enabled: "true"

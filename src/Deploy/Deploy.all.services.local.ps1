@@ -20,6 +20,8 @@ try {
 
     & 'src\Integration\ECK1.Integration.Proxy\Deploy\RunLocally.ps1'
 
+    & 'src\Integration\ECK1.Reconciler\Deploy\RunLocally.ps1'
+
     & 'src\ECK1.Gateway\Deploy\RunLocally.ps1'
 
     & 'src\ECK1.FE\Deploy\RunLocally.ps1'

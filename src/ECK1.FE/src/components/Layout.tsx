@@ -20,6 +20,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import HomeIcon from '@mui/icons-material/Home';
 import ScienceIcon from '@mui/icons-material/Science';
 import InventoryIcon from '@mui/icons-material/Inventory';
+import BugReportIcon from '@mui/icons-material/BugReport';
 import { usePermissions } from '../hooks/usePermissions';
 
 const DRAWER_WIDTH = 240;
@@ -30,12 +31,16 @@ const navItems = [
   { label: 'Orders (Sample2s)', path: '/sample2s', icon: <InventoryIcon /> },
 ];
 
+const adminNavItems = [
+  { label: 'Chaos Testing', path: '/chaos-testing', icon: <BugReportIcon /> },
+];
+
 export default function Layout({ children }: { children: ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const auth = useAuth();
-  const { roles } = usePermissions();
+  const { roles, hasRole } = usePermissions();
 
   const userName = auth.user?.profile?.preferred_username
     ?? auth.user?.profile?.name
@@ -62,6 +67,23 @@ export default function Layout({ children }: { children: ReactNode }) {
           </ListItemButton>
         ))}
       </List>
+      {hasRole('admin') && (
+        <>
+          <Divider />
+          <List>
+            {adminNavItems.map((item) => (
+              <ListItemButton
+                key={item.path}
+                selected={location.pathname.startsWith(item.path)}
+                onClick={() => navigate(item.path)}
+              >
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.label} />
+              </ListItemButton>
+            ))}
+          </List>
+        </>
+      )}
     </Box>
   );
 

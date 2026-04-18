@@ -13,6 +13,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
+import HistoryIcon from '@mui/icons-material/History';
 import AddIcon from '@mui/icons-material/Add';
 import { sample2sApi } from '../../api/sample2s';
 import { Sample2Status, Sample2StatusLabels } from '../../types/sample2';
@@ -192,6 +193,9 @@ export default function Sample2DetailPage() {
             ? new Date(order.lastModified).toLocaleString() 
             : '—'}
         )</Typography>
+        <Tooltip title="View event history">
+          <IconButton onClick={() => navigate(`/sample2s/${id}/history`)}><HistoryIcon /></IconButton>
+        </Tooltip>
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}

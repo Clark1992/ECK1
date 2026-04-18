@@ -28,6 +28,10 @@ export const API = {
     addTag: (id: string) => `${COMMANDS}/api/async/sample2/${id}/tags`,
     removeTag: (id: string) => `${COMMANDS}/api/async/sample2/${id}/tags`,
   },
+  history: {
+    samples: (id: string) => `${QUERIES}/api/history/samples/${id}`,
+    sample2s: (id: string) => `${QUERIES}/api/history/sample2s/${id}`,
+  },
 } as const;
 
 let _getUser: (() => User | null | undefined) | null = null;

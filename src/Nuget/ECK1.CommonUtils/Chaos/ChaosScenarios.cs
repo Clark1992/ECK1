@@ -29,6 +29,19 @@ public static class ChaosScenarios
         public const string PushNoop = "proxy.push-noop";
     }
 
+    public static class Reconciler
+    {
+        /// <summary>
+        /// Pauses reconciliation checks — the ReconciliationCheckService skips its cycle.
+        /// </summary>
+        public const string PauseChecks = "reconciler.pause-checks";
+
+        /// <summary>
+        /// Pauses rebuild dispatching — the RebuildDispatchService skips its cycle.
+        /// </summary>
+        public const string PauseDispatching = "reconciler.pause-dispatching";
+    }
+
     public static IReadOnlyList<ScenarioInfo> All { get; } =
     [
         new(Proxy.DropEvent,
@@ -46,6 +59,14 @@ public static class ChaosScenarios
         new(Proxy.PushNoop,
             "Integration Proxy: silent push skip",
             "Skips the plugin push but commits the offset. Reconciler should detect version mismatch and trigger rebuild."),
+
+        new(Reconciler.PauseChecks,
+            "Reconciler: pause consistency checks",
+            "Pauses the periodic reconciliation check loop. Useful for chaos scenarios that need to prevent self-healing until ready."),
+
+        new(Reconciler.PauseDispatching,
+            "Reconciler: pause rebuild dispatching",
+            "Pauses the periodic rebuild dispatch loop. Useful for chaos scenarios that need to delay rebuild requests."),
     ];
 }
 

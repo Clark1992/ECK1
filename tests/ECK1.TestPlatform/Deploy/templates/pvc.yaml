@@ -1,0 +1,36 @@
+{{- if .Values.persistence.enabled }}
+
+{{- if .Values.persistence.hostPath }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Chart.Name }}-data-pv
+spec:
+  capacity:
+    storage: {{ .Values.persistence.size | default "1Gi" }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: {{ .Values.persistence.storageClassName | quote }}
+  hostPath:
+    path: {{ .Values.persistence.hostPath | quote }}
+    type: DirectoryOrCreate
+---
+{{- end }}
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Chart.Name }}-data-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.persistence.storageClassName }}
+  {{- if .Values.persistence.hostPath }}
+  volumeName: {{ .Chart.Name }}-data-pv
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size | default "1Gi" }}
+
+{{- end }}

@@ -16,3 +16,6 @@ ingress:
 
 gateway:
   host: eck1-gateway
+
+testplatform:
+  host: eck1-testplatform

@@ -16,6 +16,6 @@ window.__CONFIG__ = {
 EOF
 
 # Substitute env vars in nginx config
-envsubst '${GATEWAY_HOST}' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
+envsubst '${GATEWAY_HOST} ${TESTPLATFORM_HOST}' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
 
 exec nginx -g 'daemon off;'

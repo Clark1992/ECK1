@@ -1,3 +1,4 @@
+using ECK1.CommonUtils.Chaos;
 using ECK1.Kafka;
 using ECK1.Reconciliation.Contracts;
 using ECK1.Reconciler.Data;
@@ -8,6 +9,7 @@ namespace ECK1.Reconciler.Services;
 public class RebuildDispatchService(
     IServiceScopeFactory scopeFactory,
     IReadOnlyDictionary<string, IKafkaTopicProducer<RebuildRequest>> rebuildProducers,
+    IChaosEngine chaosEngine,
     IOptions<ReconcilerSettings> options,
     ILogger<RebuildDispatchService> logger) : BackgroundService
 {
@@ -23,6 +25,12 @@ public class RebuildDispatchService(
         while (!stoppingToken.IsCancellationRequested)
         {
             await Task.Delay(interval, stoppingToken);
+
+            if (chaosEngine.IsActive(ChaosScenarios.Reconciler.PauseDispatching))
+            {
+                logger.LogWarning("CHAOS: Rebuild dispatching paused by '{Scenario}'", ChaosScenarios.Reconciler.PauseDispatching);
+                continue;
+            }
 
             try
             {

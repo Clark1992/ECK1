@@ -9,6 +9,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import HistoryIcon from '@mui/icons-material/History';
 import { samplesApi } from '../../api/samples';
 import { useEntityUpdateFeedback } from '../../realtime/useRealtimeFeedback';
 import { useEntityEvents } from '../../realtime/useEntityEvents';
@@ -110,6 +111,9 @@ export default function SampleDetailPage() {
             ? new Date(sample.lastModified).toLocaleString() 
             : '—'}
         )</Typography>
+        <Tooltip title="View event history">
+          <IconButton onClick={() => navigate(`/samples/${id}/history`)}><HistoryIcon /></IconButton>
+        </Tooltip>
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}

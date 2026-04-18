@@ -1,4 +1,5 @@
 using AutoMapper;
+using ECK1.CommonUtils.Chaos;
 using ECK1.Reconciliation.Contracts;
 using ECK1.Kafka;
 using ECK1.Reconciler.Data;
@@ -10,6 +11,7 @@ public class ReconciliationCheckService(
     IServiceScopeFactory scopeFactory,
     IKafkaTopicProducer<ReconcileRequest> producer,
     IMapper mapper,
+    IChaosEngine chaosEngine,
     IOptions<ReconcilerSettings> options,
     ILogger<ReconciliationCheckService> logger) : BackgroundService
 {
@@ -25,6 +27,12 @@ public class ReconciliationCheckService(
         while (!stoppingToken.IsCancellationRequested)
         {
             await Task.Delay(interval, stoppingToken);
+
+            if (chaosEngine.IsActive(ChaosScenarios.Reconciler.PauseChecks))
+            {
+                logger.LogWarning("CHAOS: Reconciliation checks paused by '{Scenario}'", ChaosScenarios.Reconciler.PauseChecks);
+                continue;
+            }
 
             try
             {

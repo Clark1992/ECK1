@@ -22,6 +22,7 @@
     <PackageReference Include="System.Linq.Dynamic.Core" />
     <PackageReference Include="Elastic.Clients.Elasticsearch" />
     <PackageReference Include="protobuf-net.Grpc" />
+    <PackageReference Include="ClickHouse.Client" />
   </ItemGroup>
 
   <ItemGroup>
