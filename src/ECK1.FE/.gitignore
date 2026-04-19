@@ -3,3 +3,5 @@ dist/
 .env.development.local
 .env.production.local
 *.log
+tsconfig.app.tsbuildinfo
+package-lock.json
