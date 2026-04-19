@@ -10,6 +10,7 @@ import Sample2DetailPage from './pages/sample2s/Sample2DetailPage';
 import SampleHistoryPage, { Sample2HistoryPage } from './pages/history/EntityHistoryPage';
 import ScenarioListPage from './pages/chaos-testing/ScenarioListPage';
 import ScenarioRunPage from './pages/chaos-testing/ScenarioRunPage';
+import AnalyticsPage from './pages/analytics/AnalyticsPage';
 import { NotificationProvider } from './notifications/NotificationProvider';
 import AdminRoute from './auth/AdminRoute';
 
@@ -44,6 +45,10 @@ export default function App() {
           <Route
             path="/sample2s/:id/history"
             element={<ProtectedRoute><Sample2HistoryPage /></ProtectedRoute>}
+          />
+          <Route
+            path="/analytics"
+            element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>}
           />
           <Route
             path="/chaos-testing"

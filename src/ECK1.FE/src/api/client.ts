@@ -7,6 +7,11 @@ const QUERIES = `${BASE}/eck1-queriesapi`;
 export const API = {
   commands: COMMANDS,
   queries: QUERIES,
+  analytics: {
+    overview: `${QUERIES}/api/analytics/overview`,
+    trend: `${QUERIES}/api/analytics/trend`,
+    breakdown: `${QUERIES}/api/analytics/breakdown`,
+  },
   samples: {
     list: `${QUERIES}/api/samples`,
     get: (id: string) => `${QUERIES}/api/samples/${id}`,

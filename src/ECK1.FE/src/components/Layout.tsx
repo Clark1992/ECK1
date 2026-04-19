@@ -21,6 +21,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import ScienceIcon from '@mui/icons-material/Science';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import BugReportIcon from '@mui/icons-material/BugReport';
+import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import { usePermissions } from '../hooks/usePermissions';
 
 const DRAWER_WIDTH = 240;
@@ -29,6 +30,7 @@ const navItems = [
   { label: 'Home', path: '/', icon: <HomeIcon /> },
   { label: 'Samples', path: '/samples', icon: <ScienceIcon /> },
   { label: 'Orders (Sample2s)', path: '/sample2s', icon: <InventoryIcon /> },
+  { label: 'Analytics', path: '/analytics', icon: <QueryStatsIcon /> },
 ];
 
 const adminNavItems = [

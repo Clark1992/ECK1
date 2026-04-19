@@ -2,6 +2,7 @@ import { useAuth } from 'react-oidc-context';
 import { Box, Typography, Button, Paper, Grid2 as Grid, Card, CardContent, CardActions } from '@mui/material';
 import ScienceIcon from '@mui/icons-material/Science';
 import InventoryIcon from '@mui/icons-material/Inventory';
+import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import { useNavigate } from 'react-router-dom';
 
 export default function HomePage() {
@@ -34,7 +35,7 @@ export default function HomePage() {
 
       {auth.isAuthenticated && (
         <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid size={{ xs: 12, md: 6, xl: 4 }}>
             <Card>
               <CardContent>
                 <Box display="flex" alignItems="center" gap={1} mb={1}>
@@ -50,7 +51,7 @@ export default function HomePage() {
               </CardActions>
             </Card>
           </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid size={{ xs: 12, md: 6, xl: 4 }}>
             <Card>
               <CardContent>
                 <Box display="flex" alignItems="center" gap={1} mb={1}>
@@ -63,6 +64,22 @@ export default function HomePage() {
               </CardContent>
               <CardActions>
                 <Button onClick={() => navigate('/sample2s')}>View Orders (Sample2s)</Button>
+              </CardActions>
+            </Card>
+          </Grid>
+          <Grid size={{ xs: 12, md: 12, xl: 4 }}>
+            <Card>
+              <CardContent>
+                <Box display="flex" alignItems="center" gap={1} mb={1}>
+                  <QueryStatsIcon color="primary" />
+                  <Typography variant="h5">Analytics</Typography>
+                </Box>
+                <Typography color="text.secondary">
+                  Track event flow, order mix, gross value and sample distribution with configurable chart slices.
+                </Typography>
+              </CardContent>
+              <CardActions>
+                <Button onClick={() => navigate('/analytics')}>Open Analytics</Button>
               </CardActions>
             </Card>
           </Grid>
