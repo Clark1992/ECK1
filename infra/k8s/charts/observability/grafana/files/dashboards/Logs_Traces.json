@@ -1184,7 +1184,7 @@
         ]
       },
       "gridPos": {
-        "h": 12,
+        "h": 24,
         "w": 24,
         "x": 0,
         "y": 29
@@ -1223,6 +1223,18 @@
           "hide": false,
           "queryType": "range",
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "{service_name=~\"$service_name\", service_name!=\"unknown_service\", deployment_environment=\"$env\", k8s_pod_name=\"\"}\r\n| logfmt",
+          "hide": false,
+          "queryType": "range",
+          "refId": "F5 logs"
         }
       ],
       "title": "Logs",
@@ -1269,7 +1281,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 41
+        "y": 53
       },
       "id": 3,
       "interval": "$interval",
@@ -1310,7 +1322,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 48
+        "y": 60
       },
       "id": 17,
       "panels": [],
@@ -1388,7 +1400,7 @@
         "h": 6,
         "w": 5,
         "x": 0,
-        "y": 49
+        "y": 61
       },
       "id": 12,
       "interval": "$interval",
@@ -1497,7 +1509,7 @@
         "h": 6,
         "w": 5,
         "x": 5,
-        "y": 49
+        "y": 61
       },
       "id": 10,
       "interval": "$interval",
@@ -1727,5 +1739,5 @@
   "timezone": "browser",
   "title": "Logs/Traces",
   "uid": "adzf64t",
-  "version": 47
+  "version": 51
 }
