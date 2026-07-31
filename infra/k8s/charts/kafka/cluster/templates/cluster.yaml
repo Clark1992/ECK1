@@ -6,6 +6,15 @@ spec:
   kafka:
     version: "3.9.0"
     replicas: {{ .Values.replicaCount }}
+    {{- with .Values.kafka.jvmOptions }}
+    jvmOptions:
+      "-Xms": {{ .xms | quote }}
+      "-Xmx": {{ .xmx | quote }}
+    {{- end }}
+    {{- with .Values.kafka.resources }}
+    resources:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
     authorization:
       type: simple
     template:

@@ -3,6 +3,19 @@ image:
   tag: v0.7.2
   pullPolicy: IfNotPresent
 
+# Kafka UI otherwise inherits an unbounded JVM heap from the Docker Desktop
+# node. This cap retains headroom above its local working set while preventing
+# it from expanding into multiple GiB.
+envs:
+  config:
+    JAVA_OPTS: "-Xms128m -Xmx384m"
+
+resources:
+  requests:
+    memory: 384Mi
+  limits:
+    memory: 640Mi
+
 service:
   type: ClusterIP
   port: 8080

@@ -5,6 +5,19 @@ kafka:
     sizeKafka: 10Gi
     sizeZookeeper: 5Gi
 
+  # Keep broker JVM growth predictable on the local Docker Desktop cluster.
+  # The container limit leaves another 1Gi for Kafka's native allocations and
+  # filesystem page cache, so this does not remove the two-broker topology or
+  # constrain the heap close to its currently observed live set.
+  jvmOptions:
+    xms: 128m
+    xmx: 1g
+  resources:
+    requests:
+      memory: 1280Mi
+    limits:
+      memory: 2Gi
+
   config:
     offsets.topic.replication.factor: 2
     transaction.state.log.replication.factor: 2
