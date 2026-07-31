@@ -41,15 +41,10 @@ memcached:
 metricsGenerator:
   affinity: |
     {}
-  enabled: true
-  extraVolumeMounts:
-    - mountPath: /tempo-nfs
-      name: tempo-nfs
-  extraVolumes:
-    - name: tempo-nfs
-      persistentVolumeClaim:
-        claimName: tempo-shared
-  replicas: 1
+  # Derived span metrics, service graphs and TraceQL metrics are not used by
+  # the repository dashboards. Disabling the generator does not affect trace
+  # ingestion, storage, search or viewing in Grafana.
+  enabled: false
 monitoring:
   dashboards:
     enabled: false
@@ -88,32 +83,11 @@ storage:
 
 metaMonitoring:
   serviceMonitor:
-    enabled: true
-    labels:
-      release: prometheus
+    # Tempo component internals are not referenced by the local dashboards.
+    enabled: false
 tempo:
   structuredConfig:
     auth_enabled: false
-    metrics_generator:
-      processor:
-        local_blocks:
-          flush_to_storage: true
-      storage:
-        path: /tempo-nfs/metrics-wal
-        remote_write:
-          - url: http://prometheus-kube-prometheus-prometheus.observability.svc.cluster.local:9090/api/v1/write
-      traces_storage:
-        path: /tempo-nfs/traces
-      traces_query_storage:
-        path: /tempo-nfs/traces-query-wal
-    overrides:
-      defaults:
-        metrics_generator:
-          processors:
-          - local-blocks
-          - service-graphs
-          - span-metrics
-      per_tenant_override_config: ""
     storage:
       trace:
         local:

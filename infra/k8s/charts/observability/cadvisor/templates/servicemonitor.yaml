@@ -34,15 +34,16 @@ spec:
           sourceLabels: [container_label_io_kubernetes_container_name]
           targetLabel: container
 
-        # Drop very noisy labels to reduce Prometheus memory usage.
-        # (We keep container_label_service_name and container_label_environment
-        # because dashboards rely on them.)
+        # Keep only the container_* metrics used by dashboards.
+        - action: keep
+          sourceLabels: [__name__]
+          regex: "container_(cpu_usage_seconds_total|memory_working_set_bytes|memory_usage_bytes|network_receive_bytes_total|network_transmit_bytes_total|fs_reads_bytes_total|fs_writes_bytes_total)"
+
+        # Preserve id for OpenLens cluster-level queries against the root
+        # cgroup. Keep pod series plus id="/"; discard other host cgroups.
         - action: labeldrop
-          regex: "^(id|container_id|name)$"
-        - action: labeldrop
-          regex: "^container_label_io_kubernetes_.*$"
-        # Drop series that are not associated with a pod.
-        - action: drop
-          sourceLabels: [namespace, pod]
-          regex: ^;.*|.*;$
+          regex: "^(container_id|name)$"
+        - action: keep
+          sourceLabels: [namespace, pod, id]
+          regex: "^.+;.+;.*$|^;;/$"
 {{- end }}

@@ -23,6 +23,15 @@ args:
   - --port=8080
   - --housekeeping_interval=30s
   - --max_housekeeping_interval=45s
+  # Collect only the metric groups required by Grafana and OpenLens. This is
+  # intentionally done in cAdvisor: metric relabeling happens only after
+  # Prometheus has downloaded the complete response.
+  - --enable_metrics=cpu,memory,network,diskIO
+  # Docker Desktop exposes very large Kubernetes annotation labels. Export only
+  # the labels used to identify pods and by the local Grafana dashboards.
+  - --store_container_labels=false
+  - --whitelisted_container_labels=io.kubernetes.pod.namespace,io.kubernetes.pod.name,io.kubernetes.container.name,service_name,environment
+  - --storage_duration=1m
   - --containerd=/run/containerd/containerd.sock
 
 securityContext:

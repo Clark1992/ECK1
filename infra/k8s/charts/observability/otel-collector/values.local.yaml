@@ -48,6 +48,13 @@ serviceMonitor:
   metricsEndpoints:
     - port: metrics
       interval: 1m
+      metricRelabelings:
+        # Metrics referenced by the repository's Grafana dashboards. Apply the
+        # allowlist on the ServiceMonitor endpoint; PrometheusSpec does not have
+        # a global metricRelabelings field.
+        - action: keep
+          sourceLabels: [__name__]
+          regex: "^(aspnetcore_routing_match_attempts(_total)?|http_(client_open_connections|client_request_duration_seconds_bucket|server_active_requests|server_request_duration_seconds_(bucket|count))|kestrel_(active_connections|queued_connections|connection_duration_seconds_bucket)|process_(cpu_count|cpu_time_seconds_total|memory_usage_bytes|thread_count)|process_runtime_dotnet_(assemblies_count|exceptions_count_total|gc_(allocations_size|collections_count_total|committed_memory_size_bytes|heap_fragmentation_size_bytes|heap_size_bytes|objects_size)|thread_pool_(queue_length|threads_count))|sqlserver_(batch_request_rate_per_second|deadlock_rate_per_s|lock_wait_rate_per_second|os_wait_duration_seconds_total|page_life_expectancy_seconds))$"
 
 extraEnvs: []
 

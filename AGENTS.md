@@ -6,7 +6,7 @@ This file contains repository-level guidance for coding agents. It is intentiona
 
 - Follow existing project conventions and preserve behavior unless the task explicitly calls for a change.
 - Read [`docs/project-context.md`](docs/project-context.md) when a task depends on the architecture, message flows, schemas, or service layout or if you need a summary on current solution architecture.
-- Use [`docs/agent-playbooks/add-new-entity.md`](docs/agent-playbooks/add-new-entity.md) as the checklist for end-to-end creating new entity work.
+- Use the repository-local [`$add-new-entity` skill](.agents/skills/add-new-entity/SKILL.md) for end-to-end entity work.
 - More specific guidance is placed in [`src/AGENTS.md`](src/AGENTS.md), [`tests/AGENTS.md`](tests/AGENTS.md), [`infra/AGENTS.md`](infra/AGENTS.md), and [`.github/AGENTS.md](.github/AGENTS.md). Apply it when working in those subtrees.
 
 ## Working agreements

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Add New Entity"
+  short_description: "Add an ECK1 entity across all services"
+  default_prompt: "Use $add-new-entity to add a new entity end to end across ECK1."

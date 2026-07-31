@@ -2,17 +2,40 @@ grafana:
   enabled: false
 
 alertmanager:
-  enabled: true
+  enabled: false
+
+# The local dashboards do not use kube-prometheus-stack alerting or recording
+# rules. Disabling them also avoids repeated queries for metrics that are
+# intentionally not collected.
+defaultRules:
+  create: false
 
 prometheus:
   prometheusSpec:
+    # Retention mainly affects disk. Keep enough history for local dashboards;
+    # reducing it below Prometheus's head block does not materially reduce RAM.
     retention: 24h
     scrapeInterval: 30s
     evaluationInterval: 30s
     enableRemoteWriteReceiver: true
+    # This gives Prometheus's automatic Go memory limiter a meaningful target.
+    # The previous unbounded pod inherited almost the whole Docker VM as its
+    # memory target and retained oversized scrape buffers.
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 1Gi
+  serviceMonitor:
+    selfMonitor: false
   service:
     type: NodePort
-    nodePort: 30909  
+    nodePort: 30909
+
+prometheusOperator:
+  serviceMonitor:
+    selfMonitor: false
 
 # Local-only trimming: docker-desktop control-plane metrics are very high-cardinality
 # and usually not needed for app development.
@@ -28,37 +51,60 @@ kubeControllerManager:
 kubeScheduler:
   enabled: false
 
-# Reduce kubelet/cAdvisor series count while keeping the container_* metrics used by
-# our dashboards (CPU/memory/network/fs).
+# The standalone cAdvisor chart supplies the container metrics and labels needed
+# by Grafana/OpenLens. Do not scrape the same data again through kubelet, and do
+# not scrape kubelet/probe internals that neither dashboard uses.
 kubelet:
-  serviceMonitor:
-    metricRelabelings:
-      # Drop all histogram buckets (biggest win in local)
-      - action: drop
-        sourceLabels: [__name__]
-        regex: ".*_bucket"
+  enabled: false
 
-      # Drop container metrics we don't use in dashboards (still keep CPU/mem/net/fs)
-      - action: drop
-        sourceLabels: [__name__]
-        regex: "container_(tasks_state|memory_failures_total|blkio_device_usage_total|last_seen|start_time_seconds|threads|ulimits_.*|spec_.*)"
+nodeExporter:
+  enabled: true
 
-      # Drop noisy / high-memory labels from cAdvisor series
-      - action: labeldrop
-        regex: "^(id|container_id)$"
+# OpenLens overview/node charts use CPU, memory, network, filesystem, load and
+# basic node identity. Drop the thousands of unrelated node-exporter series.
+prometheus-node-exporter:
+  prometheus:
+    monitor:
+      metricRelabelings:
+        - action: keep
+          sourceLabels: [__name__]
+          regex: "^(node_cpu_seconds_total|node_memory_(MemAvailable|MemFree|MemTotal|Buffers|Cached|SReclaimable)_bytes|node_network_(receive|transmit)_bytes_total|node_filesystem_(avail|size)_bytes|node_load(1|5|15)|node_uname_info|node_exporter_build_info)$"
 
-      # Keep our custom selectors (container_label_service_name/environment), but
-      # drop the very noisy Kubernetes-internal container labels.
-      - action: labeldrop
-        regex: "^container_label_io_kubernetes_.*$"
+kubeProxy:
+  enabled: false
+
+coreDns:
+  enabled: false
+
+kubeDns:
+  enabled: false
 
 kube-state-metrics:
+  # Filter at the exporter as well as at ingestion so Prometheus does not have
+  # to download and parse metrics that will be discarded.
+  metricAllowlist:
+    - kube_pod_info
+    - kube_pod_container_info
+    - kube_pod_status_phase
+    - kube_pod_container_status_restarts_total
+    - kube_deployment_status_replicas
+    - kube_deployment_status_replicas_available
+    - kube_node_status_capacity
+    - kube_node_status_allocatable
+    - kube_node_info
+    - kube_node_status_condition
+    - kube_pod_container_resource_requests
+    - kube_pod_container_resource_limits
+    - kube_pod_labels
   prometheus:
     monitor:
       metricRelabelings:
         - action: replace
           sourceLabels: [pod]
           targetLabel: k8s_pod_name
+        - action: keep
+          sourceLabels: [__name__]
+          regex: "^(kube_pod_info|kube_pod_container_info|kube_pod_status_phase|kube_pod_container_status_restarts_total|kube_deployment_status_replicas|kube_deployment_status_replicas_available|kube_node_status_capacity|kube_node_status_allocatable|kube_node_info|kube_node_status_condition|kube_pod_container_resource_requests|kube_pod_container_resource_limits|kube_pod_labels)$"
   metricLabelsAllowlist:
     - pods=[service_name,environment]
 

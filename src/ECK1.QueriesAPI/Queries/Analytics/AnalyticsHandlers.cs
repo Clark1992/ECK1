@@ -81,7 +81,7 @@ public sealed class GetAnalyticsOverviewHandler : IRequestHandler<GetAnalyticsOv
             return (0, 0);
         }
 
-        return (ReadDouble(reader, 0), ReadDouble(reader, 1));
+        return (AnalyticsValueReader.ReadDouble(reader, 0), AnalyticsValueReader.ReadDouble(reader, 1));
     }
 
     private async Task<(double First, double Second)> ExecutePairAsync(
@@ -97,7 +97,7 @@ public sealed class GetAnalyticsOverviewHandler : IRequestHandler<GetAnalyticsOv
             return (0, 0);
         }
 
-        return (ReadDouble(reader, 0), ReadDouble(reader, 1));
+        return (AnalyticsValueReader.ReadDouble(reader, 0), AnalyticsValueReader.ReadDouble(reader, 1));
     }
 
     private async Task<(double First, double Second, double Third)> ExecuteTripleAsync(
@@ -113,7 +113,10 @@ public sealed class GetAnalyticsOverviewHandler : IRequestHandler<GetAnalyticsOv
             return (0, 0, 0);
         }
 
-        return (ReadDouble(reader, 0), ReadDouble(reader, 1), ReadDouble(reader, 2));
+        return (
+            AnalyticsValueReader.ReadDouble(reader, 0),
+            AnalyticsValueReader.ReadDouble(reader, 1),
+            AnalyticsValueReader.ReadDouble(reader, 2));
     }
 
     private ClickHouseCommand CreateCommand(string sql, DateTime from, DateTime to, int? top)
@@ -131,15 +134,6 @@ public sealed class GetAnalyticsOverviewHandler : IRequestHandler<GetAnalyticsOv
         return cmd;
     }
 
-    private static double ReadDouble(System.Data.Common.DbDataReader reader, int index)
-    {
-        if (reader.IsDBNull(index))
-        {
-            return 0;
-        }
-
-        return Convert.ToDouble(reader.GetValue(index), CultureInfo.InvariantCulture);
-    }
 }
 
 public sealed class GetAnalyticsTrendHandler : IRequestHandler<GetAnalyticsTrendQuery, AnalyticsTrendResponse>
@@ -163,9 +157,7 @@ public sealed class GetAnalyticsTrendHandler : IRequestHandler<GetAnalyticsTrend
         {
             var timestamp = reader.GetDateTime(0);
             var key = reader.IsDBNull(1) ? "total" : Convert.ToString(reader.GetValue(1), CultureInfo.InvariantCulture) ?? "total";
-            var value = reader.IsDBNull(2)
-                ? 0
-                : Convert.ToDouble(reader.GetValue(2), CultureInfo.InvariantCulture);
+            var value = AnalyticsValueReader.ReadDouble(reader, 2);
 
             if (!series.TryGetValue(key, out var points))
             {
@@ -224,9 +216,7 @@ public sealed class GetAnalyticsBreakdownHandler : IRequestHandler<GetAnalyticsB
         while (await reader.ReadAsync(ct))
         {
             var key = reader.IsDBNull(0) ? "Unknown" : Convert.ToString(reader.GetValue(0), CultureInfo.InvariantCulture) ?? "Unknown";
-            var value = reader.IsDBNull(1)
-                ? 0
-                : Convert.ToDouble(reader.GetValue(1), CultureInfo.InvariantCulture);
+            var value = AnalyticsValueReader.ReadDouble(reader, 1);
 
             items.Add(new AnalyticsBreakdownItem(
                 key,
@@ -250,5 +240,19 @@ public sealed class GetAnalyticsBreakdownHandler : IRequestHandler<GetAnalyticsB
         }
 
         return cmd;
+    }
+}
+
+internal static class AnalyticsValueReader
+{
+    public static double ReadDouble(System.Data.Common.DbDataReader reader, int index)
+    {
+        if (reader.IsDBNull(index))
+        {
+            return 0;
+        }
+
+        var value = Convert.ToDouble(reader.GetValue(index), CultureInfo.InvariantCulture);
+        return double.IsFinite(value) ? value : 0;
     }
 }
