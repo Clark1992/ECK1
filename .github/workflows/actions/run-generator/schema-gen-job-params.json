@@ -38,6 +38,21 @@
     "topic": "sample2-full-records"
   },
   {
+    "assemblyPath": "__ECK1_INTEGRATION_CONTRACTS_ASSEMBLY_PATH__",
+    "typeName": "ECK1.IntegrationContracts.Kafka.IntegrationRecords.ThinEvent",
+    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/task-thin-events",
+    "format": "avro",
+    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/task-thin-events"
+  },
+  {
+    "assemblyPath": "__ECK1_INTEGRATION_CONTRACTS_ASSEMBLY_PATH__",
+    "typeName": "ECK1.IntegrationContracts.Kafka.IntegrationRecords.Task.TaskFullRecord",
+    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/task-full-records",
+    "format": "proto",
+    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/task-full-records",
+    "topic": "task-full-records"
+  },
+  {
     "assemblyPath": "__ECK1_RECONCILIATION_CONTRACTS_ASSEMBLY_PATH__",
     "typeName": "ECK1.Reconciliation.Contracts.ReconcileRequest",
     "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.Reconciler/reconcile-requests",
@@ -76,6 +91,14 @@
     "format": "json",
     "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/sample2-commands",
     "topic": "sample2-commands"
+  },
+  {
+    "assemblyPath": "__ECK1_COMMANDS_ASSEMBLY_PATH__",
+    "typeName": "ECK1.CommandsAPI.Commands.ITaskCommand",
+    "currentLatestSchemaPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/task-commands",
+    "format": "json",
+    "outputPath": "./infra/k8s/charts/kafka/topic/topic-configs/ECK1.CommandsAPI/task-commands",
+    "topic": "task-commands"
   },
   {
     "assemblyPath": "__ECK1_REALTIME_FEEDBACK_CONTRACTS_ASSEMBLY_PATH__",
