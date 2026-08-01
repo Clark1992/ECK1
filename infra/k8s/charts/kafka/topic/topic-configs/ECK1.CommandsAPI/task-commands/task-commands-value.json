@@ -1,0 +1,203 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "ITaskCommand",
+  "type": "object",
+  "definitions": {
+    "CreateTaskCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Title": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        "Description": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        "Status": {
+          "$ref": "#/definitions/TaskStatus"
+        },
+        "Priority": {
+          "$ref": "#/definitions/TaskPriority"
+        },
+        "Assignee": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        "DueDateUtc": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "format": "date-time",
+          "default": null
+        },
+        "Tags": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "default": null,
+          "items": {
+            "type": "string"
+          }
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "CreateTaskCommand"
+          ]
+        }
+      }
+    },
+    "TaskStatus": {
+      "type": "integer",
+      "description": "",
+      "x-enumNames": [
+        "ToDo",
+        "InProgress",
+        "Blocked",
+        "Done",
+        "Cancelled"
+      ],
+      "enum": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "TaskPriority": {
+      "type": "integer",
+      "description": "",
+      "x-enumNames": [
+        "Low",
+        "Medium",
+        "High",
+        "Critical"
+      ],
+      "enum": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    "UpdateTaskCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "Title": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        "Description": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        "Status": {
+          "$ref": "#/definitions/TaskStatus"
+        },
+        "Priority": {
+          "$ref": "#/definitions/TaskPriority"
+        },
+        "Assignee": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "default": null
+        },
+        "DueDateUtc": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "format": "date-time",
+          "default": null
+        },
+        "Tags": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "default": null,
+          "items": {
+            "type": "string"
+          }
+        },
+        "ExpectedVersion": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "UpdateTaskCommand"
+          ]
+        }
+      }
+    },
+    "DeleteTaskCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$type"
+      ],
+      "properties": {
+        "Id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "ExpectedVersion": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "$type": {
+          "type": "string",
+          "enum": [
+            "DeleteTaskCommand"
+          ]
+        }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/definitions/CreateTaskCommand"
+    },
+    {
+      "$ref": "#/definitions/UpdateTaskCommand"
+    },
+    {
+      "$ref": "#/definitions/DeleteTaskCommand"
+    }
+  ]
+}
