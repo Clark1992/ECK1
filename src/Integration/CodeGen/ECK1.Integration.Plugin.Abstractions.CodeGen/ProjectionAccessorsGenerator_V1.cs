@@ -955,6 +955,8 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
             finalExpr = finalAccess + ".ToString()";
         else if (kind == ScalarKind.Guid && IsNullableGuid(chain.Last().Type))
             finalExpr = finalAccess + ".Value";
+        else if (kind == ScalarKind.DateTime && IsNullableDateTime(chain.Last().Type))
+            finalExpr = finalAccess + ".Value";
         else if (kind == ScalarKind.Decimal && IsNullableDecimal(chain.Last().Type))
             finalExpr = finalAccess + ".Value";
         else
@@ -1006,6 +1008,14 @@ public sealed class ProjectionAccessorsGenerator : IIncrementalGenerator
         if (named.OriginalDefinition.SpecialType != SpecialType.System_Nullable_T) return false;
         if (named.TypeArguments.Length != 1) return false;
         return named.TypeArguments[0].SpecialType == SpecialType.System_Decimal;
+    }
+
+    private static bool IsNullableDateTime(ITypeSymbol type)
+    {
+        if (type is not INamedTypeSymbol named) return false;
+        if (named.OriginalDefinition.SpecialType != SpecialType.System_Nullable_T) return false;
+        if (named.TypeArguments.Length != 1) return false;
+        return named.TypeArguments[0].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == "global::System.DateTime";
     }
 
     private static ITypeSymbol UnwrapNullable(ITypeSymbol type)
